@@ -10,13 +10,13 @@ import (
 type TDLibFunctions interface {
 	GetAuthorizationState() (AuthorizationState, error)
 
-	SetTdlibParameters(useTestDc bool, databaseDirectory string, filesDirectory string, databaseEncryptionKey []byte, useFileDatabase bool, useChatInfoDatabase bool, useMessageDatabase bool, useSecretChats bool, aPIID int32, aPIHash string, systemLanguageCode string, deviceModel string, systemVersion string, applicationVersion string, enableStorageOptimizer bool, ignoreFileNames bool) (*Ok, error)
+	SetTdlibParameters(useTestDc bool, databaseDirectory string, filesDirectory string, databaseEncryptionKey []byte, useFileDatabase bool, useChatInfoDatabase bool, useMessageDatabase bool, useSecretChats bool, aPIID int32, aPIHash string, systemLanguageCode string, deviceModel string, systemVersion string, applicationVersion string) (*Ok, error)
 
 	SetAuthenticationPhoneNumber(phoneNumber string, settings *PhoneNumberAuthenticationSettings) (*Ok, error)
 
 	SetAuthenticationEmailAddress(emailAddress string) (*Ok, error)
 
-	ResendAuthenticationCode() (*Ok, error)
+	ResendAuthenticationCode(reason ResendCodeReason) (*Ok, error)
 
 	CheckAuthenticationEmailCode(code EmailAddressAuthentication) (*Ok, error)
 
@@ -24,7 +24,7 @@ type TDLibFunctions interface {
 
 	RequestQrCodeAuthentication(otherUserIDs []int64) (*Ok, error)
 
-	RegisterUser(firstName string, lastName string) (*Ok, error)
+	RegisterUser(firstName string, lastName string, disableNotification bool) (*Ok, error)
 
 	ResetAuthenticationEmailAddress() (*Ok, error)
 
@@ -37,6 +37,8 @@ type TDLibFunctions interface {
 	RecoverAuthenticationPassword(recoveryCode string, newPassword string, newHint string) (*Ok, error)
 
 	SendAuthenticationFirebaseSms(token string) (*Ok, error)
+
+	ReportAuthenticationCodeMissing(mobileNetworkCode string) (*Ok, error)
 
 	CheckAuthenticationBotToken(token string) (*Ok, error)
 
@@ -69,6 +71,8 @@ type TDLibFunctions interface {
 	CheckRecoveryEmailAddressCode(code string) (*PasswordState, error)
 
 	ResendRecoveryEmailAddressCode() (*PasswordState, error)
+
+	CancelRecoveryEmailAddressVerification() (*PasswordState, error)
 
 	RequestPasswordRecovery() (*EmailAddressAuthenticationCodeInfo, error)
 
@@ -114,7 +118,11 @@ type TDLibFunctions interface {
 
 	GetMessages(chatID int64, messageIDs []int64) (*Messages, error)
 
+	GetMessageProperties(chatID int64, messageID int64) (*MessageProperties, error)
+
 	GetMessageThread(chatID int64, messageID int64) (*MessageThreadInfo, error)
+
+	GetMessageReadDate(chatID int64, messageID int64) (MessageReadDate, error)
 
 	GetMessageViewers(chatID int64, messageID int64) (*MessageViewers, error)
 
@@ -135,6 +143,8 @@ type TDLibFunctions interface {
 	SearchChatsOnServer(query string, limit int32) (*Chats, error)
 
 	SearchChatsNearby(location *Location) (*ChatsNearby, error)
+
+	GetRecommendedChats() (*Chats, error)
 
 	GetChatSimilarChats(chatID int64) (*Chats, error)
 
@@ -166,6 +176,22 @@ type TDLibFunctions interface {
 
 	GetInactiveSupergroupChats() (*Chats, error)
 
+	GetSuitablePersonalChats() (*Chats, error)
+
+	LoadSavedMessagesTopics(limit int32) (*Ok, error)
+
+	GetSavedMessagesTopicHistory(savedMessagesTopicID int64, fromMessageID int64, offset int32, limit int32) (*Messages, error)
+
+	GetSavedMessagesTopicMessageByDate(savedMessagesTopicID int64, date int32) (*Message, error)
+
+	DeleteSavedMessagesTopicHistory(savedMessagesTopicID int64) (*Ok, error)
+
+	DeleteSavedMessagesTopicMessagesByDate(savedMessagesTopicID int64, minDate int32, maxDate int32) (*Ok, error)
+
+	ToggleSavedMessagesTopicIsPinned(savedMessagesTopicID int64, isPinned bool) (*Ok, error)
+
+	SetPinnedSavedMessagesTopics(savedMessagesTopicIDs []int64) (*Ok, error)
+
 	GetGroupsInCommon(userID int64, offsetChatID int64, limit int32) (*Chats, error)
 
 	GetChatHistory(chatID int64, fromMessageID int64, offset int32, limit int32, onlyLocal bool) (*Messages, error)
@@ -176,37 +202,53 @@ type TDLibFunctions interface {
 
 	DeleteChat(chatID int64) (*Ok, error)
 
-	SearchChatMessages(chatID int64, query string, senderID MessageSender, fromMessageID int64, offset int32, limit int32, filter SearchMessagesFilter, messageThreadID int64) (*FoundChatMessages, error)
+	SearchChatMessages(chatID int64, query string, senderID MessageSender, fromMessageID int64, offset int32, limit int32, filter SearchMessagesFilter, messageThreadID int64, savedMessagesTopicID int64) (*FoundChatMessages, error)
 
-	SearchMessages(chatList ChatList, query string, offset string, limit int32, filter SearchMessagesFilter, minDate int32, maxDate int32) (*FoundMessages, error)
+	SearchMessages(chatList ChatList, onlyInChannels bool, query string, offset string, limit int32, filter SearchMessagesFilter, minDate int32, maxDate int32) (*FoundMessages, error)
 
 	SearchSecretMessages(chatID int64, query string, offset string, limit int32, filter SearchMessagesFilter) (*FoundMessages, error)
+
+	SearchSavedMessages(savedMessagesTopicID int64, tag ReactionType, query string, fromMessageID int64, offset int32, limit int32) (*FoundChatMessages, error)
 
 	SearchCallMessages(offset string, limit int32, onlyMissed bool) (*FoundMessages, error)
 
 	SearchOutgoingDocumentMessages(query string, limit int32) (*FoundMessages, error)
 
+	SearchPublicMessagesByTag(tag string, offset string, limit int32) (*FoundMessages, error)
+
+	SearchPublicStoriesByTag(tag string, offset string, limit int32) (*FoundStories, error)
+
+	SearchPublicStoriesByLocation(address *LocationAddress, offset string, limit int32) (*FoundStories, error)
+
+	SearchPublicStoriesByVenue(venueProvider string, venueID string, offset string, limit int32) (*FoundStories, error)
+
+	GetSearchedForTags(tagPrefix string, limit int32) (*Hashtags, error)
+
+	RemoveSearchedForTag(tag string) (*Ok, error)
+
+	ClearSearchedForTags(clearCashtags bool) (*Ok, error)
+
 	DeleteAllCallMessages(revoke bool) (*Ok, error)
 
 	SearchChatRecentLocationMessages(chatID int64, limit int32) (*Messages, error)
 
-	GetActiveLiveLocationMessages() (*Messages, error)
-
 	GetChatMessageByDate(chatID int64, date int32) (*Message, error)
 
-	GetChatSparseMessagePositions(chatID int64, filter SearchMessagesFilter, fromMessageID int64, limit int32) (*MessagePositions, error)
+	GetChatSparseMessagePositions(chatID int64, filter SearchMessagesFilter, fromMessageID int64, limit int32, savedMessagesTopicID int64) (*MessagePositions, error)
 
-	GetChatMessageCalendar(chatID int64, filter SearchMessagesFilter, fromMessageID int64) (*MessageCalendar, error)
+	GetChatMessageCalendar(chatID int64, filter SearchMessagesFilter, fromMessageID int64, savedMessagesTopicID int64) (*MessageCalendar, error)
 
-	GetChatMessageCount(chatID int64, filter SearchMessagesFilter, returnLocal bool) (*Count, error)
+	GetChatMessageCount(chatID int64, filter SearchMessagesFilter, savedMessagesTopicID int64, returnLocal bool) (*Count, error)
 
-	GetChatMessagePosition(chatID int64, messageID int64, filter SearchMessagesFilter, messageThreadID int64) (*Count, error)
+	GetChatMessagePosition(chatID int64, messageID int64, filter SearchMessagesFilter, messageThreadID int64, savedMessagesTopicID int64) (*Count, error)
 
 	GetChatScheduledMessages(chatID int64) (*Messages, error)
 
 	GetChatSponsoredMessages(chatID int64) (*SponsoredMessages, error)
 
 	ClickChatSponsoredMessage(chatID int64, messageID int64) (*Ok, error)
+
+	ReportChatSponsoredMessage(chatID int64, messageID int64, optionID []byte) (ReportChatSponsoredMessageResult, error)
 
 	RemoveNotification(notificationGroupID int32, notificationID int32) (*Ok, error)
 
@@ -240,6 +282,8 @@ type TDLibFunctions interface {
 
 	ForwardMessages(chatID int64, messageThreadID int64, fromChatID int64, messageIDs []int64, options *MessageSendOptions, sendCopy bool, removeCaption bool) (*Messages, error)
 
+	SendQuickReplyShortcutMessages(chatID int64, shortcutID int32, sendingID int32) (*Messages, error)
+
 	ResendMessages(chatID int64, messageIDs []int64, quote *InputTextQuote) (*Messages, error)
 
 	AddLocalMessage(chatID int64, senderID MessageSender, replyTo InputMessageReplyTo, disableNotification bool, inputMessageContent InputMessageContent) (*Message, error)
@@ -252,25 +296,69 @@ type TDLibFunctions interface {
 
 	EditMessageText(chatID int64, messageID int64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*Message, error)
 
-	EditMessageLiveLocation(chatID int64, messageID int64, replyMarkup ReplyMarkup, location *Location, heading int32, proximityAlertRadius int32) (*Message, error)
+	EditMessageLiveLocation(chatID int64, messageID int64, replyMarkup ReplyMarkup, location *Location, livePeriod int32, heading int32, proximityAlertRadius int32) (*Message, error)
 
 	EditMessageMedia(chatID int64, messageID int64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*Message, error)
 
-	EditMessageCaption(chatID int64, messageID int64, replyMarkup ReplyMarkup, caption *FormattedText) (*Message, error)
+	EditMessageCaption(chatID int64, messageID int64, replyMarkup ReplyMarkup, caption *FormattedText, showCaptionAboveMedia bool) (*Message, error)
 
 	EditMessageReplyMarkup(chatID int64, messageID int64, replyMarkup ReplyMarkup) (*Message, error)
 
 	EditInlineMessageText(inlineMessageID string, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*Ok, error)
 
-	EditInlineMessageLiveLocation(inlineMessageID string, replyMarkup ReplyMarkup, location *Location, heading int32, proximityAlertRadius int32) (*Ok, error)
+	EditInlineMessageLiveLocation(inlineMessageID string, replyMarkup ReplyMarkup, location *Location, livePeriod int32, heading int32, proximityAlertRadius int32) (*Ok, error)
 
 	EditInlineMessageMedia(inlineMessageID string, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*Ok, error)
 
-	EditInlineMessageCaption(inlineMessageID string, replyMarkup ReplyMarkup, caption *FormattedText) (*Ok, error)
+	EditInlineMessageCaption(inlineMessageID string, replyMarkup ReplyMarkup, caption *FormattedText, showCaptionAboveMedia bool) (*Ok, error)
 
 	EditInlineMessageReplyMarkup(inlineMessageID string, replyMarkup ReplyMarkup) (*Ok, error)
 
 	EditMessageSchedulingState(chatID int64, messageID int64, schedulingState MessageSchedulingState) (*Ok, error)
+
+	SetMessageFactCheck(chatID int64, messageID int64, text *FormattedText) (*Ok, error)
+
+	SendBusinessMessage(businessConnectionID string, chatID int64, replyTo InputMessageReplyTo, disableNotification bool, protectContent bool, effectID *JSONInt64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*BusinessMessage, error)
+
+	SendBusinessMessageAlbum(businessConnectionID string, chatID int64, replyTo InputMessageReplyTo, disableNotification bool, protectContent bool, effectID *JSONInt64, inputMessageContents []InputMessageContent) (*BusinessMessages, error)
+
+	EditBusinessMessageText(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*BusinessMessage, error)
+
+	EditBusinessMessageLiveLocation(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup, location *Location, livePeriod int32, heading int32, proximityAlertRadius int32) (*BusinessMessage, error)
+
+	EditBusinessMessageMedia(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*BusinessMessage, error)
+
+	EditBusinessMessageCaption(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup, caption *FormattedText, showCaptionAboveMedia bool) (*BusinessMessage, error)
+
+	EditBusinessMessageReplyMarkup(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup) (*BusinessMessage, error)
+
+	StopBusinessPoll(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup) (*BusinessMessage, error)
+
+	SetBusinessMessageIsPinned(businessConnectionID string, chatID int64, messageID int64, isPinned bool) (*Ok, error)
+
+	CheckQuickReplyShortcutName(name string) (*Ok, error)
+
+	LoadQuickReplyShortcuts() (*Ok, error)
+
+	SetQuickReplyShortcutName(shortcutID int32, name string) (*Ok, error)
+
+	DeleteQuickReplyShortcut(shortcutID int32) (*Ok, error)
+
+	ReorderQuickReplyShortcuts(shortcutIDs []int32) (*Ok, error)
+
+	LoadQuickReplyShortcutMessages(shortcutID int32) (*Ok, error)
+
+	DeleteQuickReplyShortcutMessages(shortcutID int32, messageIDs []int64) (*Ok, error)
+
+	AddQuickReplyShortcutMessage(shortcutName string, replyToMessageID int64, inputMessageContent InputMessageContent) (*QuickReplyMessage, error)
+
+	AddQuickReplyShortcutInlineQueryResultMessage(shortcutName string, replyToMessageID int64, queryID *JSONInt64, resultID string, hideViaBot bool) (*QuickReplyMessage, error)
+
+	AddQuickReplyShortcutMessageAlbum(shortcutName string, replyToMessageID int64, inputMessageContents []InputMessageContent) (*QuickReplyMessages, error)
+
+	ReaddQuickReplyShortcutMessages(shortcutName string, messageIDs []int64) (*QuickReplyMessages, error)
+
+	EditQuickReplyMessage(shortcutID int32, messageID int64, inputMessageContent InputMessageContent) (*Ok, error)
 
 	GetForumTopicDefaultIcons() (*Stickers, error)
 
@@ -308,11 +396,25 @@ type TDLibFunctions interface {
 
 	RemoveMessageReaction(chatID int64, messageID int64, reactionType ReactionType) (*Ok, error)
 
+	AddPendingPaidMessageReaction(chatID int64, messageID int64, starCount int64, useDefaultIsAnonymous bool, isAnonymous bool) (*Ok, error)
+
+	CommitPendingPaidMessageReactions(chatID int64, messageID int64) (*Ok, error)
+
+	RemovePendingPaidMessageReactions(chatID int64, messageID int64) (*Ok, error)
+
+	TogglePaidMessageReactionIsAnonymous(chatID int64, messageID int64, isAnonymous bool) (*Ok, error)
+
 	SetMessageReactions(chatID int64, messageID int64, reactionTypes []ReactionType, isBig bool) (*Ok, error)
 
 	GetMessageAddedReactions(chatID int64, messageID int64, reactionType ReactionType, offset string, limit int32) (*AddedReactions, error)
 
 	SetDefaultReactionType(reactionType ReactionType) (*Ok, error)
+
+	GetSavedMessagesTags(savedMessagesTopicID int64) (*SavedMessagesTags, error)
+
+	SetSavedMessagesTagLabel(tag ReactionType, label string) (*Ok, error)
+
+	GetMessageEffect(effectID *JSONInt64) (*MessageEffect, error)
 
 	SearchQuote(text *FormattedText, quote *FormattedText, quotePosition int32) (*FoundPosition, error)
 
@@ -323,6 +425,8 @@ type TDLibFunctions interface {
 	ParseMarkdown(text *FormattedText) (*FormattedText, error)
 
 	GetMarkdownText(text *FormattedText) (*FormattedText, error)
+
+	GetCountryFlagEmoji(countryCode string) (*Text, error)
 
 	GetFileMimeType(fileName string) (*Text, error)
 
@@ -346,6 +450,10 @@ type TDLibFunctions interface {
 
 	HideSuggestedAction(action SuggestedAction) (*Ok, error)
 
+	HideContactCloseBirthdays() (*Ok, error)
+
+	GetBusinessConnection(connectionID string) (*BusinessConnection, error)
+
 	GetLoginURLInfo(chatID int64, messageID int64, buttonID int64) (LoginURLInfo, error)
 
 	GetLoginURL(chatID int64, messageID int64, buttonID int64, allowWriteAccess bool) (*HttpURL, error)
@@ -358,9 +466,13 @@ type TDLibFunctions interface {
 
 	AnswerInlineQuery(inlineQueryID *JSONInt64, isPersonal bool, button *InlineQueryResultsButton, results []InputInlineQueryResult, cacheTime int32, nextOffset string) (*Ok, error)
 
+	GetGrossingWebAppBots(offset string, limit int32) (*FoundUsers, error)
+
 	SearchWebApp(botUserID int64, webAppShortName string) (*FoundWebApp, error)
 
 	GetWebAppLinkURL(chatID int64, botUserID int64, webAppShortName string, startParameter string, theme *ThemeParameters, applicationName string, allowWriteAccess bool) (*HttpURL, error)
+
+	GetMainWebApp(chatID int64, botUserID int64, startParameter string, theme *ThemeParameters, applicationName string) (*MainWebApp, error)
 
 	GetWebAppURL(botUserID int64, uRL string, theme *ThemeParameters, applicationName string) (*HttpURL, error)
 
@@ -390,7 +502,7 @@ type TDLibFunctions interface {
 
 	DeleteChatReplyMarkup(chatID int64, messageID int64) (*Ok, error)
 
-	SendChatAction(chatID int64, messageThreadID int64, action ChatAction) (*Ok, error)
+	SendChatAction(chatID int64, messageThreadID int64, businessConnectionID string, action ChatAction) (*Ok, error)
 
 	OpenChat(chatID int64) (*Ok, error)
 
@@ -426,7 +538,7 @@ type TDLibFunctions interface {
 
 	CreateSecretChat(secretChatID int32) (*Chat, error)
 
-	CreateNewBasicGroupChat(userIDs []int64, title string, messageAutoDeleteTime int32) (*Chat, error)
+	CreateNewBasicGroupChat(userIDs []int64, title string, messageAutoDeleteTime int32) (*CreatedBasicGroupChat, error)
 
 	CreateNewSupergroupChat(title string, isForum bool, isChannel bool, description string, location *ChatLocation, messageAutoDeleteTime int32, forImport bool) (*Chat, error)
 
@@ -451,6 +563,8 @@ type TDLibFunctions interface {
 	GetChatFolderChatCount(folder *ChatFolder) (*Count, error)
 
 	ReorderChatFolders(chatFolderIDs []int32, mainChatListPosition int32) (*Ok, error)
+
+	ToggleChatFolderTags(areTagsEnabled bool) (*Ok, error)
 
 	GetRecommendedChatFolders() (*RecommendedChatFolders, error)
 
@@ -536,9 +650,9 @@ type TDLibFunctions interface {
 
 	LeaveChat(chatID int64) (*Ok, error)
 
-	AddChatMember(chatID int64, userID int64, forwardLimit int32) (*Ok, error)
+	AddChatMember(chatID int64, userID int64, forwardLimit int32) (*FailedToAddMembers, error)
 
-	AddChatMembers(chatID int64, userIDs []int64) (*Ok, error)
+	AddChatMembers(chatID int64, userIDs []int64) (*FailedToAddMembers, error)
 
 	SetChatMemberStatus(chatID int64, memberID MessageSender, status ChatMemberStatus) (*Ok, error)
 
@@ -570,6 +684,8 @@ type TDLibFunctions interface {
 
 	SetScopeNotificationSettings(scope NotificationSettingsScope, notificationSettings *ScopeNotificationSettings) (*Ok, error)
 
+	SetReactionNotificationSettings(notificationSettings *ReactionNotificationSettings) (*Ok, error)
+
 	ResetAllNotificationSettings() (*Ok, error)
 
 	ToggleChatIsPinned(chatList ChatList, chatID int64, isPinned bool) (*Ok, error)
@@ -578,19 +694,23 @@ type TDLibFunctions interface {
 
 	ReadChatList(chatList ChatList) (*Ok, error)
 
+	GetCurrentWeather(location *Location) (*CurrentWeather, error)
+
 	GetStory(storySenderChatID int64, storyID int32, onlyLocal bool) (*Story, error)
 
 	GetChatsToSendStories() (*Chats, error)
 
 	CanSendStory(chatID int64) (CanSendStoryResult, error)
 
-	SendStory(chatID int64, content InputStoryContent, areas *InputStoryAreas, caption *FormattedText, privacySettings StoryPrivacySettings, activePeriod int32, fromStoryFullID *StoryFullID, isPinned bool, protectContent bool) (*Story, error)
+	SendStory(chatID int64, content InputStoryContent, areas *InputStoryAreas, caption *FormattedText, privacySettings StoryPrivacySettings, activePeriod int32, fromStoryFullID *StoryFullID, isPostedToChatPage bool, protectContent bool) (*Story, error)
 
 	EditStory(storySenderChatID int64, storyID int32, content InputStoryContent, areas *InputStoryAreas, caption *FormattedText) (*Ok, error)
 
-	SetStoryPrivacySettings(storySenderChatID int64, storyID int32, privacySettings StoryPrivacySettings) (*Ok, error)
+	EditStoryCover(storySenderChatID int64, storyID int32, coverFrameTimestamp float64) (*Ok, error)
 
-	ToggleStoryIsPinned(storySenderChatID int64, storyID int32, isPinned bool) (*Ok, error)
+	SetStoryPrivacySettings(storyID int32, privacySettings StoryPrivacySettings) (*Ok, error)
+
+	ToggleStoryIsPostedToChatPage(storySenderChatID int64, storyID int32, isPostedToChatPage bool) (*Ok, error)
 
 	DeleteStory(storySenderChatID int64, storyID int32) (*Ok, error)
 
@@ -602,9 +722,11 @@ type TDLibFunctions interface {
 
 	GetChatActiveStories(chatID int64) (*ChatActiveStories, error)
 
-	GetChatPinnedStories(chatID int64, fromStoryID int32, limit int32) (*Stories, error)
+	GetChatPostedToChatPageStories(chatID int64, fromStoryID int32, limit int32) (*Stories, error)
 
 	GetChatArchivedStories(chatID int64, fromStoryID int32, limit int32) (*Stories, error)
+
+	SetChatPinnedStories(chatID int64, storyIDs []int32) (*Ok, error)
 
 	OpenStory(storySenderChatID int64, storyID int32) (*Ok, error)
 
@@ -624,9 +746,9 @@ type TDLibFunctions interface {
 
 	GetStoryPublicForwards(storySenderChatID int64, storyID int32, offset string, limit int32) (*PublicForwards, error)
 
-	GetChatBoostLevelFeatures(level int32) (*ChatBoostLevelFeatures, error)
+	GetChatBoostLevelFeatures(isChannel bool, level int32) (*ChatBoostLevelFeatures, error)
 
-	GetChatBoostFeatures() (*ChatBoostFeatures, error)
+	GetChatBoostFeatures(isChannel bool) (*ChatBoostFeatures, error)
 
 	GetAvailableChatBoostSlots() (*ChatBoostSlots, error)
 
@@ -694,6 +816,8 @@ type TDLibFunctions interface {
 
 	SearchFileDownloads(query string, onlyActive bool, onlyCompleted bool, offset string, limit int32) (*FoundFileDownloads, error)
 
+	SetApplicationVerificationToken(verificationID int64, token string) (*Ok, error)
+
 	GetMessageFileType(messageFileHead string) (MessageFileType, error)
 
 	GetMessageImportConfirmationText(chatID int64) (*Text, error)
@@ -704,7 +828,11 @@ type TDLibFunctions interface {
 
 	CreateChatInviteLink(chatID int64, name string, expirationDate int32, memberLimit int32, createsJoinRequest bool) (*ChatInviteLink, error)
 
+	CreateChatSubscriptionInviteLink(chatID int64, name string, subscriptionPricing *StarSubscriptionPricing) (*ChatInviteLink, error)
+
 	EditChatInviteLink(chatID int64, inviteLink string, name string, expirationDate int32, memberLimit int32, createsJoinRequest bool) (*ChatInviteLink, error)
+
+	EditChatSubscriptionInviteLink(chatID int64, inviteLink string, name string) (*ChatInviteLink, error)
 
 	GetChatInviteLink(chatID int64, inviteLink string) (*ChatInviteLink, error)
 
@@ -712,7 +840,7 @@ type TDLibFunctions interface {
 
 	GetChatInviteLinks(chatID int64, creatorUserID int64, isRevoked bool, offsetDate int32, offsetInviteLink string, limit int32) (*ChatInviteLinks, error)
 
-	GetChatInviteLinkMembers(chatID int64, inviteLink string, offsetMember *ChatInviteLinkMember, limit int32) (*ChatInviteLinkMembers, error)
+	GetChatInviteLinkMembers(chatID int64, inviteLink string, onlyWithExpiredSubscription bool, offsetMember *ChatInviteLinkMember, limit int32) (*ChatInviteLinkMembers, error)
 
 	RevokeChatInviteLink(chatID int64, inviteLink string) (*ChatInviteLinks, error)
 
@@ -834,7 +962,7 @@ type TDLibFunctions interface {
 
 	SuggestUserProfilePhoto(userID int64, photo InputChatPhoto) (*Ok, error)
 
-	SearchUserByPhoneNumber(phoneNumber string) (*User, error)
+	SearchUserByPhoneNumber(phoneNumber string, onlyLocal bool) (*User, error)
 
 	SharePhoneNumber(userID int64) (*Ok, error)
 
@@ -845,6 +973,8 @@ type TDLibFunctions interface {
 	GetAllStickerEmojis(stickerType StickerType, query string, chatID int64, returnOnlyMainEmoji bool) (*Emojis, error)
 
 	SearchStickers(stickerType StickerType, emojis string, limit int32) (*Stickers, error)
+
+	GetGreetingStickers() (*Stickers, error)
 
 	GetPremiumStickers(limit int32) (*Stickers, error)
 
@@ -857,6 +987,8 @@ type TDLibFunctions interface {
 	GetAttachedStickerSets(fileID int32) (*StickerSets, error)
 
 	GetStickerSet(setID *JSONInt64) (*StickerSet, error)
+
+	GetStickerSetName(setID *JSONInt64) (*Text, error)
 
 	SearchStickerSet(name string) (*StickerSet, error)
 
@@ -886,7 +1018,9 @@ type TDLibFunctions interface {
 
 	GetStickerEmojis(sticker InputFile) (*Emojis, error)
 
-	SearchEmojis(text string, exactMatch bool, inputLanguageCodes []string) (*Emojis, error)
+	SearchEmojis(text string, inputLanguageCodes []string) (*EmojiKeywords, error)
+
+	GetKeywordEmojis(text string, inputLanguageCodes []string) (*Emojis, error)
 
 	GetEmojiCategories(typeParam EmojiCategoryType) (*EmojiCategories, error)
 
@@ -914,7 +1048,7 @@ type TDLibFunctions interface {
 
 	RemoveRecentHashtag(hashtag string) (*Ok, error)
 
-	GetWebPagePreview(text *FormattedText, linkPreviewOptions *LinkPreviewOptions) (*WebPage, error)
+	GetLinkPreview(text *FormattedText, linkPreviewOptions *LinkPreviewOptions) (*LinkPreview, error)
 
 	GetWebPageInstantView(uRL string, forceFull bool) (*WebPageInstantView, error)
 
@@ -936,15 +1070,55 @@ type TDLibFunctions interface {
 
 	ReorderActiveUsernames(usernames []string) (*Ok, error)
 
+	SetBirthdate(birthdate *Birthdate) (*Ok, error)
+
+	SetPersonalChat(chatID int64) (*Ok, error)
+
 	SetEmojiStatus(emojiStatus *EmojiStatus) (*Ok, error)
 
 	SetLocation(location *Location) (*Ok, error)
 
-	ChangePhoneNumber(phoneNumber string, settings *PhoneNumberAuthenticationSettings) (*AuthenticationCodeInfo, error)
+	ToggleHasSponsoredMessagesEnabled(hasSponsoredMessagesEnabled bool) (*Ok, error)
 
-	ResendChangePhoneNumberCode() (*AuthenticationCodeInfo, error)
+	SetBusinessLocation(location *BusinessLocation) (*Ok, error)
 
-	CheckChangePhoneNumberCode(code string) (*Ok, error)
+	SetBusinessOpeningHours(openingHours *BusinessOpeningHours) (*Ok, error)
+
+	SetBusinessGreetingMessageSettings(greetingMessageSettings *BusinessGreetingMessageSettings) (*Ok, error)
+
+	SetBusinessAwayMessageSettings(awayMessageSettings *BusinessAwayMessageSettings) (*Ok, error)
+
+	SetBusinessStartPage(startPage *InputBusinessStartPage) (*Ok, error)
+
+	SendPhoneNumberCode(phoneNumber string, settings *PhoneNumberAuthenticationSettings, typeParam PhoneNumberCodeType) (*AuthenticationCodeInfo, error)
+
+	SendPhoneNumberFirebaseSms(token string) (*Ok, error)
+
+	ReportPhoneNumberCodeMissing(mobileNetworkCode string) (*Ok, error)
+
+	ResendPhoneNumberCode(reason ResendCodeReason) (*AuthenticationCodeInfo, error)
+
+	CheckPhoneNumberCode(code string) (*Ok, error)
+
+	GetBusinessConnectedBot() (*BusinessConnectedBot, error)
+
+	SetBusinessConnectedBot(bot *BusinessConnectedBot) (*Ok, error)
+
+	DeleteBusinessConnectedBot(botUserID int64) (*Ok, error)
+
+	ToggleBusinessConnectedBotChatIsPaused(chatID int64, isPaused bool) (*Ok, error)
+
+	RemoveBusinessConnectedBotFromChat(chatID int64) (*Ok, error)
+
+	GetBusinessChatLinks() (*BusinessChatLinks, error)
+
+	CreateBusinessChatLink(linkInfo *InputBusinessChatLink) (*BusinessChatLink, error)
+
+	EditBusinessChatLink(link string, linkInfo *InputBusinessChatLink) (*BusinessChatLink, error)
+
+	DeleteBusinessChatLink(link string) (*Ok, error)
+
+	GetBusinessChatLinkInfo(linkName string) (*BusinessChatLinkInfo, error)
 
 	GetUserLink() (*UserLink, error)
 
@@ -969,6 +1143,18 @@ type TDLibFunctions interface {
 	AllowBotToSendMessages(botUserID int64) (*Ok, error)
 
 	SendWebAppCustomRequest(botUserID int64, method string, parameters string) (*CustomRequestResult, error)
+
+	GetBotMediaPreviews(botUserID int64) (*BotMediaPreviews, error)
+
+	GetBotMediaPreviewInfo(botUserID int64, languageCode string) (*BotMediaPreviewInfo, error)
+
+	AddBotMediaPreview(botUserID int64, languageCode string, content InputStoryContent) (*BotMediaPreview, error)
+
+	EditBotMediaPreview(botUserID int64, languageCode string, fileID int32, content InputStoryContent) (*BotMediaPreview, error)
+
+	ReorderBotMediaPreviews(botUserID int64, languageCode string, fileIDs []int32) (*Ok, error)
+
+	DeleteBotMediaPreviews(botUserID int64, languageCode string, fileIDs []int32) (*Ok, error)
 
 	SetBotName(botUserID int64, languageCode string, name string) (*Ok, error)
 
@@ -1018,13 +1204,19 @@ type TDLibFunctions interface {
 
 	SetSupergroupStickerSet(supergroupID int64, stickerSetID *JSONInt64) (*Ok, error)
 
-	ToggleSupergroupSignMessages(supergroupID int64, signMessages bool) (*Ok, error)
+	SetSupergroupCustomEmojiStickerSet(supergroupID int64, customEmojiStickerSetID *JSONInt64) (*Ok, error)
+
+	SetSupergroupUnrestrictBoostCount(supergroupID int64, unrestrictBoostCount int32) (*Ok, error)
+
+	ToggleSupergroupSignMessages(supergroupID int64, signMessages bool, showMessageSender bool) (*Ok, error)
 
 	ToggleSupergroupJoinToSendMessages(supergroupID int64, joinToSendMessages bool) (*Ok, error)
 
 	ToggleSupergroupJoinByRequest(supergroupID int64, joinByRequest bool) (*Ok, error)
 
 	ToggleSupergroupIsAllHistoryAvailable(supergroupID int64, isAllHistoryAvailable bool) (*Ok, error)
+
+	ToggleSupergroupCanHaveSponsoredMessages(supergroupID int64, canHaveSponsoredMessages bool) (*Ok, error)
 
 	ToggleSupergroupHasHiddenMembers(supergroupID int64, hasHiddenMembers bool) (*Ok, error)
 
@@ -1044,6 +1236,8 @@ type TDLibFunctions interface {
 
 	GetChatEventLog(chatID int64, query string, fromEventID *JSONInt64, limit int32, filters *ChatEventLogFilters, userIDs []int64) (*ChatEvents, error)
 
+	GetTimeZones() (*TimeZones, error)
+
 	GetPaymentForm(inputInvoice InputInvoice, theme *ThemeParameters) (*PaymentForm, error)
 
 	ValidateOrderInfo(inputInvoice InputInvoice, orderInfo *OrderInfo, allowSave bool) (*ValidatedOrderInfo, error)
@@ -1059,6 +1253,8 @@ type TDLibFunctions interface {
 	DeleteSavedCredentials() (*Ok, error)
 
 	CreateInvoiceLink(invoice InputMessageContent) (*HttpURL, error)
+
+	RefundStarPayment(userID int64, telegramPaymentChargeID string) (*Ok, error)
 
 	GetSupportUser() (*User, error)
 
@@ -1106,6 +1302,16 @@ type TDLibFunctions interface {
 
 	GetUserPrivacySettingRules(setting UserPrivacySetting) (*UserPrivacySettingRules, error)
 
+	SetReadDatePrivacySettings(settings *ReadDatePrivacySettings) (*Ok, error)
+
+	GetReadDatePrivacySettings() (*ReadDatePrivacySettings, error)
+
+	SetNewChatPrivacySettings(settings *NewChatPrivacySettings) (*Ok, error)
+
+	GetNewChatPrivacySettings() (*NewChatPrivacySettings, error)
+
+	CanSendMessageToUser(userID int64, onlyLocal bool) (CanSendMessageToUserResult, error)
+
 	GetOption(name string) (OptionValue, error)
 
 	SetOption(name string, value OptionValue) (*Ok, error)
@@ -1127,6 +1333,18 @@ type TDLibFunctions interface {
 	ReportChatPhoto(chatID int64, fileID int32, reason ReportReason, text string) (*Ok, error)
 
 	ReportMessageReactions(chatID int64, messageID int64, senderID MessageSender) (*Ok, error)
+
+	GetChatRevenueStatistics(chatID int64, isDark bool) (*ChatRevenueStatistics, error)
+
+	GetChatRevenueWithdrawalURL(chatID int64, password string) (*HttpURL, error)
+
+	GetChatRevenueTransactions(chatID int64, offset int32, limit int32) (*ChatRevenueTransactions, error)
+
+	GetStarRevenueStatistics(ownerID MessageSender, isDark bool) (*StarRevenueStatistics, error)
+
+	GetStarWithdrawalURL(ownerID MessageSender, starCount int64, password string) (*HttpURL, error)
+
+	GetStarAdAccountURL(ownerID MessageSender) (*HttpURL, error)
 
 	GetChatStatistics(chatID int64, isDark bool) (ChatStatistics, error)
 
@@ -1178,12 +1396,6 @@ type TDLibFunctions interface {
 
 	GetPreferredCountryLanguage(countryCode string) (*Text, error)
 
-	SendPhoneNumberVerificationCode(phoneNumber string, settings *PhoneNumberAuthenticationSettings) (*AuthenticationCodeInfo, error)
-
-	ResendPhoneNumberVerificationCode() (*AuthenticationCodeInfo, error)
-
-	CheckPhoneNumberVerificationCode(code string) (*Ok, error)
-
 	SendEmailAddressVerificationCode(emailAddress string) (*EmailAddressAuthenticationCodeInfo, error)
 
 	ResendEmailAddressVerificationCode() (*EmailAddressAuthenticationCodeInfo, error)
@@ -1196,12 +1408,6 @@ type TDLibFunctions interface {
 
 	SendPassportAuthorizationForm(authorizationFormID int32, typeParams []PassportElementType) (*Ok, error)
 
-	SendPhoneNumberConfirmationCode(hash string, phoneNumber string, settings *PhoneNumberAuthenticationSettings) (*AuthenticationCodeInfo, error)
-
-	ResendPhoneNumberConfirmationCode() (*AuthenticationCodeInfo, error)
-
-	CheckPhoneNumberConfirmationCode(code string) (*Ok, error)
-
 	SetBotUpdatesStatus(pendingUpdateCount int32, errParamMessage string) (*Ok, error)
 
 	UploadStickerFile(userID int64, stickerFormat StickerFormat, sticker InputFile) (*File, error)
@@ -1210,11 +1416,13 @@ type TDLibFunctions interface {
 
 	CheckStickerSetName(name string) (CheckStickerSetNameResult, error)
 
-	CreateNewStickerSet(userID int64, title string, name string, stickerFormat StickerFormat, stickerType StickerType, needsRepainting bool, stickers []InputSticker, source string) (*StickerSet, error)
+	CreateNewStickerSet(userID int64, title string, name string, stickerType StickerType, needsRepainting bool, stickers []InputSticker, source string) (*StickerSet, error)
 
 	AddStickerToSet(userID int64, name string, sticker *InputSticker) (*Ok, error)
 
-	SetStickerSetThumbnail(userID int64, name string, thumbnail InputFile) (*Ok, error)
+	ReplaceStickerInSet(userID int64, name string, oldSticker InputFile, newSticker *InputSticker) (*Ok, error)
+
+	SetStickerSetThumbnail(userID int64, name string, thumbnail InputFile, format StickerFormat) (*Ok, error)
 
 	SetCustomEmojiStickerSetThumbnail(name string, customEmojiID *JSONInt64) (*Ok, error)
 
@@ -1231,6 +1439,8 @@ type TDLibFunctions interface {
 	SetStickerKeywords(sticker InputFile, keywords []string) (*Ok, error)
 
 	SetStickerMaskPosition(sticker InputFile, maskPosition *MaskPosition) (*Ok, error)
+
+	GetOwnedStickerSets(offsetStickerSetID *JSONInt64, limit int32) (*StickerSets, error)
 
 	GetMapThumbnailFile(location *Location, zoom int32, width int32, height int32, scale int32, chatID int64) (*File, error)
 
@@ -1252,15 +1462,31 @@ type TDLibFunctions interface {
 
 	ApplyPremiumGiftCode(code string) (*Ok, error)
 
-	LaunchPrepaidPremiumGiveaway(giveawayID *JSONInt64, parameters *PremiumGiveawayParameters) (*Ok, error)
+	LaunchPrepaidGiveaway(giveawayID *JSONInt64, parameters *GiveawayParameters, winnerCount int32, starCount int64) (*Ok, error)
 
-	GetPremiumGiveawayInfo(chatID int64, messageID int64) (PremiumGiveawayInfo, error)
+	GetGiveawayInfo(chatID int64, messageID int64) (GiveawayInfo, error)
 
-	CanPurchasePremium(purpose StorePaymentPurpose) (*Ok, error)
+	GetStarPaymentOptions() (*StarPaymentOptions, error)
+
+	GetStarGiftPaymentOptions(userID int64) (*StarPaymentOptions, error)
+
+	GetStarGiveawayPaymentOptions() (*StarGiveawayPaymentOptions, error)
+
+	GetStarTransactions(ownerID MessageSender, subscriptionID string, direction StarTransactionDirection, offset string, limit int32) (*StarTransactions, error)
+
+	GetStarSubscriptions(onlyExpiring bool, offset string) (*StarSubscriptions, error)
+
+	CanPurchaseFromStore(purpose StorePaymentPurpose) (*Ok, error)
 
 	AssignAppStoreTransaction(receipt []byte, purpose StorePaymentPurpose) (*Ok, error)
 
 	AssignGooglePlayTransaction(packageName string, storeProductID string, purchaseToken string, purpose StorePaymentPurpose) (*Ok, error)
+
+	EditStarSubscription(subscriptionID string, isCanceled bool) (*Ok, error)
+
+	ReuseStarSubscription(subscriptionID string) (*Ok, error)
+
+	GetBusinessFeatures(source BusinessFeature) (*BusinessFeatures, error)
 
 	AcceptTermsOfService(termsOfServiceID string) (*Ok, error)
 
@@ -1279,6 +1505,8 @@ type TDLibFunctions interface {
 	GetPhoneNumberInfo(phoneNumberPrefix string) (*PhoneNumberInfo, error)
 
 	GetPhoneNumberInfoSync(languageCode string, phoneNumberPrefix string) (*PhoneNumberInfo, error)
+
+	GetCollectibleItemInfo(typeParam CollectibleItemType) (*CollectibleItemInfo, error)
 
 	GetDeepLinkInfo(link string) (*DeepLinkInfo, error)
 
@@ -1449,27 +1677,23 @@ func (client *ClientImpl) GetAuthorizationState() (AuthorizationState, error) {
 // @param deviceModel Model of the device the application is being run on; must be non-empty
 // @param systemVersion Version of the operating system the application is being run on. If empty, the version is automatically detected by TDLib
 // @param applicationVersion Application version; must be non-empty
-// @param enableStorageOptimizer Pass true to automatically delete old files in background
-// @param ignoreFileNames Pass true to ignore original file names for downloaded files. Otherwise, downloaded files are saved under names as close as possible to the original name
-func (client *ClientImpl) SetTdlibParameters(useTestDc bool, databaseDirectory string, filesDirectory string, databaseEncryptionKey []byte, useFileDatabase bool, useChatInfoDatabase bool, useMessageDatabase bool, useSecretChats bool, aPIID int32, aPIHash string, systemLanguageCode string, deviceModel string, systemVersion string, applicationVersion string, enableStorageOptimizer bool, ignoreFileNames bool) (*Ok, error) {
+func (client *ClientImpl) SetTdlibParameters(useTestDc bool, databaseDirectory string, filesDirectory string, databaseEncryptionKey []byte, useFileDatabase bool, useChatInfoDatabase bool, useMessageDatabase bool, useSecretChats bool, aPIID int32, aPIHash string, systemLanguageCode string, deviceModel string, systemVersion string, applicationVersion string) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":                    "setTdlibParameters",
-		"use_test_dc":              useTestDc,
-		"database_directory":       databaseDirectory,
-		"files_directory":          filesDirectory,
-		"database_encryption_key":  databaseEncryptionKey,
-		"use_file_database":        useFileDatabase,
-		"use_chat_info_database":   useChatInfoDatabase,
-		"use_message_database":     useMessageDatabase,
-		"use_secret_chats":         useSecretChats,
-		"api_id":                   aPIID,
-		"api_hash":                 aPIHash,
-		"system_language_code":     systemLanguageCode,
-		"device_model":             deviceModel,
-		"system_version":           systemVersion,
-		"application_version":      applicationVersion,
-		"enable_storage_optimizer": enableStorageOptimizer,
-		"ignore_file_names":        ignoreFileNames,
+		"@type":                   "setTdlibParameters",
+		"use_test_dc":             useTestDc,
+		"database_directory":      databaseDirectory,
+		"files_directory":         filesDirectory,
+		"database_encryption_key": databaseEncryptionKey,
+		"use_file_database":       useFileDatabase,
+		"use_chat_info_database":  useChatInfoDatabase,
+		"use_message_database":    useMessageDatabase,
+		"use_secret_chats":        useSecretChats,
+		"api_id":                  aPIID,
+		"api_hash":                aPIHash,
+		"system_language_code":    systemLanguageCode,
+		"device_model":            deviceModel,
+		"system_version":          systemVersion,
+		"application_version":     applicationVersion,
 	})
 
 	if err != nil {
@@ -1533,9 +1757,11 @@ func (client *ClientImpl) SetAuthenticationEmailAddress(emailAddress string) (*O
 }
 
 // ResendAuthenticationCode Resends an authentication code to the user. Works only when the current authorization state is authorizationStateWaitCode, the next_code_type of the result is not null and the server-specified timeout has passed, or when the current authorization state is authorizationStateWaitEmailCode
-func (client *ClientImpl) ResendAuthenticationCode() (*Ok, error) {
+// @param reason Reason of code resending; pass null if unknown
+func (client *ClientImpl) ResendAuthenticationCode(reason ResendCodeReason) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type": "resendAuthenticationCode",
+		"@type":  "resendAuthenticationCode",
+		"reason": reason,
 	})
 
 	if err != nil {
@@ -1552,7 +1778,7 @@ func (client *ClientImpl) ResendAuthenticationCode() (*Ok, error) {
 
 }
 
-// CheckAuthenticationEmailCode Checks the authentication of a email address. Works only when the current authorization state is authorizationStateWaitEmailCode
+// CheckAuthenticationEmailCode Checks the authentication of an email address. Works only when the current authorization state is authorizationStateWaitEmailCode
 // @param code Email address authentication to check
 func (client *ClientImpl) CheckAuthenticationEmailCode(code EmailAddressAuthentication) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -1621,11 +1847,13 @@ func (client *ClientImpl) RequestQrCodeAuthentication(otherUserIDs []int64) (*Ok
 // RegisterUser Finishes user registration. Works only when the current authorization state is authorizationStateWaitRegistration
 // @param firstName The first name of the user; 1-64 characters
 // @param lastName The last name of the user; 0-64 characters
-func (client *ClientImpl) RegisterUser(firstName string, lastName string) (*Ok, error) {
+// @param disableNotification Pass true to disable notification about the current user joining Telegram for other users that added them to contact list
+func (client *ClientImpl) RegisterUser(firstName string, lastName string, disableNotification bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":      "registerUser",
-		"first_name": firstName,
-		"last_name":  lastName,
+		"@type":                "registerUser",
+		"first_name":           firstName,
+		"last_name":            lastName,
+		"disable_notification": disableNotification,
 	})
 
 	if err != nil {
@@ -1753,7 +1981,7 @@ func (client *ClientImpl) RecoverAuthenticationPassword(recoveryCode string, new
 }
 
 // SendAuthenticationFirebaseSms Sends Firebase Authentication SMS to the phone number of the user. Works only when the current authorization state is authorizationStateWaitCode and the server returned code of the type authenticationCodeTypeFirebaseAndroid or authenticationCodeTypeFirebaseIos
-// @param token SafetyNet Attestation API token for the Android application, or secret from push notification for the iOS application
+// @param token Play Integrity API or SafetyNet Attestation API token for the Android application, or secret from push notification for the iOS application
 func (client *ClientImpl) SendAuthenticationFirebaseSms(token string) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "sendAuthenticationFirebaseSms",
@@ -1771,6 +1999,28 @@ func (client *ClientImpl) SendAuthenticationFirebaseSms(token string) (*Ok, erro
 	var okDummy Ok
 	err = json.Unmarshal(result.Raw, &okDummy)
 	return &okDummy, err
+
+}
+
+// ReportAuthenticationCodeMissing Reports that authentication code wasn't delivered via SMS; for official mobile applications only. Works only when the current authorization state is authorizationStateWaitCode
+// @param mobileNetworkCode Current mobile network code
+func (client *ClientImpl) ReportAuthenticationCodeMissing(mobileNetworkCode string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":               "reportAuthenticationCodeMissing",
+		"mobile_network_code": mobileNetworkCode,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
 
 }
 
@@ -1970,7 +2220,7 @@ func (client *ClientImpl) SetPassword(oldPassword string, newPassword string, ne
 
 }
 
-// SetLoginEmailAddress Changes the login email address of the user. The email address can be changed only if the current user already has login email and passwordState.login_email_address_pattern is non-empty. The change will not be applied until the new login email address is confirmed with checkLoginEmailAddressCode. To use Apple ID/Google ID instead of a email address, call checkLoginEmailAddressCode directly
+// SetLoginEmailAddress Changes the login email address of the user. The email address can be changed only if the current user already has login email and passwordState.login_email_address_pattern is non-empty. The change will not be applied until the new login email address is confirmed with checkLoginEmailAddressCode. To use Apple ID/Google ID instead of an email address, call checkLoginEmailAddressCode directly
 // @param newLoginEmailAddress New login email address
 func (client *ClientImpl) SetLoginEmailAddress(newLoginEmailAddress string) (*EmailAddressAuthenticationCodeInfo, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -2106,6 +2356,26 @@ func (client *ClientImpl) CheckRecoveryEmailAddressCode(code string) (*PasswordS
 func (client *ClientImpl) ResendRecoveryEmailAddressCode() (*PasswordState, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "resendRecoveryEmailAddressCode",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var passwordState PasswordState
+	err = json.Unmarshal(result.Raw, &passwordState)
+	return &passwordState, err
+
+}
+
+// CancelRecoveryEmailAddressVerification Cancels verification of the 2-step verification recovery email address
+func (client *ClientImpl) CancelRecoveryEmailAddressVerification() (*PasswordState, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "cancelRecoveryEmailAddressVerification",
 	})
 
 	if err != nil {
@@ -2534,7 +2804,7 @@ func (client *ClientImpl) GetMessageLocally(chatID int64, messageID int64) (*Mes
 
 }
 
-// GetRepliedMessage Returns information about a non-bundled message that is replied by a given message. Also, returns the pinned message, the game message, the invoice message, the message with a previously set same background, the giveaway message, and the topic creation message for messages of the types messagePinMessage, messageGameScore, messagePaymentSuccessful, messageChatSetBackground, messagePremiumGiveawayCompleted and topic messages without non-bundled replied message respectively
+// GetRepliedMessage Returns information about a non-bundled message that is replied by a given message. Also, returns the pinned message, the game message, the invoice message, the message with a previously set same background, the giveaway message, and the topic creation message for messages of the types messagePinMessage, messageGameScore, messagePaymentSuccessful, messageChatSetBackground, messageGiveawayCompleted and topic messages without non-bundled replied message respectively
 // @param chatID Identifier of the chat the message belongs to
 // @param messageID Identifier of the reply message
 func (client *ClientImpl) GetRepliedMessage(chatID int64, messageID int64) (*Message, error) {
@@ -2630,7 +2900,31 @@ func (client *ClientImpl) GetMessages(chatID int64, messageIDs []int64) (*Messag
 
 }
 
-// GetMessageThread Returns information about a message thread. Can be used only if message.can_get_message_thread == true
+// GetMessageProperties Returns properties of a message; this is an offline request
+// @param chatID Chat identifier
+// @param messageID Identifier of the message
+func (client *ClientImpl) GetMessageProperties(chatID int64, messageID int64) (*MessageProperties, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "getMessageProperties",
+		"chat_id":    chatID,
+		"message_id": messageID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var messageProperties MessageProperties
+	err = json.Unmarshal(result.Raw, &messageProperties)
+	return &messageProperties, err
+
+}
+
+// GetMessageThread Returns information about a message thread. Can be used only if messageProperties.can_get_message_thread == true
 // @param chatID Chat identifier
 // @param messageID Identifier of the message
 func (client *ClientImpl) GetMessageThread(chatID int64, messageID int64) (*MessageThreadInfo, error) {
@@ -2654,7 +2948,57 @@ func (client *ClientImpl) GetMessageThread(chatID int64, messageID int64) (*Mess
 
 }
 
-// GetMessageViewers Returns viewers of a recent outgoing message in a basic group or a supergroup chat. For video notes and voice notes only users, opened content of the message, are returned. The method can be called if message.can_get_viewers == true
+// GetMessageReadDate Returns read date of a recent outgoing message in a private chat. The method can be called if messageProperties.can_get_read_date == true
+// @param chatID Chat identifier
+// @param messageID Identifier of the message
+func (client *ClientImpl) GetMessageReadDate(chatID int64, messageID int64) (MessageReadDate, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "getMessageReadDate",
+		"chat_id":    chatID,
+		"message_id": messageID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	switch MessageReadDateEnum(result.Data["@type"].(string)) {
+
+	case MessageReadDateReadType:
+		var messageReadDate MessageReadDateRead
+		err = json.Unmarshal(result.Raw, &messageReadDate)
+		return &messageReadDate, err
+
+	case MessageReadDateUnreadType:
+		var messageReadDate MessageReadDateUnread
+		err = json.Unmarshal(result.Raw, &messageReadDate)
+		return &messageReadDate, err
+
+	case MessageReadDateTooOldType:
+		var messageReadDate MessageReadDateTooOld
+		err = json.Unmarshal(result.Raw, &messageReadDate)
+		return &messageReadDate, err
+
+	case MessageReadDateUserPrivacyRestrictedType:
+		var messageReadDate MessageReadDateUserPrivacyRestricted
+		err = json.Unmarshal(result.Raw, &messageReadDate)
+		return &messageReadDate, err
+
+	case MessageReadDateMyPrivacyRestrictedType:
+		var messageReadDate MessageReadDateMyPrivacyRestricted
+		err = json.Unmarshal(result.Raw, &messageReadDate)
+		return &messageReadDate, err
+
+	default:
+		return nil, fmt.Errorf("Invalid type")
+	}
+}
+
+// GetMessageViewers Returns viewers of a recent outgoing message in a basic group or a supergroup chat. For video notes and voice notes only users, opened content of the message, are returned. The method can be called if messageProperties.can_get_viewers == true
 // @param chatID Chat identifier
 // @param messageID Identifier of the message
 func (client *ClientImpl) GetMessageViewers(chatID int64, messageID int64) (*MessageViewers, error) {
@@ -2886,6 +3230,26 @@ func (client *ClientImpl) SearchChatsNearby(location *Location) (*ChatsNearby, e
 
 }
 
+// GetRecommendedChats Returns a list of channel chats recommended to the current user
+func (client *ClientImpl) GetRecommendedChats() (*Chats, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getRecommendedChats",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var chats Chats
+	err = json.Unmarshal(result.Raw, &chats)
+	return &chats, err
+
+}
+
 // GetChatSimilarChats Returns a list of chats similar to the given chat
 // @param chatID Identifier of the target chat; must be an identifier of a channel chat
 func (client *ClientImpl) GetChatSimilarChats(chatID int64) (*Chats, error) {
@@ -2932,7 +3296,7 @@ func (client *ClientImpl) GetChatSimilarChatCount(chatID int64, returnLocal bool
 
 }
 
-// OpenChatSimilarChat Informs TDLib that a chat was opened from the list of similar chats. The method is independent from openChat and closeChat methods
+// OpenChatSimilarChat Informs TDLib that a chat was opened from the list of similar chats. The method is independent of openChat and closeChat methods
 // @param chatID Identifier of the original chat, which similar chats were requested
 // @param openedChatID Identifier of the opened chat
 func (client *ClientImpl) OpenChatSimilarChat(chatID int64, openedChatID int64) (*Ok, error) {
@@ -3253,6 +3617,194 @@ func (client *ClientImpl) GetInactiveSupergroupChats() (*Chats, error) {
 
 }
 
+// GetSuitablePersonalChats Returns a list of channel chats, which can be used as a personal chat
+func (client *ClientImpl) GetSuitablePersonalChats() (*Chats, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getSuitablePersonalChats",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var chats Chats
+	err = json.Unmarshal(result.Raw, &chats)
+	return &chats, err
+
+}
+
+// LoadSavedMessagesTopics Loads more Saved Messages topics. The loaded topics will be sent through updateSavedMessagesTopic. Topics are sorted by their topic.order in descending order. Returns a 404 error if all topics have been loaded
+// @param limit The maximum number of topics to be loaded. For optimal performance, the number of loaded topics is chosen by TDLib and can be smaller than the specified limit, even if the end of the list is not reached
+func (client *ClientImpl) LoadSavedMessagesTopics(limit int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "loadSavedMessagesTopics",
+		"limit": limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetSavedMessagesTopicHistory Returns messages in a Saved Messages topic. The messages are returned in reverse chronological order (i.e., in order of decreasing message_id)
+// @param savedMessagesTopicID Identifier of Saved Messages topic which messages will be fetched
+// @param fromMessageID Identifier of the message starting from which messages must be fetched; use 0 to get results from the last message
+// @param offset Specify 0 to get results from exactly the message from_message_id or a negative offset up to 99 to get additionally some newer messages
+// @param limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than or equal to -offset. For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
+func (client *ClientImpl) GetSavedMessagesTopicHistory(savedMessagesTopicID int64, fromMessageID int64, offset int32, limit int32) (*Messages, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                   "getSavedMessagesTopicHistory",
+		"saved_messages_topic_id": savedMessagesTopicID,
+		"from_message_id":         fromMessageID,
+		"offset":                  offset,
+		"limit":                   limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var messagesDummy Messages
+	err = json.Unmarshal(result.Raw, &messagesDummy)
+	return &messagesDummy, err
+
+}
+
+// GetSavedMessagesTopicMessageByDate Returns the last message sent in a Saved Messages topic no later than the specified date
+// @param savedMessagesTopicID Identifier of Saved Messages topic which message will be returned
+// @param date Point in time (Unix timestamp) relative to which to search for messages
+func (client *ClientImpl) GetSavedMessagesTopicMessageByDate(savedMessagesTopicID int64, date int32) (*Message, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                   "getSavedMessagesTopicMessageByDate",
+		"saved_messages_topic_id": savedMessagesTopicID,
+		"date":                    date,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var messageDummy Message
+	err = json.Unmarshal(result.Raw, &messageDummy)
+	return &messageDummy, err
+
+}
+
+// DeleteSavedMessagesTopicHistory Deletes all messages in a Saved Messages topic
+// @param savedMessagesTopicID Identifier of Saved Messages topic which messages will be deleted
+func (client *ClientImpl) DeleteSavedMessagesTopicHistory(savedMessagesTopicID int64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                   "deleteSavedMessagesTopicHistory",
+		"saved_messages_topic_id": savedMessagesTopicID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// DeleteSavedMessagesTopicMessagesByDate Deletes all messages between the specified dates in a Saved Messages topic. Messages sent in the last 30 seconds will not be deleted
+// @param savedMessagesTopicID Identifier of Saved Messages topic which messages will be deleted
+// @param minDate The minimum date of the messages to delete
+// @param maxDate The maximum date of the messages to delete
+func (client *ClientImpl) DeleteSavedMessagesTopicMessagesByDate(savedMessagesTopicID int64, minDate int32, maxDate int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                   "deleteSavedMessagesTopicMessagesByDate",
+		"saved_messages_topic_id": savedMessagesTopicID,
+		"min_date":                minDate,
+		"max_date":                maxDate,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ToggleSavedMessagesTopicIsPinned Changes the pinned state of a Saved Messages topic. There can be up to getOption("pinned_saved_messages_topic_count_max") pinned topics. The limit can be increased with Telegram Premium
+// @param savedMessagesTopicID Identifier of Saved Messages topic to pin or unpin
+// @param isPinned Pass true to pin the topic; pass false to unpin it
+func (client *ClientImpl) ToggleSavedMessagesTopicIsPinned(savedMessagesTopicID int64, isPinned bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                   "toggleSavedMessagesTopicIsPinned",
+		"saved_messages_topic_id": savedMessagesTopicID,
+		"is_pinned":               isPinned,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetPinnedSavedMessagesTopics Changes the order of pinned Saved Messages topics
+// @param savedMessagesTopicIDs Identifiers of the new pinned Saved Messages topics
+func (client *ClientImpl) SetPinnedSavedMessagesTopics(savedMessagesTopicIDs []int64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                    "setPinnedSavedMessagesTopics",
+		"saved_messages_topic_ids": savedMessagesTopicIDs,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
 // GetGroupsInCommon Returns a list of common group chats with a given user. Chats are sorted by their type and creation date
 // @param userID User identifier
 // @param offsetChatID Chat identifier starting from which to return chats; use 0 for the first request
@@ -3279,10 +3831,10 @@ func (client *ClientImpl) GetGroupsInCommon(userID int64, offsetChatID int64, li
 
 }
 
-// GetChatHistory Returns messages in a chat. The messages are returned in a reverse chronological order (i.e., in order of decreasing message_id). For optimal performance, the number of returned messages is chosen by TDLib. This is an offline request if only_local is true
+// GetChatHistory Returns messages in a chat. The messages are returned in reverse chronological order (i.e., in order of decreasing message_id). For optimal performance, the number of returned messages is chosen by TDLib. This is an offline request if only_local is true
 // @param chatID Chat identifier
 // @param fromMessageID Identifier of the message starting from which history must be fetched; use 0 to get results from the last message
-// @param offset Specify 0 to get results from exactly the from_message_id or a negative offset up to 99 to get additionally some newer messages
+// @param offset Specify 0 to get results from exactly the message from_message_id or a negative offset up to 99 to get additionally some newer messages
 // @param limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than or equal to -offset. For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
 // @param onlyLocal Pass true to get only messages that are available without sending network requests
 func (client *ClientImpl) GetChatHistory(chatID int64, fromMessageID int64, offset int32, limit int32, onlyLocal bool) (*Messages, error) {
@@ -3309,11 +3861,11 @@ func (client *ClientImpl) GetChatHistory(chatID int64, fromMessageID int64, offs
 
 }
 
-// GetMessageThreadHistory Returns messages in a message thread of a message. Can be used only if message.can_get_message_thread == true. Message thread of a channel message is in the channel's linked supergroup. The messages are returned in a reverse chronological order (i.e., in order of decreasing message_id). For optimal performance, the number of returned messages is chosen by TDLib
+// GetMessageThreadHistory Returns messages in a message thread of a message. Can be used only if messageProperties.can_get_message_thread == true. Message thread of a channel message is in the channel's linked supergroup. The messages are returned in reverse chronological order (i.e., in order of decreasing message_id). For optimal performance, the number of returned messages is chosen by TDLib
 // @param chatID Chat identifier
 // @param messageID Message identifier, which thread history needs to be returned
 // @param fromMessageID Identifier of the message starting from which history must be fetched; use 0 to get results from the last message
-// @param offset Specify 0 to get results from exactly the from_message_id or a negative offset up to 99 to get additionally some newer messages
+// @param offset Specify 0 to get results from exactly the message from_message_id or a negative offset up to 99 to get additionally some newer messages
 // @param limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than or equal to -offset. For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
 func (client *ClientImpl) GetMessageThreadHistory(chatID int64, messageID int64, fromMessageID int64, offset int32, limit int32) (*Messages, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -3392,21 +3944,23 @@ func (client *ClientImpl) DeleteChat(chatID int64) (*Ok, error) {
 // @param query Query to search for
 // @param senderID Identifier of the sender of messages to search for; pass null to search for messages from any sender. Not supported in secret chats
 // @param fromMessageID Identifier of the message starting from which history must be fetched; use 0 to get results from the last message
-// @param offset Specify 0 to get results from exactly the from_message_id or a negative offset to get the specified message and some newer messages
+// @param offset Specify 0 to get results from exactly the message from_message_id or a negative offset to get the specified message and some newer messages
 // @param limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than -offset. For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
 // @param filter Additional filter for messages to search; pass null to search for all messages
 // @param messageThreadID If not 0, only messages in the specified thread will be returned; supergroups only
-func (client *ClientImpl) SearchChatMessages(chatID int64, query string, senderID MessageSender, fromMessageID int64, offset int32, limit int32, filter SearchMessagesFilter, messageThreadID int64) (*FoundChatMessages, error) {
+// @param savedMessagesTopicID If not 0, only messages in the specified Saved Messages topic will be returned; pass 0 to return all messages, or for chats other than Saved Messages
+func (client *ClientImpl) SearchChatMessages(chatID int64, query string, senderID MessageSender, fromMessageID int64, offset int32, limit int32, filter SearchMessagesFilter, messageThreadID int64, savedMessagesTopicID int64) (*FoundChatMessages, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":             "searchChatMessages",
-		"chat_id":           chatID,
-		"query":             query,
-		"sender_id":         senderID,
-		"from_message_id":   fromMessageID,
-		"offset":            offset,
-		"limit":             limit,
-		"filter":            filter,
-		"message_thread_id": messageThreadID,
+		"@type":                   "searchChatMessages",
+		"chat_id":                 chatID,
+		"query":                   query,
+		"sender_id":               senderID,
+		"from_message_id":         fromMessageID,
+		"offset":                  offset,
+		"limit":                   limit,
+		"filter":                  filter,
+		"message_thread_id":       messageThreadID,
+		"saved_messages_topic_id": savedMessagesTopicID,
 	})
 
 	if err != nil {
@@ -3425,22 +3979,24 @@ func (client *ClientImpl) SearchChatMessages(chatID int64, query string, senderI
 
 // SearchMessages Searches for messages in all chats except secret chats. Returns the results in reverse chronological order (i.e., in order of decreasing (date, chat_id, message_id)). For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
 // @param chatList Chat list in which to search messages; pass null to search in all chats regardless of their chat list. Only Main and Archive chat lists are supported
+// @param onlyInChannels Pass true to search only for messages in channels
 // @param query Query to search for
 // @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
 // @param limit The maximum number of messages to be returned; up to 100. For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
 // @param filter Additional filter for messages to search; pass null to search for all messages. Filters searchMessagesFilterMention, searchMessagesFilterUnreadMention, searchMessagesFilterUnreadReaction, searchMessagesFilterFailedToSend, and searchMessagesFilterPinned are unsupported in this function
 // @param minDate If not 0, the minimum date of the messages to return
 // @param maxDate If not 0, the maximum date of the messages to return
-func (client *ClientImpl) SearchMessages(chatList ChatList, query string, offset string, limit int32, filter SearchMessagesFilter, minDate int32, maxDate int32) (*FoundMessages, error) {
+func (client *ClientImpl) SearchMessages(chatList ChatList, onlyInChannels bool, query string, offset string, limit int32, filter SearchMessagesFilter, minDate int32, maxDate int32) (*FoundMessages, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":     "searchMessages",
-		"chat_list": chatList,
-		"query":     query,
-		"offset":    offset,
-		"limit":     limit,
-		"filter":    filter,
-		"min_date":  minDate,
-		"max_date":  maxDate,
+		"@type":            "searchMessages",
+		"chat_list":        chatList,
+		"only_in_channels": onlyInChannels,
+		"query":            query,
+		"offset":           offset,
+		"limit":            limit,
+		"filter":           filter,
+		"min_date":         minDate,
+		"max_date":         maxDate,
 	})
 
 	if err != nil {
@@ -3484,6 +4040,38 @@ func (client *ClientImpl) SearchSecretMessages(chatID int64, query string, offse
 	var foundMessages FoundMessages
 	err = json.Unmarshal(result.Raw, &foundMessages)
 	return &foundMessages, err
+
+}
+
+// SearchSavedMessages Searches for messages tagged by the given reaction and with the given words in the Saved Messages chat; for Telegram Premium users only. Returns the results in reverse chronological order, i.e. in order of decreasing message_id For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
+// @param savedMessagesTopicID If not 0, only messages in the specified Saved Messages topic will be considered; pass 0 to consider all messages
+// @param tag Tag to search for; pass null to return all suitable messages
+// @param query Query to search for
+// @param fromMessageID Identifier of the message starting from which messages must be fetched; use 0 to get results from the last message
+// @param offset Specify 0 to get results from exactly the message from_message_id or a negative offset to get the specified message and some newer messages
+// @param limit The maximum number of messages to be returned; must be positive and can't be greater than 100. If the offset is negative, the limit must be greater than -offset. For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
+func (client *ClientImpl) SearchSavedMessages(savedMessagesTopicID int64, tag ReactionType, query string, fromMessageID int64, offset int32, limit int32) (*FoundChatMessages, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                   "searchSavedMessages",
+		"saved_messages_topic_id": savedMessagesTopicID,
+		"tag":                     tag,
+		"query":                   query,
+		"from_message_id":         fromMessageID,
+		"offset":                  offset,
+		"limit":                   limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var foundChatMessages FoundChatMessages
+	err = json.Unmarshal(result.Raw, &foundChatMessages)
+	return &foundChatMessages, err
 
 }
 
@@ -3537,6 +4125,180 @@ func (client *ClientImpl) SearchOutgoingDocumentMessages(query string, limit int
 
 }
 
+// SearchPublicMessagesByTag Searches for public channel posts containing the given hashtag or cashtag. For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
+// @param tag Hashtag or cashtag to search for
+// @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
+// @param limit The maximum number of messages to be returned; up to 100. For optimal performance, the number of returned messages is chosen by TDLib and can be smaller than the specified limit
+func (client *ClientImpl) SearchPublicMessagesByTag(tag string, offset string, limit int32) (*FoundMessages, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":  "searchPublicMessagesByTag",
+		"tag":    tag,
+		"offset": offset,
+		"limit":  limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var foundMessages FoundMessages
+	err = json.Unmarshal(result.Raw, &foundMessages)
+	return &foundMessages, err
+
+}
+
+// SearchPublicStoriesByTag Searches for public stories containing the given hashtag or cashtag. For optimal performance, the number of returned stories is chosen by TDLib and can be smaller than the specified limit
+// @param tag Hashtag or cashtag to search for
+// @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
+// @param limit The maximum number of stories to be returned; up to 100. For optimal performance, the number of returned stories is chosen by TDLib and can be smaller than the specified limit
+func (client *ClientImpl) SearchPublicStoriesByTag(tag string, offset string, limit int32) (*FoundStories, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":  "searchPublicStoriesByTag",
+		"tag":    tag,
+		"offset": offset,
+		"limit":  limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var foundStories FoundStories
+	err = json.Unmarshal(result.Raw, &foundStories)
+	return &foundStories, err
+
+}
+
+// SearchPublicStoriesByLocation Searches for public stories by the given address location. For optimal performance, the number of returned stories is chosen by TDLib and can be smaller than the specified limit
+// @param address Address of the location
+// @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
+// @param limit The maximum number of stories to be returned; up to 100. For optimal performance, the number of returned stories is chosen by TDLib and can be smaller than the specified limit
+func (client *ClientImpl) SearchPublicStoriesByLocation(address *LocationAddress, offset string, limit int32) (*FoundStories, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":   "searchPublicStoriesByLocation",
+		"address": address,
+		"offset":  offset,
+		"limit":   limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var foundStories FoundStories
+	err = json.Unmarshal(result.Raw, &foundStories)
+	return &foundStories, err
+
+}
+
+// SearchPublicStoriesByVenue Searches for public stories from the given venue. For optimal performance, the number of returned stories is chosen by TDLib and can be smaller than the specified limit
+// @param venueProvider Provider of the venue
+// @param venueID Identifier of the venue in the provider database
+// @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
+// @param limit The maximum number of stories to be returned; up to 100. For optimal performance, the number of returned stories is chosen by TDLib and can be smaller than the specified limit
+func (client *ClientImpl) SearchPublicStoriesByVenue(venueProvider string, venueID string, offset string, limit int32) (*FoundStories, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":          "searchPublicStoriesByVenue",
+		"venue_provider": venueProvider,
+		"venue_id":       venueID,
+		"offset":         offset,
+		"limit":          limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var foundStories FoundStories
+	err = json.Unmarshal(result.Raw, &foundStories)
+	return &foundStories, err
+
+}
+
+// GetSearchedForTags Returns recently searched for hashtags or cashtags by their prefix
+// @param tagPrefix Prefix of hashtags or cashtags to return
+// @param limit The maximum number of items to be returned
+func (client *ClientImpl) GetSearchedForTags(tagPrefix string, limit int32) (*Hashtags, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "getSearchedForTags",
+		"tag_prefix": tagPrefix,
+		"limit":      limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var hashtags Hashtags
+	err = json.Unmarshal(result.Raw, &hashtags)
+	return &hashtags, err
+
+}
+
+// RemoveSearchedForTag Removes a hashtag or a cashtag from the list of recently searched for hashtags or cashtags
+// @param tag Hashtag or cashtag to delete
+func (client *ClientImpl) RemoveSearchedForTag(tag string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "removeSearchedForTag",
+		"tag":   tag,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ClearSearchedForTags Clears the list of recently searched for hashtags or cashtags
+// @param clearCashtags Pass true to clear the list of recently searched for cashtags; otherwise, the list of recently searched for hashtags will be cleared
+func (client *ClientImpl) ClearSearchedForTags(clearCashtags bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":          "clearSearchedForTags",
+		"clear_cashtags": clearCashtags,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
 // DeleteAllCallMessages Deletes all call messages
 // @param revoke Pass true to delete the messages for all users
 func (client *ClientImpl) DeleteAllCallMessages(revoke bool) (*Ok, error) {
@@ -3583,26 +4345,6 @@ func (client *ClientImpl) SearchChatRecentLocationMessages(chatID int64, limit i
 
 }
 
-// GetActiveLiveLocationMessages Returns all active live locations that need to be updated by the application. The list is persistent across application restarts only if the message database is used
-func (client *ClientImpl) GetActiveLiveLocationMessages() (*Messages, error) {
-	result, err := client.SendAndCatch(UpdateData{
-		"@type": "getActiveLiveLocationMessages",
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Data["@type"].(string) == "error" {
-		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
-	}
-
-	var messages Messages
-	err = json.Unmarshal(result.Raw, &messages)
-	return &messages, err
-
-}
-
 // GetChatMessageByDate Returns the last message sent in a chat no later than the specified date
 // @param chatID Chat identifier
 // @param date Point in time (Unix timestamp) relative to which to search for messages
@@ -3632,13 +4374,15 @@ func (client *ClientImpl) GetChatMessageByDate(chatID int64, date int32) (*Messa
 // @param filter Filter for message content. Filters searchMessagesFilterEmpty, searchMessagesFilterMention, searchMessagesFilterUnreadMention, and searchMessagesFilterUnreadReaction are unsupported in this function
 // @param fromMessageID The message identifier from which to return information about message positions
 // @param limit The expected number of message positions to be returned; 50-2000. A smaller number of positions can be returned, if there are not enough appropriate messages
-func (client *ClientImpl) GetChatSparseMessagePositions(chatID int64, filter SearchMessagesFilter, fromMessageID int64, limit int32) (*MessagePositions, error) {
+// @param savedMessagesTopicID If not 0, only messages in the specified Saved Messages topic will be considered; pass 0 to consider all messages, or for chats other than Saved Messages
+func (client *ClientImpl) GetChatSparseMessagePositions(chatID int64, filter SearchMessagesFilter, fromMessageID int64, limit int32, savedMessagesTopicID int64) (*MessagePositions, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":           "getChatSparseMessagePositions",
-		"chat_id":         chatID,
-		"filter":          filter,
-		"from_message_id": fromMessageID,
-		"limit":           limit,
+		"@type":                   "getChatSparseMessagePositions",
+		"chat_id":                 chatID,
+		"filter":                  filter,
+		"from_message_id":         fromMessageID,
+		"limit":                   limit,
+		"saved_messages_topic_id": savedMessagesTopicID,
 	})
 
 	if err != nil {
@@ -3659,12 +4403,14 @@ func (client *ClientImpl) GetChatSparseMessagePositions(chatID int64, filter Sea
 // @param chatID Identifier of the chat in which to return information about messages
 // @param filter Filter for message content. Filters searchMessagesFilterEmpty, searchMessagesFilterMention, searchMessagesFilterUnreadMention, and searchMessagesFilterUnreadReaction are unsupported in this function
 // @param fromMessageID The message identifier from which to return information about messages; use 0 to get results from the last message
-func (client *ClientImpl) GetChatMessageCalendar(chatID int64, filter SearchMessagesFilter, fromMessageID int64) (*MessageCalendar, error) {
+// @param savedMessagesTopicID If not0, only messages in the specified Saved Messages topic will be considered; pass 0 to consider all messages, or for chats other than Saved Messages
+func (client *ClientImpl) GetChatMessageCalendar(chatID int64, filter SearchMessagesFilter, fromMessageID int64, savedMessagesTopicID int64) (*MessageCalendar, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":           "getChatMessageCalendar",
-		"chat_id":         chatID,
-		"filter":          filter,
-		"from_message_id": fromMessageID,
+		"@type":                   "getChatMessageCalendar",
+		"chat_id":                 chatID,
+		"filter":                  filter,
+		"from_message_id":         fromMessageID,
+		"saved_messages_topic_id": savedMessagesTopicID,
 	})
 
 	if err != nil {
@@ -3684,13 +4430,15 @@ func (client *ClientImpl) GetChatMessageCalendar(chatID int64, filter SearchMess
 // GetChatMessageCount Returns approximate number of messages of the specified type in the chat
 // @param chatID Identifier of the chat in which to count messages
 // @param filter Filter for message content; searchMessagesFilterEmpty is unsupported in this function
+// @param savedMessagesTopicID If not 0, only messages in the specified Saved Messages topic will be counted; pass 0 to count all messages, or for chats other than Saved Messages
 // @param returnLocal Pass true to get the number of messages without sending network requests, or -1 if the number of messages is unknown locally
-func (client *ClientImpl) GetChatMessageCount(chatID int64, filter SearchMessagesFilter, returnLocal bool) (*Count, error) {
+func (client *ClientImpl) GetChatMessageCount(chatID int64, filter SearchMessagesFilter, savedMessagesTopicID int64, returnLocal bool) (*Count, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":        "getChatMessageCount",
-		"chat_id":      chatID,
-		"filter":       filter,
-		"return_local": returnLocal,
+		"@type":                   "getChatMessageCount",
+		"chat_id":                 chatID,
+		"filter":                  filter,
+		"saved_messages_topic_id": savedMessagesTopicID,
+		"return_local":            returnLocal,
 	})
 
 	if err != nil {
@@ -3712,13 +4460,15 @@ func (client *ClientImpl) GetChatMessageCount(chatID int64, filter SearchMessage
 // @param messageID Message identifier
 // @param filter Filter for message content; searchMessagesFilterEmpty, searchMessagesFilterUnreadMention, searchMessagesFilterUnreadReaction, and searchMessagesFilterFailedToSend are unsupported in this function
 // @param messageThreadID If not 0, only messages in the specified thread will be considered; supergroups only
-func (client *ClientImpl) GetChatMessagePosition(chatID int64, messageID int64, filter SearchMessagesFilter, messageThreadID int64) (*Count, error) {
+// @param savedMessagesTopicID If not 0, only messages in the specified Saved Messages topic will be considered; pass 0 to consider all relevant messages, or for chats other than Saved Messages
+func (client *ClientImpl) GetChatMessagePosition(chatID int64, messageID int64, filter SearchMessagesFilter, messageThreadID int64, savedMessagesTopicID int64) (*Count, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":             "getChatMessagePosition",
-		"chat_id":           chatID,
-		"message_id":        messageID,
-		"filter":            filter,
-		"message_thread_id": messageThreadID,
+		"@type":                   "getChatMessagePosition",
+		"chat_id":                 chatID,
+		"message_id":              messageID,
+		"filter":                  filter,
+		"message_thread_id":       messageThreadID,
+		"saved_messages_topic_id": savedMessagesTopicID,
 	})
 
 	if err != nil {
@@ -3735,7 +4485,7 @@ func (client *ClientImpl) GetChatMessagePosition(chatID int64, messageID int64, 
 
 }
 
-// GetChatScheduledMessages Returns all scheduled messages in a chat. The messages are returned in a reverse chronological order (i.e., in order of decreasing message_id)
+// GetChatScheduledMessages Returns all scheduled messages in a chat. The messages are returned in reverse chronological order (i.e., in order of decreasing message_id)
 // @param chatID Chat identifier
 func (client *ClientImpl) GetChatScheduledMessages(chatID int64) (*Messages, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -3803,6 +4553,58 @@ func (client *ClientImpl) ClickChatSponsoredMessage(chatID int64, messageID int6
 
 }
 
+// ReportChatSponsoredMessage Reports a sponsored message to Telegram moderators
+// @param chatID Chat identifier of the sponsored message
+// @param messageID Identifier of the sponsored message
+// @param optionID Option identifier chosen by the user; leave empty for the initial request
+func (client *ClientImpl) ReportChatSponsoredMessage(chatID int64, messageID int64, optionID []byte) (ReportChatSponsoredMessageResult, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "reportChatSponsoredMessage",
+		"chat_id":    chatID,
+		"message_id": messageID,
+		"option_id":  optionID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	switch ReportChatSponsoredMessageResultEnum(result.Data["@type"].(string)) {
+
+	case ReportChatSponsoredMessageResultOkType:
+		var reportChatSponsoredMessageResult ReportChatSponsoredMessageResultOk
+		err = json.Unmarshal(result.Raw, &reportChatSponsoredMessageResult)
+		return &reportChatSponsoredMessageResult, err
+
+	case ReportChatSponsoredMessageResultFailedType:
+		var reportChatSponsoredMessageResult ReportChatSponsoredMessageResultFailed
+		err = json.Unmarshal(result.Raw, &reportChatSponsoredMessageResult)
+		return &reportChatSponsoredMessageResult, err
+
+	case ReportChatSponsoredMessageResultOptionRequiredType:
+		var reportChatSponsoredMessageResult ReportChatSponsoredMessageResultOptionRequired
+		err = json.Unmarshal(result.Raw, &reportChatSponsoredMessageResult)
+		return &reportChatSponsoredMessageResult, err
+
+	case ReportChatSponsoredMessageResultAdsHiddenType:
+		var reportChatSponsoredMessageResult ReportChatSponsoredMessageResultAdsHidden
+		err = json.Unmarshal(result.Raw, &reportChatSponsoredMessageResult)
+		return &reportChatSponsoredMessageResult, err
+
+	case ReportChatSponsoredMessageResultPremiumRequiredType:
+		var reportChatSponsoredMessageResult ReportChatSponsoredMessageResultPremiumRequired
+		err = json.Unmarshal(result.Raw, &reportChatSponsoredMessageResult)
+		return &reportChatSponsoredMessageResult, err
+
+	default:
+		return nil, fmt.Errorf("Invalid type")
+	}
+}
+
 // RemoveNotification Removes an active notification from notification list. Needs to be called only if the notification is removed by the current user
 // @param notificationGroupID Identifier of notification group to which the notification belongs
 // @param notificationID Identifier of removed notification
@@ -3851,10 +4653,10 @@ func (client *ClientImpl) RemoveNotificationGroup(notificationGroupID int32, max
 
 }
 
-// GetMessageLink Returns an HTTPS link to a message in a chat. Available only for already sent messages in supergroups and channels, or if message.can_get_media_timestamp_links and a media timestamp link is generated. This is an offline request
+// GetMessageLink Returns an HTTPS link to a message in a chat. Available only if messageProperties.can_get_link, or if messageProperties.can_get_media_timestamp_links and a media timestamp link is generated. This is an offline request
 // @param chatID Identifier of the chat to which the message belongs
 // @param messageID Identifier of the message
-// @param mediaTimestamp If not 0, timestamp from which the video/audio/video note/voice note/story playing must start, in seconds. The media can be in the message content or in its web page preview
+// @param mediaTimestamp If not 0, timestamp from which the video/audio/video note/voice note/story playing must start, in seconds. The media can be in the message content or in its link preview
 // @param forAlbum Pass true to create a link for the whole media album
 // @param inMessageThread Pass true to create a link to the message as a channel post comment, in a message thread, or a forum topic
 func (client *ClientImpl) GetMessageLink(chatID int64, messageID int64, mediaTimestamp int32, forAlbum bool, inMessageThread bool) (*MessageLink, error) {
@@ -3881,7 +4683,7 @@ func (client *ClientImpl) GetMessageLink(chatID int64, messageID int64, mediaTim
 
 }
 
-// GetMessageEmbeddingCode Returns an HTML code for embedding the message. Available only for messages in supergroups and channels with a username
+// GetMessageEmbeddingCode Returns an HTML code for embedding the message. Available only if messageProperties.can_get_embedding_code
 // @param chatID Identifier of the chat to which the message belongs
 // @param messageID Identifier of the message
 // @param forAlbum Pass true to return an HTML code for embedding of the whole media album
@@ -3979,9 +4781,9 @@ func (client *ClientImpl) TranslateMessageText(chatID int64, messageID int64, to
 
 }
 
-// RecognizeSpeech Recognizes speech in a video note or a voice note message. The message must be successfully sent, must not be scheduled, and must be from a non-secret chat
+// RecognizeSpeech Recognizes speech in a video note or a voice note message
 // @param chatID Identifier of the chat to which the message belongs
-// @param messageID Identifier of the message
+// @param messageID Identifier of the message. Use messageProperties.can_recognize_speech to check whether the message is suitable
 func (client *ClientImpl) RecognizeSpeech(chatID int64, messageID int64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":      "recognizeSpeech",
@@ -4029,7 +4831,7 @@ func (client *ClientImpl) RateSpeechRecognition(chatID int64, messageID int64, i
 
 }
 
-// GetChatAvailableMessageSenders Returns list of message sender identifiers, which can be used to send messages in a chat
+// GetChatAvailableMessageSenders Returns the list of message sender identifiers, which can be used to send messages in a chat
 // @param chatID Chat identifier
 func (client *ClientImpl) GetChatAvailableMessageSenders(chatID int64) (*ChatMessageSenders, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -4077,7 +4879,7 @@ func (client *ClientImpl) SetChatMessageSender(chatID int64, messageSenderID Mes
 
 // SendMessage Sends a message. Returns the sent message
 // @param chatID Target chat
-// @param messageThreadID If not 0, a message thread identifier in which the message will be sent
+// @param messageThreadID If not 0, the message thread identifier in which the message will be sent
 // @param replyTo Information about the message or story to be replied; pass null if none
 // @param options Options to be used to send the message; pass null to use default options
 // @param replyMarkup Markup for replying to the message; pass null if none; for bots only
@@ -4109,10 +4911,10 @@ func (client *ClientImpl) SendMessage(chatID int64, messageThreadID int64, reply
 
 // SendMessageAlbum Sends 2-10 messages grouped together into an album. Currently, only audio, document, photo and video messages can be grouped into an album. Documents and audio files can be only grouped in an album with messages of the same type. Returns sent messages
 // @param chatID Target chat
-// @param messageThreadID If not 0, a message thread identifier in which the messages will be sent
+// @param messageThreadID If not 0, the message thread identifier in which the messages will be sent
 // @param replyTo Information about the message or story to be replied; pass null if none
 // @param options Options to be used to send the messages; pass null to use default options
-// @param inputMessageContents Contents of messages to be sent. At most 10 messages can be added to an album
+// @param inputMessageContents Contents of messages to be sent. At most 10 messages can be added to an album. All messages must have the same value of show_caption_above_media
 func (client *ClientImpl) SendMessageAlbum(chatID int64, messageThreadID int64, replyTo InputMessageReplyTo, options *MessageSendOptions, inputMessageContents []InputMessageContent) (*Messages, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":                  "sendMessageAlbum",
@@ -4137,7 +4939,7 @@ func (client *ClientImpl) SendMessageAlbum(chatID int64, messageThreadID int64, 
 
 }
 
-// SendBotStartMessage Invites a bot to a chat (if it is not yet a member) and sends it the /start command. Bots can't be invited to a private chat other than the chat with the bot. Bots can't be invited to channels (although they can be added as admins) and secret chats. Returns the sent message
+// SendBotStartMessage Invites a bot to a chat (if it is not yet a member) and sends it the /start command; requires can_invite_users member right. Bots can't be invited to a private chat other than the chat with the bot. Bots can't be invited to channels (although they can be added as admins) and secret chats. Returns the sent message
 // @param botUserID Identifier of the bot
 // @param chatID Identifier of the target chat
 // @param parameter A hidden parameter sent to the bot for deep linking purposes (https://core.telegram.org/bots#deep-linking)
@@ -4165,7 +4967,7 @@ func (client *ClientImpl) SendBotStartMessage(botUserID int64, chatID int64, par
 
 // SendInlineQueryResultMessage Sends the result of an inline query as a message. Returns the sent message. Always clears a chat draft message
 // @param chatID Target chat
-// @param messageThreadID If not 0, a message thread identifier in which the message will be sent
+// @param messageThreadID If not 0, the message thread identifier in which the message will be sent
 // @param replyTo Information about the message or story to be replied; pass null if none
 // @param options Options to be used to send the message; pass null to use default options
 // @param queryID Identifier of the inline query
@@ -4199,9 +5001,9 @@ func (client *ClientImpl) SendInlineQueryResultMessage(chatID int64, messageThre
 
 // ForwardMessages Forwards previously sent messages. Returns the forwarded messages in the same order as the message identifiers passed in message_ids. If a message can't be forwarded, null will be returned instead of the message
 // @param chatID Identifier of the chat to which to forward messages
-// @param messageThreadID If not 0, a message thread identifier in which the message will be sent; for forum threads only
+// @param messageThreadID If not 0, the message thread identifier in which the message will be sent; for forum threads only
 // @param fromChatID Identifier of the chat from which to forward messages
-// @param messageIDs Identifiers of the messages to forward. Message identifiers must be in a strictly increasing order. At most 100 messages can be forwarded simultaneously. A message can be forwarded only if message.can_be_forwarded
+// @param messageIDs Identifiers of the messages to forward. Message identifiers must be in a strictly increasing order. At most 100 messages can be forwarded simultaneously. A message can be forwarded only if messageProperties.can_be_forwarded
 // @param options Options to be used to send the messages; pass null to use default options
 // @param sendCopy Pass true to copy content of the messages without reference to the original sender. Always true if the messages are forwarded to a secret chat or are local
 // @param removeCaption Pass true to remove media captions of message copies. Ignored if send_copy is false
@@ -4215,6 +5017,32 @@ func (client *ClientImpl) ForwardMessages(chatID int64, messageThreadID int64, f
 		"options":           options,
 		"send_copy":         sendCopy,
 		"remove_caption":    removeCaption,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var messages Messages
+	err = json.Unmarshal(result.Raw, &messages)
+	return &messages, err
+
+}
+
+// SendQuickReplyShortcutMessages Sends messages from a quick reply shortcut. Requires Telegram Business subscription
+// @param chatID Identifier of the chat to which to send messages. The chat must be a private chat with a regular user
+// @param shortcutID Unique identifier of the quick reply shortcut
+// @param sendingID Non-persistent identifier, which will be returned back in messageSendingStatePending object and can be used to match sent messages and corresponding updateNewMessage updates
+func (client *ClientImpl) SendQuickReplyShortcutMessages(chatID int64, shortcutID int32, sendingID int32) (*Messages, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":       "sendQuickReplyShortcutMessages",
+		"chat_id":     chatID,
+		"shortcut_id": shortcutID,
+		"sending_id":  sendingID,
 	})
 
 	if err != nil {
@@ -4289,7 +5117,7 @@ func (client *ClientImpl) AddLocalMessage(chatID int64, senderID MessageSender, 
 
 // DeleteMessages Deletes messages
 // @param chatID Chat identifier
-// @param messageIDs Identifiers of the messages to be deleted
+// @param messageIDs Identifiers of the messages to be deleted. Use messageProperties.can_be_deleted_only_for_self and messageProperties.can_be_deleted_for_all_users to get suitable messages
 // @param revoke Pass true to delete messages for all chat members. Always true for supergroups, channels and secret chats
 func (client *ClientImpl) DeleteMessages(chatID int64, messageIDs []int64, revoke bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -4367,7 +5195,7 @@ func (client *ClientImpl) DeleteChatMessagesByDate(chatID int64, minDate int32, 
 
 // EditMessageText Edits the text of a message (or a text of a game message). Returns the edited message after the edit is completed on the server side
 // @param chatID The chat the message belongs to
-// @param messageID Identifier of the message
+// @param messageID Identifier of the message. Use messageProperties.can_be_edited to check whether the message can be edited
 // @param replyMarkup The new message reply markup; pass null if none; for bots only
 // @param inputMessageContent New text content of the message. Must be of type inputMessageText
 func (client *ClientImpl) EditMessageText(chatID int64, messageID int64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*Message, error) {
@@ -4395,18 +5223,20 @@ func (client *ClientImpl) EditMessageText(chatID int64, messageID int64, replyMa
 
 // EditMessageLiveLocation Edits the message content of a live location. Messages can be edited for a limited period of time specified in the live location. Returns the edited message after the edit is completed on the server side
 // @param chatID The chat the message belongs to
-// @param messageID Identifier of the message
+// @param messageID Identifier of the message. Use messageProperties.can_be_edited to check whether the message can be edited
 // @param replyMarkup The new message reply markup; pass null if none; for bots only
 // @param location New location content of the message; pass null to stop sharing the live location
+// @param livePeriod New time relative to the message send date, for which the location can be updated, in seconds. If 0x7FFFFFFF specified, then the location can be updated forever. Otherwise, must not exceed the current live_period by more than a day, and the live location expiration date must remain in the next 90 days. Pass 0 to keep the current live_period
 // @param heading The new direction in which the location moves, in degrees; 1-360. Pass 0 if unknown
 // @param proximityAlertRadius The new maximum distance for proximity alerts, in meters (0-100000). Pass 0 if the notification is disabled
-func (client *ClientImpl) EditMessageLiveLocation(chatID int64, messageID int64, replyMarkup ReplyMarkup, location *Location, heading int32, proximityAlertRadius int32) (*Message, error) {
+func (client *ClientImpl) EditMessageLiveLocation(chatID int64, messageID int64, replyMarkup ReplyMarkup, location *Location, livePeriod int32, heading int32, proximityAlertRadius int32) (*Message, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":                  "editMessageLiveLocation",
 		"chat_id":                chatID,
 		"message_id":             messageID,
 		"reply_markup":           replyMarkup,
 		"location":               location,
+		"live_period":            livePeriod,
 		"heading":                heading,
 		"proximity_alert_radius": proximityAlertRadius,
 	})
@@ -4427,7 +5257,7 @@ func (client *ClientImpl) EditMessageLiveLocation(chatID int64, messageID int64,
 
 // EditMessageMedia Edits the content of a message with an animation, an audio, a document, a photo or a video, including message caption. If only the caption needs to be edited, use editMessageCaption instead. The media can't be edited if the message was set to self-destruct or to a self-destructing media. The type of message content in an album can't be changed with exception of replacing a photo with a video or vice versa. Returns the edited message after the edit is completed on the server side
 // @param chatID The chat the message belongs to
-// @param messageID Identifier of the message
+// @param messageID Identifier of the message. Use messageProperties.can_be_edited to check whether the message can be edited
 // @param replyMarkup The new message reply markup; pass null if none; for bots only
 // @param inputMessageContent New content of the message. Must be one of the following types: inputMessageAnimation, inputMessageAudio, inputMessageDocument, inputMessagePhoto or inputMessageVideo
 func (client *ClientImpl) EditMessageMedia(chatID int64, messageID int64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*Message, error) {
@@ -4455,16 +5285,18 @@ func (client *ClientImpl) EditMessageMedia(chatID int64, messageID int64, replyM
 
 // EditMessageCaption Edits the message content caption. Returns the edited message after the edit is completed on the server side
 // @param chatID The chat the message belongs to
-// @param messageID Identifier of the message
+// @param messageID Identifier of the message. Use messageProperties.can_be_edited to check whether the message can be edited
 // @param replyMarkup The new message reply markup; pass null if none; for bots only
 // @param caption New message content caption; 0-getOption("message_caption_length_max") characters; pass null to remove caption
-func (client *ClientImpl) EditMessageCaption(chatID int64, messageID int64, replyMarkup ReplyMarkup, caption *FormattedText) (*Message, error) {
+// @param showCaptionAboveMedia Pass true to show the caption above the media; otherwise, the caption will be shown below the media. Can be true only for animation, photo, and video messages
+func (client *ClientImpl) EditMessageCaption(chatID int64, messageID int64, replyMarkup ReplyMarkup, caption *FormattedText, showCaptionAboveMedia bool) (*Message, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":        "editMessageCaption",
-		"chat_id":      chatID,
-		"message_id":   messageID,
-		"reply_markup": replyMarkup,
-		"caption":      caption,
+		"@type":                    "editMessageCaption",
+		"chat_id":                  chatID,
+		"message_id":               messageID,
+		"reply_markup":             replyMarkup,
+		"caption":                  caption,
+		"show_caption_above_media": showCaptionAboveMedia,
 	})
 
 	if err != nil {
@@ -4483,7 +5315,7 @@ func (client *ClientImpl) EditMessageCaption(chatID int64, messageID int64, repl
 
 // EditMessageReplyMarkup Edits the message reply markup; for bots only. Returns the edited message after the edit is completed on the server side
 // @param chatID The chat the message belongs to
-// @param messageID Identifier of the message
+// @param messageID Identifier of the message. Use messageProperties.can_be_edited to check whether the message can be edited
 // @param replyMarkup The new message reply markup; pass null if none
 func (client *ClientImpl) EditMessageReplyMarkup(chatID int64, messageID int64, replyMarkup ReplyMarkup) (*Message, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -4537,14 +5369,16 @@ func (client *ClientImpl) EditInlineMessageText(inlineMessageID string, replyMar
 // @param inlineMessageID Inline message identifier
 // @param replyMarkup The new message reply markup; pass null if none
 // @param location New location content of the message; pass null to stop sharing the live location
+// @param livePeriod New time relative to the message send date, for which the location can be updated, in seconds. If 0x7FFFFFFF specified, then the location can be updated forever. Otherwise, must not exceed the current live_period by more than a day, and the live location expiration date must remain in the next 90 days. Pass 0 to keep the current live_period
 // @param heading The new direction in which the location moves, in degrees; 1-360. Pass 0 if unknown
 // @param proximityAlertRadius The new maximum distance for proximity alerts, in meters (0-100000). Pass 0 if the notification is disabled
-func (client *ClientImpl) EditInlineMessageLiveLocation(inlineMessageID string, replyMarkup ReplyMarkup, location *Location, heading int32, proximityAlertRadius int32) (*Ok, error) {
+func (client *ClientImpl) EditInlineMessageLiveLocation(inlineMessageID string, replyMarkup ReplyMarkup, location *Location, livePeriod int32, heading int32, proximityAlertRadius int32) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":                  "editInlineMessageLiveLocation",
 		"inline_message_id":      inlineMessageID,
 		"reply_markup":           replyMarkup,
 		"location":               location,
+		"live_period":            livePeriod,
 		"heading":                heading,
 		"proximity_alert_radius": proximityAlertRadius,
 	})
@@ -4593,12 +5427,14 @@ func (client *ClientImpl) EditInlineMessageMedia(inlineMessageID string, replyMa
 // @param inlineMessageID Inline message identifier
 // @param replyMarkup The new message reply markup; pass null if none
 // @param caption New message content caption; pass null to remove caption; 0-getOption("message_caption_length_max") characters
-func (client *ClientImpl) EditInlineMessageCaption(inlineMessageID string, replyMarkup ReplyMarkup, caption *FormattedText) (*Ok, error) {
+// @param showCaptionAboveMedia Pass true to show the caption above the media; otherwise, the caption will be shown below the media. Can be true only for animation, photo, and video messages
+func (client *ClientImpl) EditInlineMessageCaption(inlineMessageID string, replyMarkup ReplyMarkup, caption *FormattedText, showCaptionAboveMedia bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":             "editInlineMessageCaption",
-		"inline_message_id": inlineMessageID,
-		"reply_markup":      replyMarkup,
-		"caption":           caption,
+		"@type":                    "editInlineMessageCaption",
+		"inline_message_id":        inlineMessageID,
+		"reply_markup":             replyMarkup,
+		"caption":                  caption,
+		"show_caption_above_media": showCaptionAboveMedia,
 	})
 
 	if err != nil {
@@ -4641,7 +5477,7 @@ func (client *ClientImpl) EditInlineMessageReplyMarkup(inlineMessageID string, r
 
 // EditMessageSchedulingState Edits the time when a scheduled message will be sent. Scheduling state of all messages in the same album or forwarded together with the message will be also changed
 // @param chatID The chat the message belongs to
-// @param messageID Identifier of the message
+// @param messageID Identifier of the message. Use messageProperties.can_edit_scheduling_state to check whether the message is suitable
 // @param schedulingState The new message scheduling state; pass null to send the message immediately
 func (client *ClientImpl) EditMessageSchedulingState(chatID int64, messageID int64, schedulingState MessageSchedulingState) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -4665,7 +5501,603 @@ func (client *ClientImpl) EditMessageSchedulingState(chatID int64, messageID int
 
 }
 
-// GetForumTopicDefaultIcons Returns list of custom emojis, which can be used as forum topic icon by all users
+// SetMessageFactCheck Changes the fact-check of a message. Can be only used if messageProperties.can_set_fact_check == true
+// @param chatID The channel chat the message belongs to
+// @param messageID Identifier of the message
+// @param text New text of the fact-check; 0-getOption("fact_check_length_max") characters; pass null to remove it. Only Bold, Italic, and TextUrl entities with https://t.me/ links are supported
+func (client *ClientImpl) SetMessageFactCheck(chatID int64, messageID int64, text *FormattedText) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "setMessageFactCheck",
+		"chat_id":    chatID,
+		"message_id": messageID,
+		"text":       text,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SendBusinessMessage Sends a message on behalf of a business account; for bots only. Returns the message after it was sent
+// @param businessConnectionID Unique identifier of business connection on behalf of which to send the request
+// @param chatID Target chat
+// @param replyTo Information about the message to be replied; pass null if none
+// @param disableNotification Pass true to disable notification for the message
+// @param protectContent Pass true if the content of the message must be protected from forwarding and saving
+// @param effectID Identifier of the effect to apply to the message
+// @param replyMarkup Markup for replying to the message; pass null if none
+// @param inputMessageContent The content of the message to be sent
+func (client *ClientImpl) SendBusinessMessage(businessConnectionID string, chatID int64, replyTo InputMessageReplyTo, disableNotification bool, protectContent bool, effectID *JSONInt64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*BusinessMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "sendBusinessMessage",
+		"business_connection_id": businessConnectionID,
+		"chat_id":                chatID,
+		"reply_to":               replyTo,
+		"disable_notification":   disableNotification,
+		"protect_content":        protectContent,
+		"effect_id":              effectID,
+		"reply_markup":           replyMarkup,
+		"input_message_content":  inputMessageContent,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessMessage BusinessMessage
+	err = json.Unmarshal(result.Raw, &businessMessage)
+	return &businessMessage, err
+
+}
+
+// SendBusinessMessageAlbum Sends 2-10 messages grouped together into an album on behalf of a business account; for bots only. Currently, only audio, document, photo and video messages can be grouped into an album. Documents and audio files can be only grouped in an album with messages of the same type. Returns sent messages
+// @param businessConnectionID Unique identifier of business connection on behalf of which to send the request
+// @param chatID Target chat
+// @param replyTo Information about the message to be replied; pass null if none
+// @param disableNotification Pass true to disable notification for the message
+// @param protectContent Pass true if the content of the message must be protected from forwarding and saving
+// @param effectID Identifier of the effect to apply to the message
+// @param inputMessageContents Contents of messages to be sent. At most 10 messages can be added to an album. All messages must have the same value of show_caption_above_media
+func (client *ClientImpl) SendBusinessMessageAlbum(businessConnectionID string, chatID int64, replyTo InputMessageReplyTo, disableNotification bool, protectContent bool, effectID *JSONInt64, inputMessageContents []InputMessageContent) (*BusinessMessages, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "sendBusinessMessageAlbum",
+		"business_connection_id": businessConnectionID,
+		"chat_id":                chatID,
+		"reply_to":               replyTo,
+		"disable_notification":   disableNotification,
+		"protect_content":        protectContent,
+		"effect_id":              effectID,
+		"input_message_contents": inputMessageContents,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessMessages BusinessMessages
+	err = json.Unmarshal(result.Raw, &businessMessages)
+	return &businessMessages, err
+
+}
+
+// EditBusinessMessageText Edits the text of a text or game message sent on behalf of a business account; for bots only
+// @param businessConnectionID Unique identifier of business connection on behalf of which the message was sent
+// @param chatID The chat the message belongs to
+// @param messageID Identifier of the message
+// @param replyMarkup The new message reply markup; pass null if none
+// @param inputMessageContent New text content of the message. Must be of type inputMessageText
+func (client *ClientImpl) EditBusinessMessageText(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*BusinessMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "editBusinessMessageText",
+		"business_connection_id": businessConnectionID,
+		"chat_id":                chatID,
+		"message_id":             messageID,
+		"reply_markup":           replyMarkup,
+		"input_message_content":  inputMessageContent,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessMessage BusinessMessage
+	err = json.Unmarshal(result.Raw, &businessMessage)
+	return &businessMessage, err
+
+}
+
+// EditBusinessMessageLiveLocation Edits the content of a live location in a message sent on behalf of a business account; for bots only
+// @param businessConnectionID Unique identifier of business connection on behalf of which the message was sent
+// @param chatID The chat the message belongs to
+// @param messageID Identifier of the message
+// @param replyMarkup The new message reply markup; pass null if none
+// @param location New location content of the message; pass null to stop sharing the live location
+// @param livePeriod New time relative to the message send date, for which the location can be updated, in seconds. If 0x7FFFFFFF specified, then the location can be updated forever. Otherwise, must not exceed the current live_period by more than a day, and the live location expiration date must remain in the next 90 days. Pass 0 to keep the current live_period
+// @param heading The new direction in which the location moves, in degrees; 1-360. Pass 0 if unknown
+// @param proximityAlertRadius The new maximum distance for proximity alerts, in meters (0-100000). Pass 0 if the notification is disabled
+func (client *ClientImpl) EditBusinessMessageLiveLocation(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup, location *Location, livePeriod int32, heading int32, proximityAlertRadius int32) (*BusinessMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "editBusinessMessageLiveLocation",
+		"business_connection_id": businessConnectionID,
+		"chat_id":                chatID,
+		"message_id":             messageID,
+		"reply_markup":           replyMarkup,
+		"location":               location,
+		"live_period":            livePeriod,
+		"heading":                heading,
+		"proximity_alert_radius": proximityAlertRadius,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessMessage BusinessMessage
+	err = json.Unmarshal(result.Raw, &businessMessage)
+	return &businessMessage, err
+
+}
+
+// EditBusinessMessageMedia Edits the content of a message with an animation, an audio, a document, a photo or a video in a message sent on behalf of a business account; for bots only
+// @param businessConnectionID Unique identifier of business connection on behalf of which the message was sent
+// @param chatID The chat the message belongs to
+// @param messageID Identifier of the message
+// @param replyMarkup The new message reply markup; pass null if none; for bots only
+// @param inputMessageContent New content of the message. Must be one of the following types: inputMessageAnimation, inputMessageAudio, inputMessageDocument, inputMessagePhoto or inputMessageVideo
+func (client *ClientImpl) EditBusinessMessageMedia(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup, inputMessageContent InputMessageContent) (*BusinessMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "editBusinessMessageMedia",
+		"business_connection_id": businessConnectionID,
+		"chat_id":                chatID,
+		"message_id":             messageID,
+		"reply_markup":           replyMarkup,
+		"input_message_content":  inputMessageContent,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessMessage BusinessMessage
+	err = json.Unmarshal(result.Raw, &businessMessage)
+	return &businessMessage, err
+
+}
+
+// EditBusinessMessageCaption Edits the caption of a message sent on behalf of a business account; for bots only
+// @param businessConnectionID Unique identifier of business connection on behalf of which the message was sent
+// @param chatID The chat the message belongs to
+// @param messageID Identifier of the message
+// @param replyMarkup The new message reply markup; pass null if none
+// @param caption New message content caption; pass null to remove caption; 0-getOption("message_caption_length_max") characters
+// @param showCaptionAboveMedia Pass true to show the caption above the media; otherwise, the caption will be shown below the media. Can be true only for animation, photo, and video messages
+func (client *ClientImpl) EditBusinessMessageCaption(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup, caption *FormattedText, showCaptionAboveMedia bool) (*BusinessMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                    "editBusinessMessageCaption",
+		"business_connection_id":   businessConnectionID,
+		"chat_id":                  chatID,
+		"message_id":               messageID,
+		"reply_markup":             replyMarkup,
+		"caption":                  caption,
+		"show_caption_above_media": showCaptionAboveMedia,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessMessage BusinessMessage
+	err = json.Unmarshal(result.Raw, &businessMessage)
+	return &businessMessage, err
+
+}
+
+// EditBusinessMessageReplyMarkup Edits the reply markup of a message sent on behalf of a business account; for bots only
+// @param businessConnectionID Unique identifier of business connection on behalf of which the message was sent
+// @param chatID The chat the message belongs to
+// @param messageID Identifier of the message
+// @param replyMarkup The new message reply markup; pass null if none
+func (client *ClientImpl) EditBusinessMessageReplyMarkup(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup) (*BusinessMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "editBusinessMessageReplyMarkup",
+		"business_connection_id": businessConnectionID,
+		"chat_id":                chatID,
+		"message_id":             messageID,
+		"reply_markup":           replyMarkup,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessMessage BusinessMessage
+	err = json.Unmarshal(result.Raw, &businessMessage)
+	return &businessMessage, err
+
+}
+
+// StopBusinessPoll Stops a poll sent on behalf of a business account; for bots only
+// @param businessConnectionID Unique identifier of business connection on behalf of which the message with the poll was sent
+// @param chatID The chat the message belongs to
+// @param messageID Identifier of the message containing the poll
+// @param replyMarkup The new message reply markup; pass null if none
+func (client *ClientImpl) StopBusinessPoll(businessConnectionID string, chatID int64, messageID int64, replyMarkup ReplyMarkup) (*BusinessMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "stopBusinessPoll",
+		"business_connection_id": businessConnectionID,
+		"chat_id":                chatID,
+		"message_id":             messageID,
+		"reply_markup":           replyMarkup,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessMessage BusinessMessage
+	err = json.Unmarshal(result.Raw, &businessMessage)
+	return &businessMessage, err
+
+}
+
+// SetBusinessMessageIsPinned Pins or unpins a message sent on behalf of a business account; for bots only
+// @param businessConnectionID Unique identifier of business connection on behalf of which the message was sent
+// @param chatID The chat the message belongs to
+// @param messageID Identifier of the message
+// @param isPinned Pass true to pin the message, pass false to unpin it
+func (client *ClientImpl) SetBusinessMessageIsPinned(businessConnectionID string, chatID int64, messageID int64, isPinned bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "setBusinessMessageIsPinned",
+		"business_connection_id": businessConnectionID,
+		"chat_id":                chatID,
+		"message_id":             messageID,
+		"is_pinned":              isPinned,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// CheckQuickReplyShortcutName Checks validness of a name for a quick reply shortcut. Can be called synchronously
+// @param name The name of the shortcut; 1-32 characters
+func (client *ClientImpl) CheckQuickReplyShortcutName(name string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "checkQuickReplyShortcutName",
+		"name":  name,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// LoadQuickReplyShortcuts Loads quick reply shortcuts created by the current user. The loaded data will be sent through updateQuickReplyShortcut and updateQuickReplyShortcuts
+func (client *ClientImpl) LoadQuickReplyShortcuts() (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "loadQuickReplyShortcuts",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetQuickReplyShortcutName Changes name of a quick reply shortcut
+// @param shortcutID Unique identifier of the quick reply shortcut
+// @param name New name for the shortcut. Use checkQuickReplyShortcutName to check its validness
+func (client *ClientImpl) SetQuickReplyShortcutName(shortcutID int32, name string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":       "setQuickReplyShortcutName",
+		"shortcut_id": shortcutID,
+		"name":        name,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// DeleteQuickReplyShortcut Deletes a quick reply shortcut
+// @param shortcutID Unique identifier of the quick reply shortcut
+func (client *ClientImpl) DeleteQuickReplyShortcut(shortcutID int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":       "deleteQuickReplyShortcut",
+		"shortcut_id": shortcutID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ReorderQuickReplyShortcuts Changes the order of quick reply shortcuts
+// @param shortcutIDs The new order of quick reply shortcuts
+func (client *ClientImpl) ReorderQuickReplyShortcuts(shortcutIDs []int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":        "reorderQuickReplyShortcuts",
+		"shortcut_ids": shortcutIDs,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// LoadQuickReplyShortcutMessages Loads quick reply messages that can be sent by a given quick reply shortcut. The loaded messages will be sent through updateQuickReplyShortcutMessages
+// @param shortcutID Unique identifier of the quick reply shortcut
+func (client *ClientImpl) LoadQuickReplyShortcutMessages(shortcutID int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":       "loadQuickReplyShortcutMessages",
+		"shortcut_id": shortcutID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// DeleteQuickReplyShortcutMessages Deletes specified quick reply messages
+// @param shortcutID Unique identifier of the quick reply shortcut to which the messages belong
+// @param messageIDs Unique identifiers of the messages
+func (client *ClientImpl) DeleteQuickReplyShortcutMessages(shortcutID int32, messageIDs []int64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":       "deleteQuickReplyShortcutMessages",
+		"shortcut_id": shortcutID,
+		"message_ids": messageIDs,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// AddQuickReplyShortcutMessage Adds a message to a quick reply shortcut. If shortcut doesn't exist and there are less than getOption("quick_reply_shortcut_count_max") shortcuts, then a new shortcut is created. The shortcut must not contain more than getOption("quick_reply_shortcut_message_count_max") messages after adding the new message. Returns the added message
+// @param shortcutName Name of the target shortcut
+// @param replyToMessageID Identifier of a quick reply message in the same shortcut to be replied; pass 0 if none
+// @param inputMessageContent The content of the message to be added; inputMessagePoll, inputMessageForwarded and inputMessageLocation with live_period aren't supported
+func (client *ClientImpl) AddQuickReplyShortcutMessage(shortcutName string, replyToMessageID int64, inputMessageContent InputMessageContent) (*QuickReplyMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                 "addQuickReplyShortcutMessage",
+		"shortcut_name":         shortcutName,
+		"reply_to_message_id":   replyToMessageID,
+		"input_message_content": inputMessageContent,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var quickReplyMessage QuickReplyMessage
+	err = json.Unmarshal(result.Raw, &quickReplyMessage)
+	return &quickReplyMessage, err
+
+}
+
+// AddQuickReplyShortcutInlineQueryResultMessage Adds a message to a quick reply shortcut via inline bot. If shortcut doesn't exist and there are less than getOption("quick_reply_shortcut_count_max") shortcuts, then a new shortcut is created. The shortcut must not contain more than getOption("quick_reply_shortcut_message_count_max") messages after adding the new message. Returns the added message
+// @param shortcutName Name of the target shortcut
+// @param replyToMessageID Identifier of a quick reply message in the same shortcut to be replied; pass 0 if none
+// @param queryID Identifier of the inline query
+// @param resultID Identifier of the inline query result
+// @param hideViaBot Pass true to hide the bot, via which the message is sent. Can be used only for bots getOption("animation_search_bot_username"), getOption("photo_search_bot_username"), and getOption("venue_search_bot_username")
+func (client *ClientImpl) AddQuickReplyShortcutInlineQueryResultMessage(shortcutName string, replyToMessageID int64, queryID *JSONInt64, resultID string, hideViaBot bool) (*QuickReplyMessage, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":               "addQuickReplyShortcutInlineQueryResultMessage",
+		"shortcut_name":       shortcutName,
+		"reply_to_message_id": replyToMessageID,
+		"query_id":            queryID,
+		"result_id":           resultID,
+		"hide_via_bot":        hideViaBot,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var quickReplyMessage QuickReplyMessage
+	err = json.Unmarshal(result.Raw, &quickReplyMessage)
+	return &quickReplyMessage, err
+
+}
+
+// AddQuickReplyShortcutMessageAlbum Adds 2-10 messages grouped together into an album to a quick reply shortcut. Currently, only audio, document, photo and video messages can be grouped into an album. Documents and audio files can be only grouped in an album with messages of the same type. Returns sent messages
+// @param shortcutName Name of the target shortcut
+// @param replyToMessageID Identifier of a quick reply message in the same shortcut to be replied; pass 0 if none
+// @param inputMessageContents Contents of messages to be sent. At most 10 messages can be added to an album. All messages must have the same value of show_caption_above_media
+func (client *ClientImpl) AddQuickReplyShortcutMessageAlbum(shortcutName string, replyToMessageID int64, inputMessageContents []InputMessageContent) (*QuickReplyMessages, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "addQuickReplyShortcutMessageAlbum",
+		"shortcut_name":          shortcutName,
+		"reply_to_message_id":    replyToMessageID,
+		"input_message_contents": inputMessageContents,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var quickReplyMessages QuickReplyMessages
+	err = json.Unmarshal(result.Raw, &quickReplyMessages)
+	return &quickReplyMessages, err
+
+}
+
+// ReaddQuickReplyShortcutMessages Readds quick reply messages which failed to add. Can be called only for messages for which messageSendingStateFailed.can_retry is true and after specified in messageSendingStateFailed.retry_after time passed. If a message is readded, the corresponding failed to send message is deleted. Returns the sent messages in the same order as the message identifiers passed in message_ids. If a message can't be readded, null will be returned instead of the message
+// @param shortcutName Name of the target shortcut
+// @param messageIDs Identifiers of the quick reply messages to readd. Message identifiers must be in a strictly increasing order
+func (client *ClientImpl) ReaddQuickReplyShortcutMessages(shortcutName string, messageIDs []int64) (*QuickReplyMessages, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "readdQuickReplyShortcutMessages",
+		"shortcut_name": shortcutName,
+		"message_ids":   messageIDs,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var quickReplyMessages QuickReplyMessages
+	err = json.Unmarshal(result.Raw, &quickReplyMessages)
+	return &quickReplyMessages, err
+
+}
+
+// EditQuickReplyMessage Asynchronously edits the text, media or caption of a quick reply message. Use quickReplyMessage.can_be_edited to check whether a message can be edited. Text message can be edited only to a text message. The type of message content in an album can't be changed with exception of replacing a photo with a video or vice versa
+// @param shortcutID Unique identifier of the quick reply shortcut with the message
+// @param messageID Identifier of the message
+// @param inputMessageContent New content of the message. Must be one of the following types: inputMessageText, inputMessageAnimation, inputMessageAudio, inputMessageDocument, inputMessagePhoto or inputMessageVideo
+func (client *ClientImpl) EditQuickReplyMessage(shortcutID int32, messageID int64, inputMessageContent InputMessageContent) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                 "editQuickReplyMessage",
+		"shortcut_id":           shortcutID,
+		"message_id":            messageID,
+		"input_message_content": inputMessageContent,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetForumTopicDefaultIcons Returns the list of custom emoji, which can be used as forum topic icon by all users
 func (client *ClientImpl) GetForumTopicDefaultIcons() (*Stickers, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "getForumTopicDefaultIcons",
@@ -4685,7 +6117,7 @@ func (client *ClientImpl) GetForumTopicDefaultIcons() (*Stickers, error) {
 
 }
 
-// CreateForumTopic Creates a topic in a forum supergroup chat; requires can_manage_topics rights in the supergroup
+// CreateForumTopic Creates a topic in a forum supergroup chat; requires can_manage_topics administrator or can_create_topics member right in the supergroup
 // @param chatID Identifier of the chat
 // @param name Name of the topic; 1-128 characters
 // @param icon Icon of the topic. Icon color must be one of 0x6FB9F0, 0xFFD67E, 0xCB86DB, 0x8EEE98, 0xFF93B2, or 0xFB6F5F. Telegram Premium users can use any custom emoji as topic icon, other users can use only a custom emoji returned by getForumTopicDefaultIcons
@@ -4711,7 +6143,7 @@ func (client *ClientImpl) CreateForumTopic(chatID int64, name string, icon *Foru
 
 }
 
-// EditForumTopic Edits title and icon of a topic in a forum supergroup chat; requires can_manage_topics administrator right in the supergroup unless the user is creator of the topic
+// EditForumTopic Edits title and icon of a topic in a forum supergroup chat; requires can_manage_topics right in the supergroup unless the user is creator of the topic
 // @param chatID Identifier of the chat
 // @param messageThreadID Message thread identifier of the forum topic
 // @param name New name of the topic; 0-128 characters. If empty, the previous topic name is kept
@@ -4847,7 +6279,7 @@ func (client *ClientImpl) SetForumTopicNotificationSettings(chatID int64, messag
 
 }
 
-// ToggleForumTopicIsClosed Toggles whether a topic is closed in a forum supergroup chat; requires can_manage_topics administrator right in the supergroup unless the user is creator of the topic
+// ToggleForumTopicIsClosed Toggles whether a topic is closed in a forum supergroup chat; requires can_manage_topics right in the supergroup unless the user is creator of the topic
 // @param chatID Identifier of the chat
 // @param messageThreadID Message thread identifier of the forum topic
 // @param isClosed Pass true to close the topic; pass false to reopen it
@@ -4873,7 +6305,7 @@ func (client *ClientImpl) ToggleForumTopicIsClosed(chatID int64, messageThreadID
 
 }
 
-// ToggleGeneralForumTopicIsHidden Toggles whether a General topic is hidden in a forum supergroup chat; requires can_manage_topics administrator right in the supergroup
+// ToggleGeneralForumTopicIsHidden Toggles whether a General topic is hidden in a forum supergroup chat; requires can_manage_topics right in the supergroup
 // @param chatID Identifier of the chat
 // @param isHidden Pass true to hide and close the General topic; pass false to unhide it
 func (client *ClientImpl) ToggleGeneralForumTopicIsHidden(chatID int64, isHidden bool) (*Ok, error) {
@@ -4897,7 +6329,7 @@ func (client *ClientImpl) ToggleGeneralForumTopicIsHidden(chatID int64, isHidden
 
 }
 
-// ToggleForumTopicIsPinned Changes the pinned state of a forum topic; requires can_manage_topics administrator right in the supergroup. There can be up to getOption("pinned_forum_topic_count_max") pinned forum topics
+// ToggleForumTopicIsPinned Changes the pinned state of a forum topic; requires can_manage_topics right in the supergroup. There can be up to getOption("pinned_forum_topic_count_max") pinned forum topics
 // @param chatID Chat identifier
 // @param messageThreadID Message thread identifier of the forum topic
 // @param isPinned Pass true to pin the topic; pass false to unpin it
@@ -4923,7 +6355,7 @@ func (client *ClientImpl) ToggleForumTopicIsPinned(chatID int64, messageThreadID
 
 }
 
-// SetPinnedForumTopics Changes the order of pinned forum topics
+// SetPinnedForumTopics Changes the order of pinned forum topics; requires can_manage_topics right in the supergroup
 // @param chatID Chat identifier
 // @param messageThreadIDs The new list of pinned forum topics
 func (client *ClientImpl) SetPinnedForumTopics(chatID int64, messageThreadIDs []int64) (*Ok, error) {
@@ -4971,7 +6403,7 @@ func (client *ClientImpl) DeleteForumTopic(chatID int64, messageThreadID int64) 
 
 }
 
-// GetEmojiReaction Returns information about a emoji reaction. Returns a 404 error if the reaction is not found
+// GetEmojiReaction Returns information about an emoji reaction. Returns a 404 error if the reaction is not found
 // @param emoji Text representation of the reaction
 func (client *ClientImpl) GetEmojiReaction(emoji string) (*EmojiReaction, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -5059,12 +6491,12 @@ func (client *ClientImpl) ClearRecentReactions() (*Ok, error) {
 
 }
 
-// AddMessageReaction Adds a reaction to a message. Use getMessageAvailableReactions to receive the list of available reactions for the message
+// AddMessageReaction Adds a reaction or a tag to a message. Use getMessageAvailableReactions to receive the list of available reactions for the message
 // @param chatID Identifier of the chat to which the message belongs
 // @param messageID Identifier of the message
-// @param reactionType Type of the reaction to add
+// @param reactionType Type of the reaction to add. Use addPendingPaidMessageReaction instead to add the paid reaction
 // @param isBig Pass true if the reaction is added with a big animation
-// @param updateRecentReactions Pass true if the reaction needs to be added to recent reactions
+// @param updateRecentReactions Pass true if the reaction needs to be added to recent reactions; tags are never added to the list of recent reactions
 func (client *ClientImpl) AddMessageReaction(chatID int64, messageID int64, reactionType ReactionType, isBig bool, updateRecentReactions bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":                   "addMessageReaction",
@@ -5092,13 +6524,117 @@ func (client *ClientImpl) AddMessageReaction(chatID int64, messageID int64, reac
 // RemoveMessageReaction Removes a reaction from a message. A chosen reaction can always be removed
 // @param chatID Identifier of the chat to which the message belongs
 // @param messageID Identifier of the message
-// @param reactionType Type of the reaction to remove
+// @param reactionType Type of the reaction to remove. The paid reaction can't be removed
 func (client *ClientImpl) RemoveMessageReaction(chatID int64, messageID int64, reactionType ReactionType) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":         "removeMessageReaction",
 		"chat_id":       chatID,
 		"message_id":    messageID,
 		"reaction_type": reactionType,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// AddPendingPaidMessageReaction Adds the paid message reaction to a message. Use getMessageAvailableReactions to check whether the reaction is available for the message
+// @param chatID Identifier of the chat to which the message belongs
+// @param messageID Identifier of the message
+// @param starCount Number of Telegram Stars to be used for the reaction. The total number of pending paid reactions must not exceed getOption("paid_reaction_star_count_max")
+// @param useDefaultIsAnonymous Pass true if the user didn't choose anonymity explicitly, for example, the reaction is set from the message bubble
+// @param isAnonymous Pass true to make paid reaction of the user on the message anonymous; pass false to make the user's profile visible among top reactors. Ignored if use_default_is_anonymous == true
+func (client *ClientImpl) AddPendingPaidMessageReaction(chatID int64, messageID int64, starCount int64, useDefaultIsAnonymous bool, isAnonymous bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                    "addPendingPaidMessageReaction",
+		"chat_id":                  chatID,
+		"message_id":               messageID,
+		"star_count":               starCount,
+		"use_default_is_anonymous": useDefaultIsAnonymous,
+		"is_anonymous":             isAnonymous,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// CommitPendingPaidMessageReactions Applies all pending paid reactions on a message
+// @param chatID Identifier of the chat to which the message belongs
+// @param messageID Identifier of the message
+func (client *ClientImpl) CommitPendingPaidMessageReactions(chatID int64, messageID int64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "commitPendingPaidMessageReactions",
+		"chat_id":    chatID,
+		"message_id": messageID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// RemovePendingPaidMessageReactions Removes all pending paid reactions on a message
+// @param chatID Identifier of the chat to which the message belongs
+// @param messageID Identifier of the message
+func (client *ClientImpl) RemovePendingPaidMessageReactions(chatID int64, messageID int64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "removePendingPaidMessageReactions",
+		"chat_id":    chatID,
+		"message_id": messageID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// TogglePaidMessageReactionIsAnonymous Changes whether the paid message reaction of the user to a message is anonymous. The message must have paid reaction added by the user
+// @param chatID Identifier of the chat to which the message belongs
+// @param messageID Identifier of the message
+// @param isAnonymous Pass true to make paid reaction of the user on the message anonymous; pass false to make the user's profile visible among top reactors
+func (client *ClientImpl) TogglePaidMessageReactionIsAnonymous(chatID int64, messageID int64, isAnonymous bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":        "togglePaidMessageReactionIsAnonymous",
+		"chat_id":      chatID,
+		"message_id":   messageID,
+		"is_anonymous": isAnonymous,
 	})
 
 	if err != nil {
@@ -5145,8 +6681,8 @@ func (client *ClientImpl) SetMessageReactions(chatID int64, messageID int64, rea
 
 // GetMessageAddedReactions Returns reactions added for a message, along with their sender
 // @param chatID Identifier of the chat to which the message belongs
-// @param messageID Identifier of the message
-// @param reactionType Type of the reactions to return; pass null to return all added reactions
+// @param messageID Identifier of the message. Use message.interaction_info.reactions.can_get_added_reactions to check whether added reactions can be received for the message
+// @param reactionType Type of the reactions to return; pass null to return all added reactions; reactionTypePaid isn't supported
 // @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
 // @param limit The maximum number of reactions to be returned; must be positive and can't be greater than 100
 func (client *ClientImpl) GetMessageAddedReactions(chatID int64, messageID int64, reactionType ReactionType, offset string, limit int32) (*AddedReactions, error) {
@@ -5174,7 +6710,7 @@ func (client *ClientImpl) GetMessageAddedReactions(chatID int64, messageID int64
 }
 
 // SetDefaultReactionType Changes type of default reaction for the current user
-// @param reactionType New type of the default reaction
+// @param reactionType New type of the default reaction. The paid reaction can't be set as default
 func (client *ClientImpl) SetDefaultReactionType(reactionType ReactionType) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":         "setDefaultReactionType",
@@ -5192,6 +6728,74 @@ func (client *ClientImpl) SetDefaultReactionType(reactionType ReactionType) (*Ok
 	var ok Ok
 	err = json.Unmarshal(result.Raw, &ok)
 	return &ok, err
+
+}
+
+// GetSavedMessagesTags Returns tags used in Saved Messages or a Saved Messages topic
+// @param savedMessagesTopicID Identifier of Saved Messages topic which tags will be returned; pass 0 to get all Saved Messages tags
+func (client *ClientImpl) GetSavedMessagesTags(savedMessagesTopicID int64) (*SavedMessagesTags, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                   "getSavedMessagesTags",
+		"saved_messages_topic_id": savedMessagesTopicID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var savedMessagesTags SavedMessagesTags
+	err = json.Unmarshal(result.Raw, &savedMessagesTags)
+	return &savedMessagesTags, err
+
+}
+
+// SetSavedMessagesTagLabel Changes label of a Saved Messages tag; for Telegram Premium users only
+// @param tag The tag which label will be changed
+// @param label New label for the tag; 0-12 characters
+func (client *ClientImpl) SetSavedMessagesTagLabel(tag ReactionType, label string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "setSavedMessagesTagLabel",
+		"tag":   tag,
+		"label": label,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetMessageEffect Returns information about a message effect. Returns a 404 error if the effect is not found
+// @param effectID Unique identifier of the effect
+func (client *ClientImpl) GetMessageEffect(effectID *JSONInt64) (*MessageEffect, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":     "getMessageEffect",
+		"effect_id": effectID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var messageEffect MessageEffect
+	err = json.Unmarshal(result.Raw, &messageEffect)
+	return &messageEffect, err
 
 }
 
@@ -5243,7 +6847,7 @@ func (client *ClientImpl) GetTextEntities(text string) (*TextEntities, error) {
 
 }
 
-// ParseTextEntities Parses Bold, Italic, Underline, Strikethrough, Spoiler, CustomEmoji, BlockQuote, Code, Pre, PreCode, TextUrl and MentionName entities from a marked-up text. Can be called synchronously
+// ParseTextEntities Parses Bold, Italic, Underline, Strikethrough, Spoiler, CustomEmoji, BlockQuote, ExpandableBlockQuote, Code, Pre, PreCode, TextUrl and MentionName entities from a marked-up text. Can be called synchronously
 // @param text The text to parse
 // @param parseMode Text parse mode
 func (client *ClientImpl) ParseTextEntities(text string, parseMode TextParseMode) (*FormattedText, error) {
@@ -5308,6 +6912,28 @@ func (client *ClientImpl) GetMarkdownText(text *FormattedText) (*FormattedText, 
 	var formattedText FormattedText
 	err = json.Unmarshal(result.Raw, &formattedText)
 	return &formattedText, err
+
+}
+
+// GetCountryFlagEmoji Returns an emoji for the given country. Returns an empty string on failure. Can be called synchronously
+// @param countryCode A two-letter ISO 3166-1 alpha-2 country code as received from getCountries
+func (client *ClientImpl) GetCountryFlagEmoji(countryCode string) (*Text, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":        "getCountryFlagEmoji",
+		"country_code": countryCode,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var text Text
+	err = json.Unmarshal(result.Raw, &text)
+	return &text, err
 
 }
 
@@ -5574,9 +7200,9 @@ func (client *ClientImpl) GetPollVoters(chatID int64, messageID int64, optionID 
 
 }
 
-// StopPoll Stops a poll. A poll in a message can be stopped when the message has can_be_edited flag is set
+// StopPoll Stops a poll
 // @param chatID Identifier of the chat to which the poll belongs
-// @param messageID Identifier of the message containing the poll
+// @param messageID Identifier of the message containing the poll. Use messageProperties.can_be_edited to check whether the poll can be stopped
 // @param replyMarkup The new message reply markup; pass null if none; for bots only
 func (client *ClientImpl) StopPoll(chatID int64, messageID int64, replyMarkup ReplyMarkup) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -5622,9 +7248,51 @@ func (client *ClientImpl) HideSuggestedAction(action SuggestedAction) (*Ok, erro
 
 }
 
+// HideContactCloseBirthdays Hides the list of contacts that have close birthdays for 24 hours
+func (client *ClientImpl) HideContactCloseBirthdays() (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "hideContactCloseBirthdays",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetBusinessConnection Returns information about a business connection by its identifier; for bots only
+// @param connectionID Identifier of the business connection to return
+func (client *ClientImpl) GetBusinessConnection(connectionID string) (*BusinessConnection, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "getBusinessConnection",
+		"connection_id": connectionID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessConnection BusinessConnection
+	err = json.Unmarshal(result.Raw, &businessConnection)
+	return &businessConnection, err
+
+}
+
 // GetLoginURLInfo Returns information about a button of type inlineKeyboardButtonTypeLoginUrl. The method needs to be called when the user presses the button
 // @param chatID Chat identifier of the message with the button
-// @param messageID Message identifier of the message with the button
+// @param messageID Message identifier of the message with the button. The message must not be scheduled
 // @param buttonID Button identifier
 func (client *ClientImpl) GetLoginURLInfo(chatID int64, messageID int64, buttonID int64) (LoginURLInfo, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -5799,6 +7467,30 @@ func (client *ClientImpl) AnswerInlineQuery(inlineQueryID *JSONInt64, isPersonal
 
 }
 
+// GetGrossingWebAppBots Returns the most grossing Web App bots
+// @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
+// @param limit The maximum number of bots to be returned; up to 100
+func (client *ClientImpl) GetGrossingWebAppBots(offset string, limit int32) (*FoundUsers, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":  "getGrossingWebAppBots",
+		"offset": offset,
+		"limit":  limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var foundUsers FoundUsers
+	err = json.Unmarshal(result.Raw, &foundUsers)
+	return &foundUsers, err
+
+}
+
 // SearchWebApp Returns information about a Web App by its short name. Returns a 404 error if the Web App is not found
 // @param botUserID Identifier of the target bot
 // @param webAppShortName Short name of the Web App
@@ -5829,7 +7521,7 @@ func (client *ClientImpl) SearchWebApp(botUserID int64, webAppShortName string) 
 // @param webAppShortName Short name of the Web App
 // @param startParameter Start parameter from internalLinkTypeWebApp
 // @param theme Preferred Web App theme; pass null to use the default theme
-// @param applicationName Short name of the application; 0-64 English letters, digits, and underscores
+// @param applicationName Short name of the current application; 0-64 English letters, digits, and underscores
 // @param allowWriteAccess Pass true if the current user allowed the bot to send them messages
 func (client *ClientImpl) GetWebAppLinkURL(chatID int64, botUserID int64, webAppShortName string, startParameter string, theme *ThemeParameters, applicationName string, allowWriteAccess bool) (*HttpURL, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -5857,11 +7549,41 @@ func (client *ClientImpl) GetWebAppLinkURL(chatID int64, botUserID int64, webApp
 
 }
 
-// GetWebAppURL Returns an HTTPS URL of a Web App to open from the side menu, a keyboardButtonTypeWebApp button, an inlineQueryResultsButtonTypeWebApp button, or an internalLinkTypeSideMenuBot link
+// GetMainWebApp Returns information needed to open the main Web App of a bot
+// @param chatID Identifier of the chat in which the Web App is opened; pass 0 if none
 // @param botUserID Identifier of the target bot
-// @param uRL The URL from a keyboardButtonTypeWebApp button, inlineQueryResultsButtonTypeWebApp button, an internalLinkTypeSideMenuBot link, or an empty when the bot is opened from the side menu
+// @param startParameter Start parameter from internalLinkTypeMainWebApp
 // @param theme Preferred Web App theme; pass null to use the default theme
-// @param applicationName Short name of the application; 0-64 English letters, digits, and underscores
+// @param applicationName Short name of the current application; 0-64 English letters, digits, and underscores
+func (client *ClientImpl) GetMainWebApp(chatID int64, botUserID int64, startParameter string, theme *ThemeParameters, applicationName string) (*MainWebApp, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":            "getMainWebApp",
+		"chat_id":          chatID,
+		"bot_user_id":      botUserID,
+		"start_parameter":  startParameter,
+		"theme":            theme,
+		"application_name": applicationName,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var mainWebApp MainWebApp
+	err = json.Unmarshal(result.Raw, &mainWebApp)
+	return &mainWebApp, err
+
+}
+
+// GetWebAppURL Returns an HTTPS URL of a Web App to open from the side menu, a keyboardButtonTypeWebApp button, or an inlineQueryResultsButtonTypeWebApp button
+// @param botUserID Identifier of the target bot
+// @param uRL The URL from a keyboardButtonTypeWebApp button, inlineQueryResultsButtonTypeWebApp button, or an empty string when the bot is opened from the side menu
+// @param theme Preferred Web App theme; pass null to use the default theme
+// @param applicationName Short name of the current application; 0-64 English letters, digits, and underscores
 func (client *ClientImpl) GetWebAppURL(botUserID int64, uRL string, theme *ThemeParameters, applicationName string) (*HttpURL, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":            "getWebAppUrl",
@@ -5916,8 +7638,8 @@ func (client *ClientImpl) SendWebAppData(botUserID int64, buttonText string, dat
 // @param botUserID Identifier of the bot, providing the Web App
 // @param uRL The URL from an inlineKeyboardButtonTypeWebApp button, a botMenuButton button, an internalLinkTypeAttachmentMenuBot link, or an empty string otherwise
 // @param theme Preferred Web App theme; pass null to use the default theme
-// @param applicationName Short name of the application; 0-64 English letters, digits, and underscores
-// @param messageThreadID If not 0, a message thread identifier in which the message will be sent
+// @param applicationName Short name of the current application; 0-64 English letters, digits, and underscores
+// @param messageThreadID If not 0, the message thread identifier in which the message will be sent
 // @param replyTo Information about the message or story to be replied in the message sent by the Web App; pass null if none
 func (client *ClientImpl) OpenWebApp(chatID int64, botUserID int64, uRL string, theme *ThemeParameters, applicationName string, messageThreadID int64, replyTo InputMessageReplyTo) (*WebAppInfo, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -5993,7 +7715,7 @@ func (client *ClientImpl) AnswerWebAppQuery(webAppQueryID string, resultParam In
 
 // GetCallbackQueryAnswer Sends a callback query to a bot and returns an answer. Returns an error with code 502 if the bot fails to answer the query before the query timeout expires
 // @param chatID Identifier of the chat with the message
-// @param messageID Identifier of the message from which the query originated
+// @param messageID Identifier of the message from which the query originated. The message must not be scheduled
 // @param payload Query payload
 func (client *ClientImpl) GetCallbackQueryAnswer(chatID int64, messageID int64, payload CallbackQueryPayload) (*CallbackQueryAnswer, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -6235,14 +7957,16 @@ func (client *ClientImpl) DeleteChatReplyMarkup(chatID int64, messageID int64) (
 
 // SendChatAction Sends a notification about user activity in a chat
 // @param chatID Chat identifier
-// @param messageThreadID If not 0, a message thread identifier in which the action was performed
+// @param messageThreadID If not 0, the message thread identifier in which the action was performed
+// @param businessConnectionID Unique identifier of business connection on behalf of which to send the request; for bots only
 // @param action The action description; pass null to cancel the currently active action
-func (client *ClientImpl) SendChatAction(chatID int64, messageThreadID int64, action ChatAction) (*Ok, error) {
+func (client *ClientImpl) SendChatAction(chatID int64, messageThreadID int64, businessConnectionID string, action ChatAction) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":             "sendChatAction",
-		"chat_id":           chatID,
-		"message_thread_id": messageThreadID,
-		"action":            action,
+		"@type":                  "sendChatAction",
+		"chat_id":                chatID,
+		"message_thread_id":      messageThreadID,
+		"business_connection_id": businessConnectionID,
+		"action":                 action,
 	})
 
 	if err != nil {
@@ -6403,7 +8127,7 @@ func (client *ClientImpl) GetInternalLink(typeParam InternalLinkType, isHttp boo
 
 }
 
-// GetInternalLinkType Returns information about the type of an internal link. Returns a 404 error if the link is not internal. Can be called before authorization
+// GetInternalLinkType Returns information about the type of internal link. Returns a 404 error if the link is not internal. Can be called before authorization
 // @param link The link
 func (client *ClientImpl) GetInternalLinkType(link string) (InternalLinkType, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -6453,6 +8177,16 @@ func (client *ClientImpl) GetInternalLinkType(link string) (InternalLinkType, er
 
 	case InternalLinkTypeBotStartInGroupType:
 		var internalLinkType InternalLinkTypeBotStartInGroup
+		err = json.Unmarshal(result.Raw, &internalLinkType)
+		return &internalLinkType, err
+
+	case InternalLinkTypeBusinessChatType:
+		var internalLinkType InternalLinkTypeBusinessChat
+		err = json.Unmarshal(result.Raw, &internalLinkType)
+		return &internalLinkType, err
+
+	case InternalLinkTypeBuyStarsType:
+		var internalLinkType InternalLinkTypeBuyStars
 		err = json.Unmarshal(result.Raw, &internalLinkType)
 		return &internalLinkType, err
 
@@ -6513,6 +8247,11 @@ func (client *ClientImpl) GetInternalLinkType(link string) (InternalLinkType, er
 
 	case InternalLinkTypeLanguageSettingsType:
 		var internalLinkType InternalLinkTypeLanguageSettings
+		err = json.Unmarshal(result.Raw, &internalLinkType)
+		return &internalLinkType, err
+
+	case InternalLinkTypeMainWebAppType:
+		var internalLinkType InternalLinkTypeMainWebApp
 		err = json.Unmarshal(result.Raw, &internalLinkType)
 		return &internalLinkType, err
 
@@ -6581,11 +8320,6 @@ func (client *ClientImpl) GetInternalLinkType(link string) (InternalLinkType, er
 		err = json.Unmarshal(result.Raw, &internalLinkType)
 		return &internalLinkType, err
 
-	case InternalLinkTypeSideMenuBotType:
-		var internalLinkType InternalLinkTypeSideMenuBot
-		err = json.Unmarshal(result.Raw, &internalLinkType)
-		return &internalLinkType, err
-
 	case InternalLinkTypeStickerSetType:
 		var internalLinkType InternalLinkTypeStickerSet
 		err = json.Unmarshal(result.Raw, &internalLinkType)
@@ -6641,7 +8375,7 @@ func (client *ClientImpl) GetInternalLinkType(link string) (InternalLinkType, er
 	}
 }
 
-// GetExternalLinkInfo Returns information about an action to be done when the current user clicks an external link. Don't use this method for links from secret chats if web page preview is disabled in secret chats
+// GetExternalLinkInfo Returns information about an action to be done when the current user clicks an external link. Don't use this method for links from secret chats if link preview is disabled in secret chats
 // @param link The link
 func (client *ClientImpl) GetExternalLinkInfo(link string) (LoginURLInfo, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -6874,11 +8608,11 @@ func (client *ClientImpl) CreateSecretChat(secretChatID int32) (*Chat, error) {
 
 }
 
-// CreateNewBasicGroupChat Creates a new basic group and sends a corresponding messageBasicGroupChatCreate. Returns the newly created chat
+// CreateNewBasicGroupChat Creates a new basic group and sends a corresponding messageBasicGroupChatCreate. Returns information about the newly created chat
 // @param userIDs Identifiers of users to be added to the basic group; may be empty to create a basic group without other members
 // @param title Title of the new basic group; 1-128 characters
 // @param messageAutoDeleteTime Message auto-delete time value, in seconds; must be from 0 up to 365 * 86400 and be divisible by 86400. If 0, then messages aren't deleted automatically
-func (client *ClientImpl) CreateNewBasicGroupChat(userIDs []int64, title string, messageAutoDeleteTime int32) (*Chat, error) {
+func (client *ClientImpl) CreateNewBasicGroupChat(userIDs []int64, title string, messageAutoDeleteTime int32) (*CreatedBasicGroupChat, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":                    "createNewBasicGroupChat",
 		"user_ids":                 userIDs,
@@ -6894,9 +8628,9 @@ func (client *ClientImpl) CreateNewBasicGroupChat(userIDs []int64, title string,
 		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
 	}
 
-	var chat Chat
-	err = json.Unmarshal(result.Raw, &chat)
-	return &chat, err
+	var createdBasicGroupChat CreatedBasicGroupChat
+	err = json.Unmarshal(result.Raw, &createdBasicGroupChat)
+	return &createdBasicGroupChat, err
 
 }
 
@@ -6956,7 +8690,7 @@ func (client *ClientImpl) CreateNewSecretChat(userID int64) (*Chat, error) {
 
 }
 
-// UpgradeBasicGroupChatToSupergroupChat Creates a new supergroup from an existing basic group and sends a corresponding messageChatUpgradeTo and messageChatUpgradeFrom; requires creator privileges. Deactivates the original basic group
+// UpgradeBasicGroupChatToSupergroupChat Creates a new supergroup from an existing basic group and sends a corresponding messageChatUpgradeTo and messageChatUpgradeFrom; requires owner privileges. Deactivates the original basic group
 // @param chatID Identifier of the chat to upgrade
 func (client *ClientImpl) UpgradeBasicGroupChatToSupergroupChat(chatID int64) (*Chat, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -7168,6 +8902,28 @@ func (client *ClientImpl) ReorderChatFolders(chatFolderIDs []int32, mainChatList
 		"@type":                   "reorderChatFolders",
 		"chat_folder_ids":         chatFolderIDs,
 		"main_chat_list_position": mainChatListPosition,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ToggleChatFolderTags Toggles whether chat folder tags are enabled
+// @param areTagsEnabled Pass true to enable folder tags; pass false to disable them
+func (client *ClientImpl) ToggleChatFolderTags(areTagsEnabled bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":            "toggleChatFolderTags",
+		"are_tags_enabled": areTagsEnabled,
 	})
 
 	if err != nil {
@@ -7482,7 +9238,7 @@ func (client *ClientImpl) SetArchiveChatListSettings(settings *ArchiveChatListSe
 
 }
 
-// SetChatTitle Changes the chat title. Supported only for basic groups, supergroups and channels. Requires can_change_info administrator right
+// SetChatTitle Changes the chat title. Supported only for basic groups, supergroups and channels. Requires can_change_info member right
 // @param chatID Chat identifier
 // @param title New title of the chat; 1-128 characters
 func (client *ClientImpl) SetChatTitle(chatID int64, title string) (*Ok, error) {
@@ -7506,7 +9262,7 @@ func (client *ClientImpl) SetChatTitle(chatID int64, title string) (*Ok, error) 
 
 }
 
-// SetChatPhoto Changes the photo of a chat. Supported only for basic groups, supergroups and channels. Requires can_change_info administrator right
+// SetChatPhoto Changes the photo of a chat. Supported only for basic groups, supergroups and channels. Requires can_change_info member right
 // @param chatID Chat identifier
 // @param photo New chat photo; pass null to delete the chat photo
 func (client *ClientImpl) SetChatPhoto(chatID int64, photo InputChatPhoto) (*Ok, error) {
@@ -7530,9 +9286,9 @@ func (client *ClientImpl) SetChatPhoto(chatID int64, photo InputChatPhoto) (*Ok,
 
 }
 
-// SetChatAccentColor Changes accent color and background custom emoji of a chat. Requires can_change_info administrator right
+// SetChatAccentColor Changes accent color and background custom emoji of a channel chat. Requires can_change_info administrator right
 // @param chatID Chat identifier
-// @param accentColorID Identifier of the accent color to use. The chat must have at least accentColor.min_chat_boost_level boost level to pass the corresponding color
+// @param accentColorID Identifier of the accent color to use. The chat must have at least accentColor.min_channel_chat_boost_level boost level to pass the corresponding color
 // @param backgroundCustomEmojiID Identifier of a custom emoji to be shown on the reply header and link preview background; 0 if none. Use chatBoostLevelFeatures.can_set_background_custom_emoji to check whether a custom emoji can be set
 func (client *ClientImpl) SetChatAccentColor(chatID int64, accentColorID int32, backgroundCustomEmojiID *JSONInt64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -7556,9 +9312,9 @@ func (client *ClientImpl) SetChatAccentColor(chatID int64, accentColorID int32, 
 
 }
 
-// SetChatProfileAccentColor Changes accent color and background custom emoji for profile of a chat. Requires can_change_info administrator right
+// SetChatProfileAccentColor Changes accent color and background custom emoji for profile of a supergroup or channel chat. Requires can_change_info administrator right
 // @param chatID Chat identifier
-// @param profileAccentColorID Identifier of the accent color to use for profile; pass -1 if none. The chat must have at least profileAccentColor.min_chat_boost_level boost level to pass the corresponding color
+// @param profileAccentColorID Identifier of the accent color to use for profile; pass -1 if none. The chat must have at least profileAccentColor.min_supergroup_chat_boost_level for supergroups or profileAccentColor.min_channel_chat_boost_level for channels boost level to pass the corresponding color
 // @param profileBackgroundCustomEmojiID Identifier of a custom emoji to be shown on the chat's profile photo background; 0 if none. Use chatBoostLevelFeatures.can_set_profile_background_custom_emoji to check whether a custom emoji can be set
 func (client *ClientImpl) SetChatProfileAccentColor(chatID int64, profileAccentColorID int32, profileBackgroundCustomEmojiID *JSONInt64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -7734,8 +9490,8 @@ func (client *ClientImpl) SetChatTheme(chatID int64, themeName string) (*Ok, err
 
 // SetChatDraftMessage Changes the draft message in a chat
 // @param chatID Chat identifier
-// @param messageThreadID If not 0, a message thread identifier in which the draft was changed
-// @param draftMessage New draft message; pass null to remove the draft
+// @param messageThreadID If not 0, the message thread identifier in which the draft was changed
+// @param draftMessage New draft message; pass null to remove the draft. All files in draft message content must be of the type inputFileLocal. Media thumbnails and captions are ignored
 func (client *ClientImpl) SetChatDraftMessage(chatID int64, messageThreadID int64, draftMessage *DraftMessage) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":             "setChatDraftMessage",
@@ -7806,7 +9562,7 @@ func (client *ClientImpl) ToggleChatHasProtectedContent(chatID int64, hasProtect
 
 }
 
-// ToggleChatViewAsTopics Changes the view_as_topics setting of a forum chat
+// ToggleChatViewAsTopics Changes the view_as_topics setting of a forum chat or Saved Messages
 // @param chatID Chat identifier
 // @param viewAsTopics New value of view_as_topics
 func (client *ClientImpl) ToggleChatViewAsTopics(chatID int64, viewAsTopics bool) (*Ok, error) {
@@ -7902,9 +9658,9 @@ func (client *ClientImpl) ToggleChatDefaultDisableNotification(chatID int64, def
 
 }
 
-// SetChatAvailableReactions Changes reactions, available in a chat. Available for basic groups, supergroups, and channels. Requires can_change_info administrator right
+// SetChatAvailableReactions Changes reactions, available in a chat. Available for basic groups, supergroups, and channels. Requires can_change_info member right
 // @param chatID Identifier of the chat
-// @param availableReactions Reactions available in the chat. All explicitly specified emoji reactions must be active. Up to the chat's boost level custom emoji reactions can be explicitly specified
+// @param availableReactions Reactions available in the chat. All explicitly specified emoji reactions must be active. In channel chats up to the chat's boost level custom emoji reactions can be explicitly specified
 func (client *ClientImpl) SetChatAvailableReactions(chatID int64, availableReactions ChatAvailableReactions) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":               "setChatAvailableReactions",
@@ -7950,7 +9706,7 @@ func (client *ClientImpl) SetChatClientData(chatID int64, clientData string) (*O
 
 }
 
-// SetChatDescription Changes information about a chat. Available for basic groups, supergroups, and channels. Requires can_change_info administrator right
+// SetChatDescription Changes information about a chat. Available for basic groups, supergroups, and channels. Requires can_change_info member right
 // @param chatID Identifier of the chat
 // @param description New chat description; 0-255 characters
 func (client *ClientImpl) SetChatDescription(chatID int64, description string) (*Ok, error) {
@@ -7975,7 +9731,7 @@ func (client *ClientImpl) SetChatDescription(chatID int64, description string) (
 }
 
 // SetChatDiscussionGroup Changes the discussion group of a channel chat; requires can_change_info administrator right in the channel if it is specified
-// @param chatID Identifier of the channel chat. Pass 0 to remove a link from the supergroup passed in the second argument to a linked channel chat (requires can_pin_messages rights in the supergroup)
+// @param chatID Identifier of the channel chat. Pass 0 to remove a link from the supergroup passed in the second argument to a linked channel chat (requires can_pin_messages member right in the supergroup)
 // @param discussionChatID Identifier of a new channel's discussion group. Use 0 to remove the discussion group. Use the method getSuitableDiscussionChats to find all suitable groups. Basic group chats must be first upgraded to supergroup chats. If new chat members don't have access to old messages in the supergroup, then toggleSupergroupIsAllHistoryAvailable must be used first to change that
 func (client *ClientImpl) SetChatDiscussionGroup(chatID int64, discussionChatID int64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -8022,7 +9778,7 @@ func (client *ClientImpl) SetChatLocation(chatID int64, location *ChatLocation) 
 
 }
 
-// SetChatSlowModeDelay Changes the slow mode delay of a chat. Available only for supergroups; requires can_restrict_members rights
+// SetChatSlowModeDelay Changes the slow mode delay of a chat. Available only for supergroups; requires can_restrict_members right
 // @param chatID Chat identifier
 // @param slowModeDelay New slow mode delay for the chat, in seconds; must be one of 0, 10, 30, 60, 300, 900, 3600
 func (client *ClientImpl) SetChatSlowModeDelay(chatID int64, slowModeDelay int32) (*Ok, error) {
@@ -8046,7 +9802,7 @@ func (client *ClientImpl) SetChatSlowModeDelay(chatID int64, slowModeDelay int32
 
 }
 
-// PinChatMessage Pins a message in a chat; requires can_pin_messages rights or can_edit_messages rights in the channel
+// PinChatMessage Pins a message in a chat. A message can be pinned only if messageProperties.can_be_pinned
 // @param chatID Identifier of the chat
 // @param messageID Identifier of the new pinned message
 // @param disableNotification Pass true to disable notification about the pinned message. Notifications are always disabled in channels and private chats
@@ -8074,7 +9830,7 @@ func (client *ClientImpl) PinChatMessage(chatID int64, messageID int64, disableN
 
 }
 
-// UnpinChatMessage Removes a pinned message from a chat; requires can_pin_messages rights in the group or can_edit_messages rights in the channel
+// UnpinChatMessage Removes a pinned message from a chat; requires can_pin_messages member right if the chat is a basic group or supergroup, or can_edit_messages administrator right if the chat is a channel
 // @param chatID Identifier of the chat
 // @param messageID Identifier of the removed pinned message
 func (client *ClientImpl) UnpinChatMessage(chatID int64, messageID int64) (*Ok, error) {
@@ -8098,7 +9854,7 @@ func (client *ClientImpl) UnpinChatMessage(chatID int64, messageID int64) (*Ok, 
 
 }
 
-// UnpinAllChatMessages Removes all pinned messages from a chat; requires can_pin_messages rights in the group or can_edit_messages rights in the channel
+// UnpinAllChatMessages Removes all pinned messages from a chat; requires can_pin_messages member right if the chat is a basic group or supergroup, or can_edit_messages administrator right if the chat is a channel
 // @param chatID Identifier of the chat
 func (client *ClientImpl) UnpinAllChatMessages(chatID int64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -8120,7 +9876,7 @@ func (client *ClientImpl) UnpinAllChatMessages(chatID int64) (*Ok, error) {
 
 }
 
-// UnpinAllMessageThreadMessages Removes all pinned messages from a forum topic; requires can_pin_messages rights in the supergroup
+// UnpinAllMessageThreadMessages Removes all pinned messages from a forum topic; requires can_pin_messages member right in the supergroup
 // @param chatID Identifier of the chat
 // @param messageThreadID Message thread identifier in which messages will be unpinned
 func (client *ClientImpl) UnpinAllMessageThreadMessages(chatID int64, messageThreadID int64) (*Ok, error) {
@@ -8188,11 +9944,11 @@ func (client *ClientImpl) LeaveChat(chatID int64) (*Ok, error) {
 
 }
 
-// AddChatMember Adds a new member to a chat. Members can't be added to private or secret chats
+// AddChatMember Adds a new member to a chat; requires can_invite_users member right. Members can't be added to private or secret chats. Returns information about members that weren't added
 // @param chatID Chat identifier
 // @param userID Identifier of the user
 // @param forwardLimit The number of earlier messages from the chat to be forwarded to the new member; up to 100. Ignored for supergroups and channels, or if the added user is a bot
-func (client *ClientImpl) AddChatMember(chatID int64, userID int64, forwardLimit int32) (*Ok, error) {
+func (client *ClientImpl) AddChatMember(chatID int64, userID int64, forwardLimit int32) (*FailedToAddMembers, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":         "addChatMember",
 		"chat_id":       chatID,
@@ -8208,16 +9964,16 @@ func (client *ClientImpl) AddChatMember(chatID int64, userID int64, forwardLimit
 		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
 	}
 
-	var ok Ok
-	err = json.Unmarshal(result.Raw, &ok)
-	return &ok, err
+	var failedToAddMembers FailedToAddMembers
+	err = json.Unmarshal(result.Raw, &failedToAddMembers)
+	return &failedToAddMembers, err
 
 }
 
-// AddChatMembers Adds multiple new members to a chat. Currently, this method is only available for supergroups and channels. This method can't be used to join a chat. Members can't be added to a channel if it has more than 200 members
+// AddChatMembers Adds multiple new members to a chat; requires can_invite_users member right. Currently, this method is only available for supergroups and channels. This method can't be used to join a chat. Members can't be added to a channel if it has more than 200 members. Returns information about members that weren't added
 // @param chatID Chat identifier
 // @param userIDs Identifiers of the users to be added to the chat. The maximum number of added users is 20 for supergroups and 100 for channels
-func (client *ClientImpl) AddChatMembers(chatID int64, userIDs []int64) (*Ok, error) {
+func (client *ClientImpl) AddChatMembers(chatID int64, userIDs []int64) (*FailedToAddMembers, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":    "addChatMembers",
 		"chat_id":  chatID,
@@ -8232,13 +9988,13 @@ func (client *ClientImpl) AddChatMembers(chatID int64, userIDs []int64) (*Ok, er
 		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
 	}
 
-	var ok Ok
-	err = json.Unmarshal(result.Raw, &ok)
-	return &ok, err
+	var failedToAddMembers FailedToAddMembers
+	err = json.Unmarshal(result.Raw, &failedToAddMembers)
+	return &failedToAddMembers, err
 
 }
 
-// SetChatMemberStatus Changes the status of a chat member, needs appropriate privileges. This function is currently not suitable for transferring chat ownership; use transferChatOwnership instead. Use addChatMember or banChatMember if some additional parameters needs to be passed
+// SetChatMemberStatus Changes the status of a chat member; requires can_invite_users member right to add a chat member, can_promote_members administrator right to change administrator rights of the member, and can_restrict_members administrator right to change restrictions of a user. This function is currently not suitable for transferring chat ownership; use transferChatOwnership instead. Use addChatMember or banChatMember if some additional parameters needs to be passed
 // @param chatID Chat identifier
 // @param memberID Member identifier. Chats can be only banned and unbanned in supergroups and channels
 // @param status The new status of the member in the chat
@@ -8264,7 +10020,7 @@ func (client *ClientImpl) SetChatMemberStatus(chatID int64, memberID MessageSend
 
 }
 
-// BanChatMember Bans a member in a chat. Members can't be banned in private or secret chats. In supergroups and channels, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first
+// BanChatMember Bans a member in a chat; requires can_restrict_members administrator right. Members can't be banned in private or secret chats. In supergroups and channels, the user will not be able to return to the group on their own using invite links, etc., unless unbanned first
 // @param chatID Chat identifier
 // @param memberID Member identifier
 // @param bannedUntilDate Point in time (Unix timestamp) when the user will be unbanned; 0 if never. If the user is banned for more than 366 days or for less than 30 seconds from the current time, the user is considered to be banned forever. Ignored in basic groups and if a chat is banned
@@ -8333,7 +10089,7 @@ func (client *ClientImpl) CanTransferOwnership() (CanTransferOwnershipResult, er
 	}
 }
 
-// TransferChatOwnership Changes the owner of a chat. The current user must be a current owner of the chat. Use the method canTransferOwnership to check whether the ownership can be transferred from the current session. Available only for supergroups and channel chats
+// TransferChatOwnership Changes the owner of a chat; requires owner privileges in the chat. Use the method canTransferOwnership to check whether the ownership can be transferred from the current session. Available only for supergroups and channel chats
 // @param chatID Chat identifier
 // @param userID Identifier of the user to which transfer the ownership. The ownership can't be transferred to a bot or to a deleted user
 // @param password The 2-step verification password of the current user
@@ -8383,7 +10139,7 @@ func (client *ClientImpl) GetChatMember(chatID int64, memberID MessageSender) (*
 
 }
 
-// SearchChatMembers Searches for a specified query in the first name, last name and usernames of the members of a specified chat. Requires administrator rights in channels
+// SearchChatMembers Searches for a specified query in the first name, last name and usernames of the members of a specified chat. Requires administrator rights if the chat is a channel
 // @param chatID Chat identifier
 // @param query Query to search for
 // @param limit The maximum number of users to be returned; up to 200
@@ -8477,7 +10233,7 @@ func (client *ClientImpl) GetSavedNotificationSound(notificationSoundID *JSONInt
 
 }
 
-// GetSavedNotificationSounds Returns list of saved notification sounds. If a sound isn't in the list, then default sound needs to be used
+// GetSavedNotificationSounds Returns the list of saved notification sounds. If a sound isn't in the list, then default sound needs to be used
 func (client *ClientImpl) GetSavedNotificationSounds() (*NotificationSounds, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "getSavedNotificationSounds",
@@ -8541,7 +10297,7 @@ func (client *ClientImpl) RemoveSavedNotificationSound(notificationSoundID *JSON
 
 }
 
-// GetChatNotificationSettingsExceptions Returns list of chats with non-default notification settings for new messages
+// GetChatNotificationSettingsExceptions Returns the list of chats with non-default notification settings for new messages
 // @param scope If specified, only chats from the scope will be returned; pass null to return chats from all scopes
 // @param compareSound Pass true to include in the response chats with only non-default sound
 func (client *ClientImpl) GetChatNotificationSettingsExceptions(scope NotificationSettingsScope, compareSound bool) (*Chats, error) {
@@ -8611,7 +10367,29 @@ func (client *ClientImpl) SetScopeNotificationSettings(scope NotificationSetting
 
 }
 
-// ResetAllNotificationSettings Resets all notification settings to their default values. By default, all chats are unmuted and message previews are shown
+// SetReactionNotificationSettings Changes notification settings for reactions
+// @param notificationSettings The new notification settings for reactions
+func (client *ClientImpl) SetReactionNotificationSettings(notificationSettings *ReactionNotificationSettings) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                 "setReactionNotificationSettings",
+		"notification_settings": notificationSettings,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ResetAllNotificationSettings Resets all chat and scope notification settings to their default values. By default, all chats are unmuted and message previews are shown
 func (client *ClientImpl) ResetAllNotificationSettings() (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "resetAllNotificationSettings",
@@ -8703,6 +10481,28 @@ func (client *ClientImpl) ReadChatList(chatList ChatList) (*Ok, error) {
 
 }
 
+// GetCurrentWeather Returns the current weather in the given location
+// @param location The location
+func (client *ClientImpl) GetCurrentWeather(location *Location) (*CurrentWeather, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":    "getCurrentWeather",
+		"location": location,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var currentWeather CurrentWeather
+	err = json.Unmarshal(result.Raw, &currentWeather)
+	return &currentWeather, err
+
+}
+
 // GetStory Returns a story
 // @param storySenderChatID Identifier of the chat that posted the story
 // @param storyID Story identifier
@@ -8729,7 +10529,7 @@ func (client *ClientImpl) GetStory(storySenderChatID int64, storyID int32, onlyL
 
 }
 
-// GetChatsToSendStories Returns channel chats in which the current user has the right to post stories. The chats must be rechecked with canSendStory before actually trying to post a story there
+// GetChatsToSendStories Returns supergroup and channel chats in which the current user has the right to post stories. The chats must be rechecked with canSendStory before actually trying to post a story there
 func (client *ClientImpl) GetChatsToSendStories() (*Chats, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "getChatsToSendStories",
@@ -8749,8 +10549,8 @@ func (client *ClientImpl) GetChatsToSendStories() (*Chats, error) {
 
 }
 
-// CanSendStory Checks whether the current user can send a story on behalf of a chat; requires can_post_stories rights for channel chats
-// @param chatID Chat identifier
+// CanSendStory Checks whether the current user can send a story on behalf of a chat; requires can_post_stories right for supergroup and channel chats
+// @param chatID Chat identifier. Pass Saved Messages chat identifier when posting a story on behalf of the current user
 func (client *ClientImpl) CanSendStory(chatID int64) (CanSendStoryResult, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":   "canSendStory",
@@ -8802,28 +10602,28 @@ func (client *ClientImpl) CanSendStory(chatID int64) (CanSendStoryResult, error)
 	}
 }
 
-// SendStory Sends a new story to a chat; requires can_post_stories rights for channel chats. Returns a temporary story
-// @param chatID Identifier of the chat that will post the story
+// SendStory Sends a new story to a chat; requires can_post_stories right for supergroup and channel chats. Returns a temporary story
+// @param chatID Identifier of the chat that will post the story. Pass Saved Messages chat identifier when posting a story on behalf of the current user
 // @param content Content of the story
 // @param areas Clickable rectangle areas to be shown on the story media; pass null if none
-// @param caption Story caption; pass null to use an empty caption; 0-getOption("story_caption_length_max") characters
-// @param privacySettings The privacy settings for the story
+// @param caption Story caption; pass null to use an empty caption; 0-getOption("story_caption_length_max") characters; can have entities only if getOption("can_use_text_entities_in_story_caption")
+// @param privacySettings The privacy settings for the story; ignored for stories sent to supergroup and channel chats
 // @param activePeriod Period after which the story is moved to archive, in seconds; must be one of 6 * 3600, 12 * 3600, 86400, or 2 * 86400 for Telegram Premium users, and 86400 otherwise
-// @param fromStoryFullID Full identifier of the original story, which content was used to create the story
-// @param isPinned Pass true to keep the story accessible after expiration
+// @param fromStoryFullID Full identifier of the original story, which content was used to create the story; pass null if the story isn't repost of another story
+// @param isPostedToChatPage Pass true to keep the story accessible after expiration
 // @param protectContent Pass true if the content of the story must be protected from forwarding and screenshotting
-func (client *ClientImpl) SendStory(chatID int64, content InputStoryContent, areas *InputStoryAreas, caption *FormattedText, privacySettings StoryPrivacySettings, activePeriod int32, fromStoryFullID *StoryFullID, isPinned bool, protectContent bool) (*Story, error) {
+func (client *ClientImpl) SendStory(chatID int64, content InputStoryContent, areas *InputStoryAreas, caption *FormattedText, privacySettings StoryPrivacySettings, activePeriod int32, fromStoryFullID *StoryFullID, isPostedToChatPage bool, protectContent bool) (*Story, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":              "sendStory",
-		"chat_id":            chatID,
-		"content":            content,
-		"areas":              areas,
-		"caption":            caption,
-		"privacy_settings":   privacySettings,
-		"active_period":      activePeriod,
-		"from_story_full_id": fromStoryFullID,
-		"is_pinned":          isPinned,
-		"protect_content":    protectContent,
+		"@type":                  "sendStory",
+		"chat_id":                chatID,
+		"content":                content,
+		"areas":                  areas,
+		"caption":                caption,
+		"privacy_settings":       privacySettings,
+		"active_period":          activePeriod,
+		"from_story_full_id":     fromStoryFullID,
+		"is_posted_to_chat_page": isPostedToChatPage,
+		"protect_content":        protectContent,
 	})
 
 	if err != nil {
@@ -8870,16 +10670,16 @@ func (client *ClientImpl) EditStory(storySenderChatID int64, storyID int32, cont
 
 }
 
-// SetStoryPrivacySettings Changes privacy settings of a story. Can be called only if story.can_be_edited == true
+// EditStoryCover Changes cover of a video story. Can be called only if story.can_be_edited == true and the story isn't being edited now
 // @param storySenderChatID Identifier of the chat that posted the story
-// @param storyID Identifier of the story
-// @param privacySettings The new privacy settigs for the story
-func (client *ClientImpl) SetStoryPrivacySettings(storySenderChatID int64, storyID int32, privacySettings StoryPrivacySettings) (*Ok, error) {
+// @param storyID Identifier of the story to edit
+// @param coverFrameTimestamp New timestamp of the frame, which will be used as video thumbnail
+func (client *ClientImpl) EditStoryCover(storySenderChatID int64, storyID int32, coverFrameTimestamp float64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":                "setStoryPrivacySettings",
-		"story_sender_chat_id": storySenderChatID,
-		"story_id":             storyID,
-		"privacy_settings":     privacySettings,
+		"@type":                 "editStoryCover",
+		"story_sender_chat_id":  storySenderChatID,
+		"story_id":              storyID,
+		"cover_frame_timestamp": coverFrameTimestamp,
 	})
 
 	if err != nil {
@@ -8896,16 +10696,40 @@ func (client *ClientImpl) SetStoryPrivacySettings(storySenderChatID int64, story
 
 }
 
-// ToggleStoryIsPinned Toggles whether a story is accessible after expiration. Can be called only if story.can_toggle_is_pinned == true
+// SetStoryPrivacySettings Changes privacy settings of a story. The method can be called only for stories posted on behalf of the current user and if story.can_be_edited == true
+// @param storyID Identifier of the story
+// @param privacySettings The new privacy settigs for the story
+func (client *ClientImpl) SetStoryPrivacySettings(storyID int32, privacySettings StoryPrivacySettings) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":            "setStoryPrivacySettings",
+		"story_id":         storyID,
+		"privacy_settings": privacySettings,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ToggleStoryIsPostedToChatPage Toggles whether a story is accessible after expiration. Can be called only if story.can_toggle_is_posted_to_chat_page == true
 // @param storySenderChatID Identifier of the chat that posted the story
 // @param storyID Identifier of the story
-// @param isPinned Pass true to make the story accessible after expiration; pass false to make it private
-func (client *ClientImpl) ToggleStoryIsPinned(storySenderChatID int64, storyID int32, isPinned bool) (*Ok, error) {
+// @param isPostedToChatPage Pass true to make the story accessible after expiration; pass false to make it private
+func (client *ClientImpl) ToggleStoryIsPostedToChatPage(storySenderChatID int64, storyID int32, isPostedToChatPage bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":                "toggleStoryIsPinned",
-		"story_sender_chat_id": storySenderChatID,
-		"story_id":             storyID,
-		"is_pinned":            isPinned,
+		"@type":                  "toggleStoryIsPostedToChatPage",
+		"story_sender_chat_id":   storySenderChatID,
+		"story_id":               storyID,
+		"is_posted_to_chat_page": isPostedToChatPage,
 	})
 
 	if err != nil {
@@ -8946,7 +10770,7 @@ func (client *ClientImpl) DeleteStory(storySenderChatID int64, storyID int32) (*
 
 }
 
-// GetStoryNotificationSettingsExceptions Returns list of chats with non-default notification settings for stories
+// GetStoryNotificationSettingsExceptions Returns the list of chats with non-default notification settings for stories
 func (client *ClientImpl) GetStoryNotificationSettingsExceptions() (*Chats, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "getStoryNotificationSettingsExceptions",
@@ -9034,13 +10858,13 @@ func (client *ClientImpl) GetChatActiveStories(chatID int64) (*ChatActiveStories
 
 }
 
-// GetChatPinnedStories Returns the list of pinned stories posted by the given chat. The stories are returned in a reverse chronological order (i.e., in order of decreasing story_id). For optimal performance, the number of returned stories is chosen by TDLib
+// GetChatPostedToChatPageStories Returns the list of stories that posted by the given chat to its chat page. If from_story_id == 0, then pinned stories are returned first. Then, stories are returned in reverse chronological order (i.e., in order of decreasing story_id). For optimal performance, the number of returned stories is chosen by TDLib
 // @param chatID Chat identifier
-// @param fromStoryID Identifier of the story starting from which stories must be returned; use 0 to get results from the last story
+// @param fromStoryID Identifier of the story starting from which stories must be returned; use 0 to get results from pinned and the newest story
 // @param limit The maximum number of stories to be returned For optimal performance, the number of returned stories is chosen by TDLib and can be smaller than the specified limit
-func (client *ClientImpl) GetChatPinnedStories(chatID int64, fromStoryID int32, limit int32) (*Stories, error) {
+func (client *ClientImpl) GetChatPostedToChatPageStories(chatID int64, fromStoryID int32, limit int32) (*Stories, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":         "getChatPinnedStories",
+		"@type":         "getChatPostedToChatPageStories",
 		"chat_id":       chatID,
 		"from_story_id": fromStoryID,
 		"limit":         limit,
@@ -9060,7 +10884,7 @@ func (client *ClientImpl) GetChatPinnedStories(chatID int64, fromStoryID int32, 
 
 }
 
-// GetChatArchivedStories Returns the list of all stories posted by the given chat; requires can_edit_stories rights for channel chats. The stories are returned in a reverse chronological order (i.e., in order of decreasing story_id). For optimal performance, the number of returned stories is chosen by TDLib
+// GetChatArchivedStories Returns the list of all stories posted by the given chat; requires can_edit_stories right in the chat. The stories are returned in reverse chronological order (i.e., in order of decreasing story_id). For optimal performance, the number of returned stories is chosen by TDLib
 // @param chatID Chat identifier
 // @param fromStoryID Identifier of the story starting from which stories must be returned; use 0 to get results from the last story
 // @param limit The maximum number of stories to be returned For optimal performance, the number of returned stories is chosen by TDLib and can be smaller than the specified limit
@@ -9083,6 +10907,30 @@ func (client *ClientImpl) GetChatArchivedStories(chatID int64, fromStoryID int32
 	var stories Stories
 	err = json.Unmarshal(result.Raw, &stories)
 	return &stories, err
+
+}
+
+// SetChatPinnedStories Changes the list of pinned stories on a chat page; requires can_edit_stories right in the chat
+// @param chatID Identifier of the chat that posted the stories
+// @param storyIDs New list of pinned stories. All stories must be posted to the chat page first. There can be up to getOption("pinned_story_count_max") pinned stories on a chat page
+func (client *ClientImpl) SetChatPinnedStories(chatID int64, storyIDs []int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":     "setChatPinnedStories",
+		"chat_id":   chatID,
+		"story_ids": storyIDs,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
 
 }
 
@@ -9156,10 +11004,10 @@ func (client *ClientImpl) GetStoryAvailableReactions(rowSize int32) (*AvailableR
 
 }
 
-// SetStoryReaction Changes chosen reaction on a story
+// SetStoryReaction Changes chosen reaction on a story that has already been sent
 // @param storySenderChatID The identifier of the sender of the story
 // @param storyID The identifier of the story
-// @param reactionType Type of the reaction to set; pass null to remove the reaction. `reactionTypeCustomEmoji` reactions can be used only by Telegram Premium users
+// @param reactionType Type of the reaction to set; pass null to remove the reaction. Custom emoji reactions can be used only by Telegram Premium users. Paid reactions can't be set
 // @param updateRecentReactions Pass true if the reaction needs to be added to recent reactions
 func (client *ClientImpl) SetStoryReaction(storySenderChatID int64, storyID int32, reactionType ReactionType, updateRecentReactions bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -9221,7 +11069,7 @@ func (client *ClientImpl) GetStoryInteractions(storyID int32, query string, only
 // GetChatStoryInteractions Returns interactions with a story posted in a chat. Can be used only if story is posted on behalf of a chat and the user is an administrator in the chat
 // @param storySenderChatID The identifier of the sender of the story
 // @param storyID Story identifier
-// @param reactionType Pass the default heart reaction or a suggested reaction type to receive only interactions with the specified reaction type; pass null to receive all interactions
+// @param reactionType Pass the default heart reaction or a suggested reaction type to receive only interactions with the specified reaction type; pass null to receive all interactions; reactionTypePaid isn't supported
 // @param preferForwards Pass true to get forwards and reposts first, then reactions, then other views; pass false to get interactions sorted just by interaction date
 // @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
 // @param limit The maximum number of story interactions to return
@@ -9326,12 +11174,14 @@ func (client *ClientImpl) GetStoryPublicForwards(storySenderChatID int64, storyI
 
 }
 
-// GetChatBoostLevelFeatures Returns list of features available on the specific chat boost level; this is an offline request
+// GetChatBoostLevelFeatures Returns the list of features available on the specific chat boost level; this is an offline request
+// @param isChannel Pass true to get the list of features for channels; pass false to get the list of features for supergroups
 // @param level Chat boost level
-func (client *ClientImpl) GetChatBoostLevelFeatures(level int32) (*ChatBoostLevelFeatures, error) {
+func (client *ClientImpl) GetChatBoostLevelFeatures(isChannel bool, level int32) (*ChatBoostLevelFeatures, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type": "getChatBoostLevelFeatures",
-		"level": level,
+		"@type":      "getChatBoostLevelFeatures",
+		"is_channel": isChannel,
+		"level":      level,
 	})
 
 	if err != nil {
@@ -9348,10 +11198,12 @@ func (client *ClientImpl) GetChatBoostLevelFeatures(level int32) (*ChatBoostLeve
 
 }
 
-// GetChatBoostFeatures Returns list of features available on the first 10 chat boost levels; this is an offline request
-func (client *ClientImpl) GetChatBoostFeatures() (*ChatBoostFeatures, error) {
+// GetChatBoostFeatures Returns the list of features available for different chat boost levels; this is an offline request
+// @param isChannel Pass true to get the list of features for channels; pass false to get the list of features for supergroups
+func (client *ClientImpl) GetChatBoostFeatures(isChannel bool) (*ChatBoostFeatures, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type": "getChatBoostFeatures",
+		"@type":      "getChatBoostFeatures",
+		"is_channel": isChannel,
 	})
 
 	if err != nil {
@@ -9388,8 +11240,8 @@ func (client *ClientImpl) GetAvailableChatBoostSlots() (*ChatBoostSlots, error) 
 
 }
 
-// GetChatBoostStatus Returns the current boost status for a channel chat
-// @param chatID Identifier of the channel chat
+// GetChatBoostStatus Returns the current boost status for a supergroup or a channel chat
+// @param chatID Identifier of the chat
 func (client *ClientImpl) GetChatBoostStatus(chatID int64) (*ChatBoostStatus, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":   "getChatBoostStatus",
@@ -9434,7 +11286,7 @@ func (client *ClientImpl) BoostChat(chatID int64, slotIDs []int32) (*ChatBoostSl
 
 }
 
-// GetChatBoostLink Returns an HTTPS link to boost the specified channel chat
+// GetChatBoostLink Returns an HTTPS link to boost the specified supergroup or channel chat
 // @param chatID Identifier of the chat
 func (client *ClientImpl) GetChatBoostLink(chatID int64) (*ChatBoostLink, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -9478,7 +11330,7 @@ func (client *ClientImpl) GetChatBoostLinkInfo(uRL string) (*ChatBoostLinkInfo, 
 
 }
 
-// GetChatBoosts Returns list of boosts applied to a chat; requires administrator rights in the channel chat
+// GetChatBoosts Returns the list of boosts applied to a chat; requires administrator rights in the chat
 // @param chatID Identifier of the chat
 // @param onlyGiftCodes Pass true to receive only boosts received from gift codes and giveaways created by the chat
 // @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
@@ -9506,7 +11358,7 @@ func (client *ClientImpl) GetChatBoosts(chatID int64, onlyGiftCodes bool, offset
 
 }
 
-// GetUserChatBoosts Returns list of boosts applied to a chat by a given user; requires administrator rights in the channel chat; for bots only
+// GetUserChatBoosts Returns the list of boosts applied to a chat by a given user; requires administrator rights in the chat; for bots only
 // @param chatID Identifier of the chat
 // @param userID Identifier of the user
 func (client *ClientImpl) GetUserChatBoosts(chatID int64, userID int64) (*FoundChatBoosts, error) {
@@ -9820,7 +11672,7 @@ func (client *ClientImpl) GetSuggestedFileName(fileID int32, directory string) (
 
 }
 
-// PreliminaryUploadFile Preliminary uploads a file to the cloud before sending it in a message, which can be useful for uploading of being recorded voice and video notes. Updates updateFile will be used to notify about upload progress and successful completion of the upload. The file will not have a persistent remote identifier until it is sent in a message
+// PreliminaryUploadFile Preliminary uploads a file to the cloud before sending it in a message, which can be useful for uploading of being recorded voice and video notes. In all other cases there is no need to preliminary upload a file. Updates updateFile will be used to notify about upload progress. The upload will not be completed until the file is sent in a message
 // @param file File to upload
 // @param fileType File type; pass null if unknown
 // @param priority Priority of the upload (1-32). The higher the priority, the earlier the file will be uploaded. If the priorities of two files are equal, then the first one for which preliminaryUploadFile was called will be uploaded first
@@ -9992,7 +11844,7 @@ func (client *ClientImpl) DeleteFile(fileID int32) (*Ok, error) {
 
 }
 
-// AddFileToDownloads Adds a file from a message to the list of file downloads. Download progress and completion of the download will be notified through updateFile updates. If message database is used, the list of file downloads is persistent across application restarts. The downloading is independent from download using downloadFile, i.e. it continues if downloadFile is canceled or is used to download a part of the file
+// AddFileToDownloads Adds a file from a message to the list of file downloads. Download progress and completion of the download will be notified through updateFile updates. If message database is used, the list of file downloads is persistent across application restarts. The downloading is independent of download using downloadFile, i.e. it continues if downloadFile is canceled or is used to download a part of the file
 // @param fileID Identifier of the file to download
 // @param chatID Chat identifier of the message with the file
 // @param messageID Message identifier
@@ -10146,6 +11998,30 @@ func (client *ClientImpl) SearchFileDownloads(query string, onlyActive bool, onl
 
 }
 
+// SetApplicationVerificationToken Application verification has been completed. Can be called before authorization
+// @param verificationID Unique identifier for the verification process as received from updateApplicationVerificationRequired
+// @param token Play Integrity API token for the Android application, or secret from push notification for the iOS application; pass an empty string to abort verification and receive error VERIFICATION_FAILED for the request
+func (client *ClientImpl) SetApplicationVerificationToken(verificationID int64, token string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":           "setApplicationVerificationToken",
+		"verification_id": verificationID,
+		"token":           token,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var okDummy Ok
+	err = json.Unmarshal(result.Raw, &okDummy)
+	return &okDummy, err
+
+}
+
 // GetMessageFileType Returns information about a file with messages exported from another application
 // @param messageFileHead Beginning of the message file; up to 100 first lines
 func (client *ClientImpl) GetMessageFileType(messageFileHead string) (MessageFileType, error) {
@@ -10185,7 +12061,7 @@ func (client *ClientImpl) GetMessageFileType(messageFileHead string) (MessageFil
 }
 
 // GetMessageImportConfirmationText Returns a confirmation text to be shown to the user before starting message import
-// @param chatID Identifier of a chat to which the messages will be imported. It must be an identifier of a private chat with a mutual contact or an identifier of a supergroup chat with can_change_info administrator right
+// @param chatID Identifier of a chat to which the messages will be imported. It must be an identifier of a private chat with a mutual contact or an identifier of a supergroup chat with can_change_info member right
 func (client *ClientImpl) GetMessageImportConfirmationText(chatID int64) (*Text, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":   "getMessageImportConfirmationText",
@@ -10207,7 +12083,7 @@ func (client *ClientImpl) GetMessageImportConfirmationText(chatID int64) (*Text,
 }
 
 // ImportMessages Imports messages exported from another app
-// @param chatID Identifier of a chat to which the messages will be imported. It must be an identifier of a private chat with a mutual contact or an identifier of a supergroup chat with can_change_info administrator right
+// @param chatID Identifier of a chat to which the messages will be imported. It must be an identifier of a private chat with a mutual contact or an identifier of a supergroup chat with can_change_info member right
 // @param messageFile File with messages to import. Only inputFileLocal and inputFileGenerated are supported. The file must not be previously uploaded
 // @param attachedFiles Files used in the imported messages. Only inputFileLocal and inputFileGenerated are supported. The files must not be previously uploaded
 func (client *ClientImpl) ImportMessages(chatID int64, messageFile InputFile, attachedFiles []InputFile) (*Ok, error) {
@@ -10284,7 +12160,33 @@ func (client *ClientImpl) CreateChatInviteLink(chatID int64, name string, expira
 
 }
 
-// EditChatInviteLink Edits a non-primary invite link for a chat. Available for basic groups, supergroups, and channels. Requires administrator privileges and can_invite_users right in the chat for own links and owner privileges for other links
+// CreateChatSubscriptionInviteLink Creates a new subscription invite link for a channel chat. Requires can_invite_users right in the chat
+// @param chatID Chat identifier
+// @param name Invite link name; 0-32 characters
+// @param subscriptionPricing Information about subscription plan that will be applied to the users joining the chat via the link. Subscription period must be 2592000 in production environment, and 60 or 300 if Telegram test environment is used
+func (client *ClientImpl) CreateChatSubscriptionInviteLink(chatID int64, name string, subscriptionPricing *StarSubscriptionPricing) (*ChatInviteLink, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                "createChatSubscriptionInviteLink",
+		"chat_id":              chatID,
+		"name":                 name,
+		"subscription_pricing": subscriptionPricing,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var chatInviteLink ChatInviteLink
+	err = json.Unmarshal(result.Raw, &chatInviteLink)
+	return &chatInviteLink, err
+
+}
+
+// EditChatInviteLink Edits a non-primary invite link for a chat. Available for basic groups, supergroups, and channels. If the link creates a subscription, then expiration_date, member_limit and creates_join_request must not be used Requires administrator privileges and can_invite_users right in the chat for own links and owner privileges for other links
 // @param chatID Chat identifier
 // @param inviteLink Invite link to be edited
 // @param name Invite link name; 0-32 characters
@@ -10300,6 +12202,32 @@ func (client *ClientImpl) EditChatInviteLink(chatID int64, inviteLink string, na
 		"expiration_date":      expirationDate,
 		"member_limit":         memberLimit,
 		"creates_join_request": createsJoinRequest,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var chatInviteLink ChatInviteLink
+	err = json.Unmarshal(result.Raw, &chatInviteLink)
+	return &chatInviteLink, err
+
+}
+
+// EditChatSubscriptionInviteLink Edits a subscription invite link for a channel chat. Requires can_invite_users right in the chat for own links and owner privileges for other links
+// @param chatID Chat identifier
+// @param inviteLink Invite link to be edited
+// @param name Invite link name; 0-32 characters
+func (client *ClientImpl) EditChatSubscriptionInviteLink(chatID int64, inviteLink string, name string) (*ChatInviteLink, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":       "editChatSubscriptionInviteLink",
+		"chat_id":     chatID,
+		"invite_link": inviteLink,
+		"name":        name,
 	})
 
 	if err != nil {
@@ -10340,7 +12268,7 @@ func (client *ClientImpl) GetChatInviteLink(chatID int64, inviteLink string) (*C
 
 }
 
-// GetChatInviteLinkCounts Returns list of chat administrators with number of their invite links. Requires owner privileges in the chat
+// GetChatInviteLinkCounts Returns the list of chat administrators with number of their invite links. Requires owner privileges in the chat
 // @param chatID Chat identifier
 func (client *ClientImpl) GetChatInviteLinkCounts(chatID int64) (*ChatInviteLinkCounts, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -10397,15 +12325,17 @@ func (client *ClientImpl) GetChatInviteLinks(chatID int64, creatorUserID int64, 
 // GetChatInviteLinkMembers Returns chat members joined a chat via an invite link. Requires administrator privileges and can_invite_users right in the chat for own links and owner privileges for other links
 // @param chatID Chat identifier
 // @param inviteLink Invite link for which to return chat members
+// @param onlyWithExpiredSubscription Pass true if the link is a subscription link and only members with expired subscription must be returned
 // @param offsetMember A chat member from which to return next chat members; pass null to get results from the beginning
 // @param limit The maximum number of chat members to return; up to 100
-func (client *ClientImpl) GetChatInviteLinkMembers(chatID int64, inviteLink string, offsetMember *ChatInviteLinkMember, limit int32) (*ChatInviteLinkMembers, error) {
+func (client *ClientImpl) GetChatInviteLinkMembers(chatID int64, inviteLink string, onlyWithExpiredSubscription bool, offsetMember *ChatInviteLinkMember, limit int32) (*ChatInviteLinkMembers, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":         "getChatInviteLinkMembers",
-		"chat_id":       chatID,
-		"invite_link":   inviteLink,
-		"offset_member": offsetMember,
-		"limit":         limit,
+		"@type":                          "getChatInviteLinkMembers",
+		"chat_id":                        chatID,
+		"invite_link":                    inviteLink,
+		"only_with_expired_subscription": onlyWithExpiredSubscription,
+		"offset_member":                  offsetMember,
+		"limit":                          limit,
 	})
 
 	if err != nil {
@@ -10800,7 +12730,7 @@ func (client *ClientImpl) SendCallLog(callID int32, logFile InputFile) (*Ok, err
 
 }
 
-// GetVideoChatAvailableParticipants Returns list of participant identifiers, on whose behalf a video chat in the chat can be joined
+// GetVideoChatAvailableParticipants Returns the list of participant identifiers, on whose behalf a video chat in the chat can be joined
 // @param chatID Chat identifier
 func (client *ClientImpl) GetVideoChatAvailableParticipants(chatID int64) (*MessageSenders, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -10846,11 +12776,11 @@ func (client *ClientImpl) SetVideoChatDefaultParticipant(chatID int64, defaultPa
 
 }
 
-// CreateVideoChat Creates a video chat (a group call bound to a chat). Available only for basic groups, supergroups and channels; requires can_manage_video_chats rights
+// CreateVideoChat Creates a video chat (a group call bound to a chat). Available only for basic groups, supergroups and channels; requires can_manage_video_chats administrator right
 // @param chatID Identifier of a chat in which the video chat will be created
 // @param title Group call title; if empty, chat title will be used
 // @param startDate Point in time (Unix timestamp) when the group call is supposed to be started by an administrator; 0 to start the video chat immediately. The date must be at least 10 seconds and at most 8 days in the future
-// @param isRtmpStream Pass true to create an RTMP stream instead of an ordinary video chat; requires creator privileges
+// @param isRtmpStream Pass true to create an RTMP stream instead of an ordinary video chat; requires owner privileges
 func (client *ClientImpl) CreateVideoChat(chatID int64, title string, startDate int32, isRtmpStream bool) (*GroupCallID, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":          "createVideoChat",
@@ -10874,7 +12804,7 @@ func (client *ClientImpl) CreateVideoChat(chatID int64, title string, startDate 
 
 }
 
-// GetVideoChatRtmpURL Returns RTMP URL for streaming to the chat; requires creator privileges
+// GetVideoChatRtmpURL Returns RTMP URL for streaming to the chat; requires owner privileges
 // @param chatID Chat identifier
 func (client *ClientImpl) GetVideoChatRtmpURL(chatID int64) (*RtmpURL, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -10896,7 +12826,7 @@ func (client *ClientImpl) GetVideoChatRtmpURL(chatID int64) (*RtmpURL, error) {
 
 }
 
-// ReplaceVideoChatRtmpURL Replaces the current RTMP URL for streaming to the chat; requires creator privileges
+// ReplaceVideoChatRtmpURL Replaces the current RTMP URL for streaming to the chat; requires owner privileges
 // @param chatID Chat identifier
 func (client *ClientImpl) ReplaceVideoChatRtmpURL(chatID int64) (*RtmpURL, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -11876,10 +13806,12 @@ func (client *ClientImpl) SuggestUserProfilePhoto(userID int64, photo InputChatP
 
 // SearchUserByPhoneNumber Searches a user by their phone number. Returns a 404 error if the user can't be found
 // @param phoneNumber Phone number to search for
-func (client *ClientImpl) SearchUserByPhoneNumber(phoneNumber string) (*User, error) {
+// @param onlyLocal Pass true to get only locally available information without sending network requests
+func (client *ClientImpl) SearchUserByPhoneNumber(phoneNumber string, onlyLocal bool) (*User, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":        "searchUserByPhoneNumber",
 		"phone_number": phoneNumber,
+		"only_local":   onlyLocal,
 	})
 
 	if err != nil {
@@ -11946,7 +13878,7 @@ func (client *ClientImpl) GetUserProfilePhotos(userID int64, offset int32, limit
 
 // GetStickers Returns stickers from the installed sticker sets that correspond to any of the given emoji or can be found by sticker-specific keywords. If the query is non-empty, then favorite, recently used or trending stickers may also be returned
 // @param stickerType Type of the stickers to return
-// @param query Search query; a space-separated list of emoji or a keyword prefix. If empty, returns all known installed stickers
+// @param query Search query; a space-separated list of emojis or a keyword prefix. If empty, returns all known installed stickers
 // @param limit The maximum number of stickers to be returned
 // @param chatID Chat identifier for which to return stickers. Available custom emoji stickers may be different for different chats
 func (client *ClientImpl) GetStickers(stickerType StickerType, query string, limit int32, chatID int64) (*Stickers, error) {
@@ -12002,7 +13934,7 @@ func (client *ClientImpl) GetAllStickerEmojis(stickerType StickerType, query str
 
 // SearchStickers Searches for stickers from public sticker sets that correspond to any of the given emoji
 // @param stickerType Type of the stickers to return
-// @param emojis Space-separated list of emoji to search for; must be non-empty
+// @param emojis Space-separated list of emojis to search for; must be non-empty
 // @param limit The maximum number of stickers to be returned; 0-100
 func (client *ClientImpl) SearchStickers(stickerType StickerType, emojis string, limit int32) (*Stickers, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -12010,6 +13942,26 @@ func (client *ClientImpl) SearchStickers(stickerType StickerType, emojis string,
 		"sticker_type": stickerType,
 		"emojis":       emojis,
 		"limit":        limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var stickers Stickers
+	err = json.Unmarshal(result.Raw, &stickers)
+	return &stickers, err
+
+}
+
+// GetGreetingStickers Returns greeting stickers from regular sticker sets that can be used for the start page of other users
+func (client *ClientImpl) GetGreetingStickers() (*Stickers, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getGreetingStickers",
 	})
 
 	if err != nil {
@@ -12072,7 +14024,7 @@ func (client *ClientImpl) GetInstalledStickerSets(stickerType StickerType) (*Sti
 
 // GetArchivedStickerSets Returns a list of archived sticker sets
 // @param stickerType Type of the sticker sets to return
-// @param offsetStickerSetID Identifier of the sticker set from which to return the result
+// @param offsetStickerSetID Identifier of the sticker set from which to return the result; use 0 to get results from the beginning
 // @param limit The maximum number of sticker sets to return; up to 100
 func (client *ClientImpl) GetArchivedStickerSets(stickerType StickerType, offsetStickerSetID *JSONInt64, limit int32) (*StickerSets, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -12163,6 +14115,28 @@ func (client *ClientImpl) GetStickerSet(setID *JSONInt64) (*StickerSet, error) {
 	var stickerSet StickerSet
 	err = json.Unmarshal(result.Raw, &stickerSet)
 	return &stickerSet, err
+
+}
+
+// GetStickerSetName Returns name of a sticker set by its identifier
+// @param setID Identifier of the sticker set
+func (client *ClientImpl) GetStickerSetName(setID *JSONInt64) (*Text, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":  "getStickerSetName",
+		"set_id": setID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var text Text
+	err = json.Unmarshal(result.Raw, &text)
+	return &text, err
 
 }
 
@@ -12332,7 +14306,7 @@ func (client *ClientImpl) GetRecentStickers(isAttached bool) (*Stickers, error) 
 
 }
 
-// AddRecentSticker Manually adds a new sticker to the list of recently used stickers. The new sticker is added to the top of the list. If the sticker was already in the list, it is removed from the list first. Only stickers belonging to a sticker set can be added to this list. Emoji stickers can't be added to recent stickers
+// AddRecentSticker Manually adds a new sticker to the list of recently used stickers. The new sticker is added to the top of the list. If the sticker was already in the list, it is removed from the list first. Only stickers belonging to a sticker set or in WEBP or WEBM format can be added to this list. Emoji stickers can't be added to recent stickers
 // @param isAttached Pass true to add the sticker to the list of stickers recently attached to photo or video files; pass false to add the sticker to the list of recently sent stickers
 // @param sticker Sticker file to add
 func (client *ClientImpl) AddRecentSticker(isAttached bool, sticker InputFile) (*Stickers, error) {
@@ -12422,7 +14396,7 @@ func (client *ClientImpl) GetFavoriteStickers() (*Stickers, error) {
 
 }
 
-// AddFavoriteSticker Adds a new sticker to the list of favorite stickers. The new sticker is added to the top of the list. If the sticker was already in the list, it is removed from the list first. Only stickers belonging to a sticker set can be added to this list. Emoji stickers can't be added to favorite stickers
+// AddFavoriteSticker Adds a new sticker to the list of favorite stickers. The new sticker is added to the top of the list. If the sticker was already in the list, it is removed from the list first. Only stickers belonging to a sticker set or in WEBP or WEBM format can be added to this list. Emoji stickers can't be added to favorite stickers
 // @param sticker Sticker file to add
 func (client *ClientImpl) AddFavoriteSticker(sticker InputFile) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -12488,15 +14462,37 @@ func (client *ClientImpl) GetStickerEmojis(sticker InputFile) (*Emojis, error) {
 
 }
 
-// SearchEmojis Searches for emojis by keywords. Supported only if the file database is enabled
+// SearchEmojis Searches for emojis by keywords. Supported only if the file database is enabled. Order of results is unspecified
 // @param text Text to search for
-// @param exactMatch Pass true if only emojis, which exactly match the text, needs to be returned
 // @param inputLanguageCodes List of possible IETF language tags of the user's input language; may be empty if unknown
-func (client *ClientImpl) SearchEmojis(text string, exactMatch bool, inputLanguageCodes []string) (*Emojis, error) {
+func (client *ClientImpl) SearchEmojis(text string, inputLanguageCodes []string) (*EmojiKeywords, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":                "searchEmojis",
 		"text":                 text,
-		"exact_match":          exactMatch,
+		"input_language_codes": inputLanguageCodes,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var emojiKeywords EmojiKeywords
+	err = json.Unmarshal(result.Raw, &emojiKeywords)
+	return &emojiKeywords, err
+
+}
+
+// GetKeywordEmojis Return emojis matching the keyword. Supported only if the file database is enabled. Order of results is unspecified
+// @param text Text to search for
+// @param inputLanguageCodes List of possible IETF language tags of the user's input language; may be empty if unknown
+func (client *ClientImpl) GetKeywordEmojis(text string, inputLanguageCodes []string) (*Emojis, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                "getKeywordEmojis",
+		"text":                 text,
 		"input_language_codes": inputLanguageCodes,
 	})
 
@@ -12514,7 +14510,7 @@ func (client *ClientImpl) SearchEmojis(text string, exactMatch bool, inputLangua
 
 }
 
-// GetEmojiCategories Returns available emojis categories
+// GetEmojiCategories Returns available emoji categories
 // @param typeParam Type of emoji categories to return; pass null to get default emoji categories
 func (client *ClientImpl) GetEmojiCategories(typeParam EmojiCategoryType) (*EmojiCategories, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -12580,7 +14576,7 @@ func (client *ClientImpl) GetEmojiSuggestionsURL(languageCode string) (*HttpURL,
 
 }
 
-// GetCustomEmojiStickers Returns list of custom emoji stickers by their identifiers. Stickers are returned in arbitrary order. Only found stickers are returned
+// GetCustomEmojiStickers Returns the list of custom emoji stickers by their identifiers. Stickers are returned in arbitrary order. Only found stickers are returned
 // @param customEmojiIDs Identifiers of custom emoji stickers. At most 200 custom emoji stickers can be received simultaneously
 func (client *ClientImpl) GetCustomEmojiStickers(customEmojiIDs []JSONInt64) (*Stickers, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -12792,12 +14788,12 @@ func (client *ClientImpl) RemoveRecentHashtag(hashtag string) (*Ok, error) {
 
 }
 
-// GetWebPagePreview Returns a link preview by the text of a message. Do not call this function too often. Returns a 404 error if the text has no link preview
+// GetLinkPreview Returns a link preview by the text of a message. Do not call this function too often. Returns a 404 error if the text has no link preview
 // @param text Message text with formatting
 // @param linkPreviewOptions Options to be used for generation of the link preview; pass null to use default link preview options
-func (client *ClientImpl) GetWebPagePreview(text *FormattedText, linkPreviewOptions *LinkPreviewOptions) (*WebPage, error) {
+func (client *ClientImpl) GetLinkPreview(text *FormattedText, linkPreviewOptions *LinkPreviewOptions) (*LinkPreview, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":                "getWebPagePreview",
+		"@type":                "getLinkPreview",
 		"text":                 text,
 		"link_preview_options": linkPreviewOptions,
 	})
@@ -12810,9 +14806,9 @@ func (client *ClientImpl) GetWebPagePreview(text *FormattedText, linkPreviewOpti
 		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
 	}
 
-	var webPage WebPage
-	err = json.Unmarshal(result.Raw, &webPage)
-	return &webPage, err
+	var linkPreviewDummy LinkPreview
+	err = json.Unmarshal(result.Raw, &linkPreviewDummy)
+	return &linkPreviewDummy, err
 
 }
 
@@ -13048,6 +15044,50 @@ func (client *ClientImpl) ReorderActiveUsernames(usernames []string) (*Ok, error
 
 }
 
+// SetBirthdate Changes the birthdate of the current user
+// @param birthdate The new value of the current user's birthdate; pass null to remove the birthdate
+func (client *ClientImpl) SetBirthdate(birthdate *Birthdate) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":     "setBirthdate",
+		"birthdate": birthdate,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetPersonalChat Changes the personal chat of the current user
+// @param chatID Identifier of the new personal chat; pass 0 to remove the chat. Use getSuitablePersonalChats to get suitable chats
+func (client *ClientImpl) SetPersonalChat(chatID int64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":   "setPersonalChat",
+		"chat_id": chatID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
 // SetEmojiStatus Changes the emoji status of the current user; for Telegram Premium users only
 // @param emojiStatus New emoji status; pass null to switch to the default badge
 func (client *ClientImpl) SetEmojiStatus(emojiStatus *EmojiStatus) (*Ok, error) {
@@ -13070,7 +15110,7 @@ func (client *ClientImpl) SetEmojiStatus(emojiStatus *EmojiStatus) (*Ok, error) 
 
 }
 
-// SetLocation Changes the location of the current user. Needs to be called if getOption("is_location_visible") is true and location changes for more than 1 kilometer
+// SetLocation Changes the location of the current user. Needs to be called if getOption("is_location_visible") is true and location changes for more than 1 kilometer. Must not be called if the user has a business location
 // @param location The new location of the user
 func (client *ClientImpl) SetLocation(location *Location) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -13092,14 +15132,148 @@ func (client *ClientImpl) SetLocation(location *Location) (*Ok, error) {
 
 }
 
-// ChangePhoneNumber Changes the phone number of the user and sends an authentication code to the user's new phone number; for official Android and iOS applications only. On success, returns information about the sent code
-// @param phoneNumber The new phone number of the user in international format
-// @param settings Settings for the authentication of the user's phone number; pass null to use default settings
-func (client *ClientImpl) ChangePhoneNumber(phoneNumber string, settings *PhoneNumberAuthenticationSettings) (*AuthenticationCodeInfo, error) {
+// ToggleHasSponsoredMessagesEnabled Toggles whether the current user has sponsored messages enabled. The setting has no effect for users without Telegram Premium for which sponsored messages are always enabled
+// @param hasSponsoredMessagesEnabled Pass true to enable sponsored messages for the current user; false to disable them
+func (client *ClientImpl) ToggleHasSponsoredMessagesEnabled(hasSponsoredMessagesEnabled bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":        "changePhoneNumber",
+		"@type":                          "toggleHasSponsoredMessagesEnabled",
+		"has_sponsored_messages_enabled": hasSponsoredMessagesEnabled,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetBusinessLocation Changes the business location of the current user. Requires Telegram Business subscription
+// @param location The new location of the business; pass null to remove the location
+func (client *ClientImpl) SetBusinessLocation(location *BusinessLocation) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":    "setBusinessLocation",
+		"location": location,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetBusinessOpeningHours Changes the business opening hours of the current user. Requires Telegram Business subscription
+// @param openingHours The new opening hours of the business; pass null to remove the opening hours; up to 28 time intervals can be specified
+func (client *ClientImpl) SetBusinessOpeningHours(openingHours *BusinessOpeningHours) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "setBusinessOpeningHours",
+		"opening_hours": openingHours,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetBusinessGreetingMessageSettings Changes the business greeting message settings of the current user. Requires Telegram Business subscription
+// @param greetingMessageSettings The new settings for the greeting message of the business; pass null to disable the greeting message
+func (client *ClientImpl) SetBusinessGreetingMessageSettings(greetingMessageSettings *BusinessGreetingMessageSettings) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                     "setBusinessGreetingMessageSettings",
+		"greeting_message_settings": greetingMessageSettings,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetBusinessAwayMessageSettings Changes the business away message settings of the current user. Requires Telegram Business subscription
+// @param awayMessageSettings The new settings for the away message of the business; pass null to disable the away message
+func (client *ClientImpl) SetBusinessAwayMessageSettings(awayMessageSettings *BusinessAwayMessageSettings) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                 "setBusinessAwayMessageSettings",
+		"away_message_settings": awayMessageSettings,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetBusinessStartPage Changes the business start page of the current user. Requires Telegram Business subscription
+// @param startPage The new start page of the business; pass null to remove custom start page
+func (client *ClientImpl) SetBusinessStartPage(startPage *InputBusinessStartPage) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "setBusinessStartPage",
+		"start_page": startPage,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SendPhoneNumberCode Sends a code to the specified phone number. Aborts previous phone number verification if there was one. On success, returns information about the sent code
+// @param phoneNumber The phone number, in international format
+// @param settings Settings for the authentication of the user's phone number; pass null to use default settings
+// @param typeParam Type of the request for which the code is sent
+func (client *ClientImpl) SendPhoneNumberCode(phoneNumber string, settings *PhoneNumberAuthenticationSettings, typeParam PhoneNumberCodeType) (*AuthenticationCodeInfo, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":        "sendPhoneNumberCode",
 		"phone_number": phoneNumber,
 		"settings":     settings,
+		"type":         typeParam,
 	})
 
 	if err != nil {
@@ -13116,10 +15290,56 @@ func (client *ClientImpl) ChangePhoneNumber(phoneNumber string, settings *PhoneN
 
 }
 
-// ResendChangePhoneNumberCode Resends the authentication code sent to confirm a new phone number for the current user. Works only if the previously received authenticationCodeInfo next_code_type was not null and the server-specified timeout has passed
-func (client *ClientImpl) ResendChangePhoneNumberCode() (*AuthenticationCodeInfo, error) {
+// SendPhoneNumberFirebaseSms Sends Firebase Authentication SMS to the specified phone number. Works only when received a code of the type authenticationCodeTypeFirebaseAndroid or authenticationCodeTypeFirebaseIos
+// @param token Play Integrity API or SafetyNet Attestation API token for the Android application, or secret from push notification for the iOS application
+func (client *ClientImpl) SendPhoneNumberFirebaseSms(token string) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type": "resendChangePhoneNumberCode",
+		"@type": "sendPhoneNumberFirebaseSms",
+		"token": token,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var okDummy Ok
+	err = json.Unmarshal(result.Raw, &okDummy)
+	return &okDummy, err
+
+}
+
+// ReportPhoneNumberCodeMissing Reports that authentication code wasn't delivered via SMS to the specified phone number; for official mobile applications only
+// @param mobileNetworkCode Current mobile network code
+func (client *ClientImpl) ReportPhoneNumberCodeMissing(mobileNetworkCode string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":               "reportPhoneNumberCodeMissing",
+		"mobile_network_code": mobileNetworkCode,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ResendPhoneNumberCode Resends the authentication code sent to a phone number. Works only if the previously received authenticationCodeInfo next_code_type was not null and the server-specified timeout has passed
+// @param reason Reason of code resending; pass null if unknown
+func (client *ClientImpl) ResendPhoneNumberCode(reason ResendCodeReason) (*AuthenticationCodeInfo, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":  "resendPhoneNumberCode",
+		"reason": reason,
 	})
 
 	if err != nil {
@@ -13136,11 +15356,11 @@ func (client *ClientImpl) ResendChangePhoneNumberCode() (*AuthenticationCodeInfo
 
 }
 
-// CheckChangePhoneNumberCode Checks the authentication code sent to confirm a new phone number of the user
+// CheckPhoneNumberCode Check the authentication code and completes the request for which the code was sent if appropriate
 // @param code Authentication code to check
-func (client *ClientImpl) CheckChangePhoneNumberCode(code string) (*Ok, error) {
+func (client *ClientImpl) CheckPhoneNumberCode(code string) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type": "checkChangePhoneNumberCode",
+		"@type": "checkPhoneNumberCode",
 		"code":  code,
 	})
 
@@ -13155,6 +15375,226 @@ func (client *ClientImpl) CheckChangePhoneNumberCode(code string) (*Ok, error) {
 	var ok Ok
 	err = json.Unmarshal(result.Raw, &ok)
 	return &ok, err
+
+}
+
+// GetBusinessConnectedBot Returns the business bot that is connected to the current user account. Returns a 404 error if there is no connected bot
+func (client *ClientImpl) GetBusinessConnectedBot() (*BusinessConnectedBot, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getBusinessConnectedBot",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessConnectedBot BusinessConnectedBot
+	err = json.Unmarshal(result.Raw, &businessConnectedBot)
+	return &businessConnectedBot, err
+
+}
+
+// SetBusinessConnectedBot Adds or changes business bot that is connected to the current user account
+// @param bot Connection settings for the bot
+func (client *ClientImpl) SetBusinessConnectedBot(bot *BusinessConnectedBot) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "setBusinessConnectedBot",
+		"bot":   bot,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// DeleteBusinessConnectedBot Deletes the business bot that is connected to the current user account
+// @param botUserID Unique user identifier for the bot
+func (client *ClientImpl) DeleteBusinessConnectedBot(botUserID int64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":       "deleteBusinessConnectedBot",
+		"bot_user_id": botUserID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ToggleBusinessConnectedBotChatIsPaused Pauses or resumes the connected business bot in a specific chat
+// @param chatID Chat identifier
+// @param isPaused Pass true to pause the connected bot in the chat; pass false to resume the bot
+func (client *ClientImpl) ToggleBusinessConnectedBotChatIsPaused(chatID int64, isPaused bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":     "toggleBusinessConnectedBotChatIsPaused",
+		"chat_id":   chatID,
+		"is_paused": isPaused,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// RemoveBusinessConnectedBotFromChat Removes the connected business bot from a specific chat by adding the chat to businessRecipients.excluded_chat_ids
+// @param chatID Chat identifier
+func (client *ClientImpl) RemoveBusinessConnectedBotFromChat(chatID int64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":   "removeBusinessConnectedBotFromChat",
+		"chat_id": chatID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetBusinessChatLinks Returns business chat links created for the current account
+func (client *ClientImpl) GetBusinessChatLinks() (*BusinessChatLinks, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getBusinessChatLinks",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessChatLinks BusinessChatLinks
+	err = json.Unmarshal(result.Raw, &businessChatLinks)
+	return &businessChatLinks, err
+
+}
+
+// CreateBusinessChatLink Creates a business chat link for the current account. Requires Telegram Business subscription. There can be up to getOption("business_chat_link_count_max") links created. Returns the created link
+// @param linkInfo Information about the link to create
+func (client *ClientImpl) CreateBusinessChatLink(linkInfo *InputBusinessChatLink) (*BusinessChatLink, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":     "createBusinessChatLink",
+		"link_info": linkInfo,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessChatLink BusinessChatLink
+	err = json.Unmarshal(result.Raw, &businessChatLink)
+	return &businessChatLink, err
+
+}
+
+// EditBusinessChatLink Edits a business chat link of the current account. Requires Telegram Business subscription. Returns the edited link
+// @param link The link to edit
+// @param linkInfo New description of the link
+func (client *ClientImpl) EditBusinessChatLink(link string, linkInfo *InputBusinessChatLink) (*BusinessChatLink, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":     "editBusinessChatLink",
+		"link":      link,
+		"link_info": linkInfo,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessChatLink BusinessChatLink
+	err = json.Unmarshal(result.Raw, &businessChatLink)
+	return &businessChatLink, err
+
+}
+
+// DeleteBusinessChatLink Deletes a business chat link of the current account
+// @param link The link to delete
+func (client *ClientImpl) DeleteBusinessChatLink(link string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "deleteBusinessChatLink",
+		"link":  link,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetBusinessChatLinkInfo Returns information about a business chat link
+// @param linkName Name of the link
+func (client *ClientImpl) GetBusinessChatLinkInfo(linkName string) (*BusinessChatLinkInfo, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":     "getBusinessChatLinkInfo",
+		"link_name": linkName,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessChatLinkInfo BusinessChatLinkInfo
+	err = json.Unmarshal(result.Raw, &businessChatLinkInfo)
+	return &businessChatLinkInfo, err
 
 }
 
@@ -13250,7 +15690,7 @@ func (client *ClientImpl) DeleteCommands(scope BotCommandScope, languageCode str
 
 }
 
-// GetCommands Returns list of commands supported by the bot for the given user scope and language; for bots only
+// GetCommands Returns the list of commands supported by the bot for the given user scope and language; for bots only
 // @param scope The scope to which the commands are relevant; pass null to get commands in the default bot command scope
 // @param languageCode A two-letter ISO 639-1 language code or an empty string
 func (client *ClientImpl) GetCommands(scope BotCommandScope, languageCode string) (*BotCommands, error) {
@@ -13431,6 +15871,158 @@ func (client *ClientImpl) SendWebAppCustomRequest(botUserID int64, method string
 	var customRequestResult CustomRequestResult
 	err = json.Unmarshal(result.Raw, &customRequestResult)
 	return &customRequestResult, err
+
+}
+
+// GetBotMediaPreviews Returns the list of media previews of a bot
+// @param botUserID Identifier of the target bot. The bot must have the main Web App
+func (client *ClientImpl) GetBotMediaPreviews(botUserID int64) (*BotMediaPreviews, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":       "getBotMediaPreviews",
+		"bot_user_id": botUserID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var botMediaPreviews BotMediaPreviews
+	err = json.Unmarshal(result.Raw, &botMediaPreviews)
+	return &botMediaPreviews, err
+
+}
+
+// GetBotMediaPreviewInfo Returns the list of media previews for the given language and the list of languages for which the bot has dedicated previews
+// @param botUserID Identifier of the target bot. The bot must be owned and must have the main Web App
+// @param languageCode A two-letter ISO 639-1 language code for which to get previews. If empty, then default previews are returned
+func (client *ClientImpl) GetBotMediaPreviewInfo(botUserID int64, languageCode string) (*BotMediaPreviewInfo, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "getBotMediaPreviewInfo",
+		"bot_user_id":   botUserID,
+		"language_code": languageCode,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var botMediaPreviewInfo BotMediaPreviewInfo
+	err = json.Unmarshal(result.Raw, &botMediaPreviewInfo)
+	return &botMediaPreviewInfo, err
+
+}
+
+// AddBotMediaPreview Adds a new media preview to the beginning of the list of media previews of a bot. Returns the added preview after addition is completed server-side. The total number of previews must not exceed getOption("bot_media_preview_count_max") for the given language
+// @param botUserID Identifier of the target bot. The bot must be owned and must have the main Web App
+// @param languageCode A two-letter ISO 639-1 language code for which preview is added. If empty, then the preview will be shown to all users for whose languages there are no dedicated previews. If non-empty, then there must be an official language pack of the same name, which is returned by getLocalizationTargetInfo
+// @param content Content of the added preview
+func (client *ClientImpl) AddBotMediaPreview(botUserID int64, languageCode string, content InputStoryContent) (*BotMediaPreview, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "addBotMediaPreview",
+		"bot_user_id":   botUserID,
+		"language_code": languageCode,
+		"content":       content,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var botMediaPreview BotMediaPreview
+	err = json.Unmarshal(result.Raw, &botMediaPreview)
+	return &botMediaPreview, err
+
+}
+
+// EditBotMediaPreview Replaces media preview in the list of media previews of a bot. Returns the new preview after edit is completed server-side
+// @param botUserID Identifier of the target bot. The bot must be owned and must have the main Web App
+// @param languageCode Language code of the media preview to edit
+// @param fileID File identifier of the media to replace
+// @param content Content of the new preview
+func (client *ClientImpl) EditBotMediaPreview(botUserID int64, languageCode string, fileID int32, content InputStoryContent) (*BotMediaPreview, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "editBotMediaPreview",
+		"bot_user_id":   botUserID,
+		"language_code": languageCode,
+		"file_id":       fileID,
+		"content":       content,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var botMediaPreview BotMediaPreview
+	err = json.Unmarshal(result.Raw, &botMediaPreview)
+	return &botMediaPreview, err
+
+}
+
+// ReorderBotMediaPreviews Changes order of media previews in the list of media previews of a bot
+// @param botUserID Identifier of the target bot. The bot must be owned and must have the main Web App
+// @param languageCode Language code of the media previews to reorder
+// @param fileIDs File identifiers of the media in the new order
+func (client *ClientImpl) ReorderBotMediaPreviews(botUserID int64, languageCode string, fileIDs []int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "reorderBotMediaPreviews",
+		"bot_user_id":   botUserID,
+		"language_code": languageCode,
+		"file_ids":      fileIDs,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// DeleteBotMediaPreviews Delete media previews from the list of media previews of a bot
+// @param botUserID Identifier of the target bot. The bot must be owned and must have the main Web App
+// @param languageCode Language code of the media previews to delete
+// @param fileIDs File identifiers of the media to delete
+func (client *ClientImpl) DeleteBotMediaPreviews(botUserID int64, languageCode string, fileIDs []int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "deleteBotMediaPreviews",
+		"bot_user_id":   botUserID,
+		"language_code": languageCode,
+		"file_ids":      fileIDs,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
 
 }
 
@@ -13994,14 +16586,64 @@ func (client *ClientImpl) SetSupergroupStickerSet(supergroupID int64, stickerSet
 
 }
 
-// ToggleSupergroupSignMessages Toggles whether sender signature is added to sent messages in a channel; requires can_change_info administrator right
+// SetSupergroupCustomEmojiStickerSet Changes the custom emoji sticker set of a supergroup; requires can_change_info administrator right. The chat must have at least chatBoostFeatures.min_custom_emoji_sticker_set_boost_level boost level to pass the corresponding color
+// @param supergroupID Identifier of the supergroup
+// @param customEmojiStickerSetID New value of the custom emoji sticker set identifier for the supergroup. Use 0 to remove the custom emoji sticker set in the supergroup
+func (client *ClientImpl) SetSupergroupCustomEmojiStickerSet(supergroupID int64, customEmojiStickerSetID *JSONInt64) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                       "setSupergroupCustomEmojiStickerSet",
+		"supergroup_id":               supergroupID,
+		"custom_emoji_sticker_set_id": customEmojiStickerSetID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetSupergroupUnrestrictBoostCount Changes the number of times the supergroup must be boosted by a user to ignore slow mode and chat permission restrictions; requires can_restrict_members administrator right
+// @param supergroupID Identifier of the supergroup
+// @param unrestrictBoostCount New value of the unrestrict_boost_count supergroup setting; 0-8. Use 0 to remove the setting
+func (client *ClientImpl) SetSupergroupUnrestrictBoostCount(supergroupID int64, unrestrictBoostCount int32) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                  "setSupergroupUnrestrictBoostCount",
+		"supergroup_id":          supergroupID,
+		"unrestrict_boost_count": unrestrictBoostCount,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ToggleSupergroupSignMessages Toggles whether sender signature or link to the account is added to sent messages in a channel; requires can_change_info member right
 // @param supergroupID Identifier of the channel
 // @param signMessages New value of sign_messages
-func (client *ClientImpl) ToggleSupergroupSignMessages(supergroupID int64, signMessages bool) (*Ok, error) {
+// @param showMessageSender New value of show_message_sender
+func (client *ClientImpl) ToggleSupergroupSignMessages(supergroupID int64, signMessages bool, showMessageSender bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":         "toggleSupergroupSignMessages",
-		"supergroup_id": supergroupID,
-		"sign_messages": signMessages,
+		"@type":               "toggleSupergroupSignMessages",
+		"supergroup_id":       supergroupID,
+		"sign_messages":       signMessages,
+		"show_message_sender": showMessageSender,
 	})
 
 	if err != nil {
@@ -14019,7 +16661,7 @@ func (client *ClientImpl) ToggleSupergroupSignMessages(supergroupID int64, signM
 }
 
 // ToggleSupergroupJoinToSendMessages Toggles whether joining is mandatory to send messages to a discussion supergroup; requires can_restrict_members administrator right
-// @param supergroupID Identifier of the supergroup
+// @param supergroupID Identifier of the supergroup that isn't a broadcast group
 // @param joinToSendMessages New value of join_to_send_messages
 func (client *ClientImpl) ToggleSupergroupJoinToSendMessages(supergroupID int64, joinToSendMessages bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -14043,7 +16685,7 @@ func (client *ClientImpl) ToggleSupergroupJoinToSendMessages(supergroupID int64,
 }
 
 // ToggleSupergroupJoinByRequest Toggles whether all users directly joining the supergroup need to be approved by supergroup administrators; requires can_restrict_members administrator right
-// @param supergroupID Identifier of the channel
+// @param supergroupID Identifier of the supergroup that isn't a broadcast group
 // @param joinByRequest New value of join_by_request
 func (client *ClientImpl) ToggleSupergroupJoinByRequest(supergroupID int64, joinByRequest bool) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -14066,7 +16708,7 @@ func (client *ClientImpl) ToggleSupergroupJoinByRequest(supergroupID int64, join
 
 }
 
-// ToggleSupergroupIsAllHistoryAvailable Toggles whether the message history of a supergroup is available to new members; requires can_change_info administrator right
+// ToggleSupergroupIsAllHistoryAvailable Toggles whether the message history of a supergroup is available to new members; requires can_change_info member right
 // @param supergroupID The identifier of the supergroup
 // @param isAllHistoryAvailable The new value of is_all_history_available
 func (client *ClientImpl) ToggleSupergroupIsAllHistoryAvailable(supergroupID int64, isAllHistoryAvailable bool) (*Ok, error) {
@@ -14074,6 +16716,30 @@ func (client *ClientImpl) ToggleSupergroupIsAllHistoryAvailable(supergroupID int
 		"@type":                    "toggleSupergroupIsAllHistoryAvailable",
 		"supergroup_id":            supergroupID,
 		"is_all_history_available": isAllHistoryAvailable,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ToggleSupergroupCanHaveSponsoredMessages Toggles whether sponsored messages are shown in the channel chat; requires owner privileges in the channel. The chat must have at least chatBoostFeatures.min_sponsored_message_disable_boost_level boost level to disable sponsored messages
+// @param supergroupID The identifier of the channel
+// @param canHaveSponsoredMessages The new value of can_have_sponsored_messages
+func (client *ClientImpl) ToggleSupergroupCanHaveSponsoredMessages(supergroupID int64, canHaveSponsoredMessages bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                       "toggleSupergroupCanHaveSponsoredMessages",
+		"supergroup_id":               supergroupID,
+		"can_have_sponsored_messages": canHaveSponsoredMessages,
 	})
 
 	if err != nil {
@@ -14186,7 +16852,7 @@ func (client *ClientImpl) ToggleSupergroupIsBroadcastGroup(supergroupID int64) (
 
 // ReportSupergroupSpam Reports messages in a supergroup as spam; requires administrator rights in the supergroup
 // @param supergroupID Supergroup identifier
-// @param messageIDs Identifiers of messages to report
+// @param messageIDs Identifiers of messages to report. Use messageProperties.can_be_reported to check whether the message can be reported
 func (client *ClientImpl) ReportSupergroupSpam(supergroupID int64, messageIDs []int64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":         "reportSupergroupSpam",
@@ -14210,7 +16876,7 @@ func (client *ClientImpl) ReportSupergroupSpam(supergroupID int64, messageIDs []
 
 // ReportSupergroupAntiSpamFalsePositive Reports a false deletion of a message by aggressive anti-spam checks; requires administrator rights in the supergroup. Can be called only for messages from chatEventMessageDeleted with can_report_anti_spam_false_positive == true
 // @param supergroupID Supergroup identifier
-// @param messageID Identifier of the erroneously deleted message
+// @param messageID Identifier of the erroneously deleted message from chatEventMessageDeleted
 func (client *ClientImpl) ReportSupergroupAntiSpamFalsePositive(supergroupID int64, messageID int64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":         "reportSupergroupAntiSpamFalsePositive",
@@ -14236,7 +16902,7 @@ func (client *ClientImpl) ReportSupergroupAntiSpamFalsePositive(supergroupID int
 // @param supergroupID Identifier of the supergroup or channel
 // @param filter The type of users to return; pass null to use supergroupMembersFilterRecent
 // @param offset Number of users to skip
-// @param limit The maximum number of users be returned; up to 200
+// @param limit The maximum number of users to be returned; up to 200
 func (client *ClientImpl) GetSupergroupMembers(supergroupID int64, filter SupergroupMembersFilter, offset int32, limit int32) (*ChatMembers, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":         "getSupergroupMembers",
@@ -14314,7 +16980,27 @@ func (client *ClientImpl) GetChatEventLog(chatID int64, query string, fromEventI
 
 }
 
-// GetPaymentForm Returns an invoice payment form. This method must be called when the user presses inline button of the type inlineKeyboardButtonTypeBuy
+// GetTimeZones Returns the list of supported time zones
+func (client *ClientImpl) GetTimeZones() (*TimeZones, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getTimeZones",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var timeZones TimeZones
+	err = json.Unmarshal(result.Raw, &timeZones)
+	return &timeZones, err
+
+}
+
+// GetPaymentForm Returns an invoice payment form. This method must be called when the user presses inline button of the type inlineKeyboardButtonTypeBuy, or wants to buy access to media in a messagePaidMedia message
 // @param inputInvoice The invoice
 // @param theme Preferred payment form theme; pass null to use the default theme
 func (client *ClientImpl) GetPaymentForm(inputInvoice InputInvoice, theme *ThemeParameters) (*PaymentForm, error) {
@@ -14369,7 +17055,7 @@ func (client *ClientImpl) ValidateOrderInfo(inputInvoice InputInvoice, orderInfo
 // @param paymentFormID Payment form identifier returned by getPaymentForm
 // @param orderInfoID Identifier returned by validateOrderInfo, or an empty string
 // @param shippingOptionID Identifier of a chosen shipping option, if applicable
-// @param credentials The credentials chosen by user for payment
+// @param credentials The credentials chosen by user for payment; pass null for a payment in Telegram Stars
 // @param tipAmount Chosen by the user amount of tip in the smallest units of the currency
 func (client *ClientImpl) SendPaymentForm(inputInvoice InputInvoice, paymentFormID *JSONInt64, orderInfoID string, shippingOptionID string, credentials InputCredentials, tipAmount int64) (*PaymentResult, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -14499,6 +17185,30 @@ func (client *ClientImpl) CreateInvoiceLink(invoice InputMessageContent) (*HttpU
 	var httpURL HttpURL
 	err = json.Unmarshal(result.Raw, &httpURL)
 	return &httpURL, err
+
+}
+
+// RefundStarPayment Refunds a previously done payment in Telegram Stars
+// @param userID Identifier of the user that did the payment
+// @param telegramPaymentChargeID Telegram payment identifier
+func (client *ClientImpl) RefundStarPayment(userID int64, telegramPaymentChargeID string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                      "refundStarPayment",
+		"user_id":                    userID,
+		"telegram_payment_charge_id": telegramPaymentChargeID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
 
 }
 
@@ -15020,6 +17730,130 @@ func (client *ClientImpl) GetUserPrivacySettingRules(setting UserPrivacySetting)
 
 }
 
+// SetReadDatePrivacySettings Changes privacy settings for message read date
+// @param settings New settings
+func (client *ClientImpl) SetReadDatePrivacySettings(settings *ReadDatePrivacySettings) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":    "setReadDatePrivacySettings",
+		"settings": settings,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetReadDatePrivacySettings Returns privacy settings for message read date
+func (client *ClientImpl) GetReadDatePrivacySettings() (*ReadDatePrivacySettings, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getReadDatePrivacySettings",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var readDatePrivacySettings ReadDatePrivacySettings
+	err = json.Unmarshal(result.Raw, &readDatePrivacySettings)
+	return &readDatePrivacySettings, err
+
+}
+
+// SetNewChatPrivacySettings Changes privacy settings for new chat creation; can be used only if getOption("can_set_new_chat_privacy_settings")
+// @param settings New settings
+func (client *ClientImpl) SetNewChatPrivacySettings(settings *NewChatPrivacySettings) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":    "setNewChatPrivacySettings",
+		"settings": settings,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetNewChatPrivacySettings Returns privacy settings for new chat creation
+func (client *ClientImpl) GetNewChatPrivacySettings() (*NewChatPrivacySettings, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getNewChatPrivacySettings",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var newChatPrivacySettings NewChatPrivacySettings
+	err = json.Unmarshal(result.Raw, &newChatPrivacySettings)
+	return &newChatPrivacySettings, err
+
+}
+
+// CanSendMessageToUser Check whether the current user can message another user or try to create a chat with them
+// @param userID Identifier of the other user
+// @param onlyLocal Pass true to get only locally available information without sending network requests
+func (client *ClientImpl) CanSendMessageToUser(userID int64, onlyLocal bool) (CanSendMessageToUserResult, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "canSendMessageToUser",
+		"user_id":    userID,
+		"only_local": onlyLocal,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	switch CanSendMessageToUserResultEnum(result.Data["@type"].(string)) {
+
+	case CanSendMessageToUserResultOkType:
+		var canSendMessageToUserResult CanSendMessageToUserResultOk
+		err = json.Unmarshal(result.Raw, &canSendMessageToUserResult)
+		return &canSendMessageToUserResult, err
+
+	case CanSendMessageToUserResultUserIsDeletedType:
+		var canSendMessageToUserResult CanSendMessageToUserResultUserIsDeleted
+		err = json.Unmarshal(result.Raw, &canSendMessageToUserResult)
+		return &canSendMessageToUserResult, err
+
+	case CanSendMessageToUserResultUserRestrictsNewChatsType:
+		var canSendMessageToUserResult CanSendMessageToUserResultUserRestrictsNewChats
+		err = json.Unmarshal(result.Raw, &canSendMessageToUserResult)
+		return &canSendMessageToUserResult, err
+
+	default:
+		return nil, fmt.Errorf("Invalid type")
+	}
+}
+
 // GetOption Returns the value of an option by its name. (Check the list of available options on https://core.telegram.org/tdlib/options.) Can be called before authorization. Can be called synchronously for options "version" and "commit_hash"
 // @param name The name of the option
 func (client *ClientImpl) GetOption(name string) (OptionValue, error) {
@@ -15131,7 +17965,7 @@ func (client *ClientImpl) GetAccountTTL() (*AccountTTL, error) {
 
 // DeleteAccount Deletes the account of the current user, deleting all information associated with the user from the server. The phone number of the account can be used to create a new account. Can be called before authorization when the current authorization state is authorizationStateWaitPassword
 // @param reason The reason why the account was deleted; optional
-// @param password The 2-step verification password of the current user. If not specified, account deletion can be canceled within one week
+// @param password The 2-step verification password of the current user. If the current user isn't authorized, then an empty string can be passed and account deletion can be canceled within one week
 func (client *ClientImpl) DeleteAccount(reason string, password string) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":    "deleteAccount",
@@ -15219,7 +18053,7 @@ func (client *ClientImpl) RemoveChatActionBar(chatID int64) (*Ok, error) {
 
 // ReportChat Reports a chat to the Telegram moderators. A chat can be reported only from the chat action bar, or if chat.can_be_reported
 // @param chatID Chat identifier
-// @param messageIDs Identifiers of reported messages; may be empty to report the whole chat
+// @param messageIDs Identifiers of reported messages; may be empty to report the whole chat. Use messageProperties.can_be_reported to check whether the message can be reported
 // @param reason The reason for reporting the chat
 // @param text Additional report details; 0-1024 characters
 func (client *ClientImpl) ReportChat(chatID int64, messageIDs []int64, reason ReportReason, text string) (*Ok, error) {
@@ -15273,7 +18107,7 @@ func (client *ClientImpl) ReportChatPhoto(chatID int64, fileID int32, reason Rep
 
 }
 
-// ReportMessageReactions Reports reactions set on a message to the Telegram moderators. Reactions on a message can be reported only if message.can_report_reactions
+// ReportMessageReactions Reports reactions set on a message to the Telegram moderators. Reactions on a message can be reported only if messageProperties.can_report_reactions
 // @param chatID Chat identifier
 // @param messageID Message identifier
 // @param senderID Identifier of the sender, which added the reaction
@@ -15296,6 +18130,152 @@ func (client *ClientImpl) ReportMessageReactions(chatID int64, messageID int64, 
 	var ok Ok
 	err = json.Unmarshal(result.Raw, &ok)
 	return &ok, err
+
+}
+
+// GetChatRevenueStatistics Returns detailed revenue statistics about a chat. Currently, this method can be used only for channels if supergroupFullInfo.can_get_revenue_statistics == true
+// @param chatID Chat identifier
+// @param isDark Pass true if a dark theme is used by the application
+func (client *ClientImpl) GetChatRevenueStatistics(chatID int64, isDark bool) (*ChatRevenueStatistics, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":   "getChatRevenueStatistics",
+		"chat_id": chatID,
+		"is_dark": isDark,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var chatRevenueStatistics ChatRevenueStatistics
+	err = json.Unmarshal(result.Raw, &chatRevenueStatistics)
+	return &chatRevenueStatistics, err
+
+}
+
+// GetChatRevenueWithdrawalURL Returns a URL for chat revenue withdrawal; requires owner privileges in the chat. Currently, this method can be used only for channels if supergroupFullInfo.can_get_revenue_statistics == true and getOption("can_withdraw_chat_revenue")
+// @param chatID Chat identifier
+// @param password The 2-step verification password of the current user
+func (client *ClientImpl) GetChatRevenueWithdrawalURL(chatID int64, password string) (*HttpURL, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":    "getChatRevenueWithdrawalUrl",
+		"chat_id":  chatID,
+		"password": password,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var httpURL HttpURL
+	err = json.Unmarshal(result.Raw, &httpURL)
+	return &httpURL, err
+
+}
+
+// GetChatRevenueTransactions Returns the list of revenue transactions for a chat. Currently, this method can be used only for channels if supergroupFullInfo.can_get_revenue_statistics == true
+// @param chatID Chat identifier
+// @param offset Number of transactions to skip
+// @param limit The maximum number of transactions to be returned; up to 200
+func (client *ClientImpl) GetChatRevenueTransactions(chatID int64, offset int32, limit int32) (*ChatRevenueTransactions, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":   "getChatRevenueTransactions",
+		"chat_id": chatID,
+		"offset":  offset,
+		"limit":   limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var chatRevenueTransactions ChatRevenueTransactions
+	err = json.Unmarshal(result.Raw, &chatRevenueTransactions)
+	return &chatRevenueTransactions, err
+
+}
+
+// GetStarRevenueStatistics Returns detailed Telegram Star revenue statistics
+// @param ownerID Identifier of the owner of the Telegram Stars; can be identifier of an owned bot, or identifier of a channel chat with supergroupFullInfo.can_get_star_revenue_statistics == true
+// @param isDark Pass true if a dark theme is used by the application
+func (client *ClientImpl) GetStarRevenueStatistics(ownerID MessageSender, isDark bool) (*StarRevenueStatistics, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":    "getStarRevenueStatistics",
+		"owner_id": ownerID,
+		"is_dark":  isDark,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var starRevenueStatistics StarRevenueStatistics
+	err = json.Unmarshal(result.Raw, &starRevenueStatistics)
+	return &starRevenueStatistics, err
+
+}
+
+// GetStarWithdrawalURL Returns a URL for Telegram Star withdrawal
+// @param ownerID Identifier of the owner of the Telegram Stars; can be identifier of an owned bot, or identifier of an owned channel chat
+// @param starCount The number of Telegram Stars to withdraw. Must be at least getOption("star_withdrawal_count_min")
+// @param password The 2-step verification password of the current user
+func (client *ClientImpl) GetStarWithdrawalURL(ownerID MessageSender, starCount int64, password string) (*HttpURL, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":      "getStarWithdrawalUrl",
+		"owner_id":   ownerID,
+		"star_count": starCount,
+		"password":   password,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var httpURL HttpURL
+	err = json.Unmarshal(result.Raw, &httpURL)
+	return &httpURL, err
+
+}
+
+// GetStarAdAccountURL Returns a URL for a Telegram Ad platform account that can be used to set up advertisements for the chat paid in the owned Telegram Stars
+// @param ownerID Identifier of the owner of the Telegram Stars; can be identifier of an owned bot, or identifier of an owned channel chat
+func (client *ClientImpl) GetStarAdAccountURL(ownerID MessageSender) (*HttpURL, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":    "getStarAdAccountUrl",
+		"owner_id": ownerID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var httpURL HttpURL
+	err = json.Unmarshal(result.Raw, &httpURL)
+	return &httpURL, err
 
 }
 
@@ -15334,7 +18314,7 @@ func (client *ClientImpl) GetChatStatistics(chatID int64, isDark bool) (ChatStat
 	}
 }
 
-// GetMessageStatistics Returns detailed statistics about a message. Can be used only if message.can_get_statistics == true
+// GetMessageStatistics Returns detailed statistics about a message. Can be used only if messageProperties.can_get_statistics == true
 // @param chatID Chat identifier
 // @param messageID Message identifier
 // @param isDark Pass true if a dark theme is used by the application
@@ -15360,7 +18340,7 @@ func (client *ClientImpl) GetMessageStatistics(chatID int64, messageID int64, is
 
 }
 
-// GetMessagePublicForwards Returns forwarded copies of a channel message to different public channels and public reposts as a story. Can be used only if message.can_get_statistics == true. For optimal performance, the number of returned messages and stories is chosen by TDLib
+// GetMessagePublicForwards Returns forwarded copies of a channel message to different public channels and public reposts as a story. Can be used only if messageProperties.can_get_statistics == true. For optimal performance, the number of returned messages and stories is chosen by TDLib
 // @param chatID Chat identifier of the message
 // @param messageID Message identifier
 // @param offset Offset of the first entry to return as received from the previous request; use empty string to get the first chunk of results
@@ -16042,72 +19022,6 @@ func (client *ClientImpl) GetPreferredCountryLanguage(countryCode string) (*Text
 
 }
 
-// SendPhoneNumberVerificationCode Sends a code to verify a phone number to be added to a user's Telegram Passport
-// @param phoneNumber The phone number of the user, in international format
-// @param settings Settings for the authentication of the user's phone number; pass null to use default settings
-func (client *ClientImpl) SendPhoneNumberVerificationCode(phoneNumber string, settings *PhoneNumberAuthenticationSettings) (*AuthenticationCodeInfo, error) {
-	result, err := client.SendAndCatch(UpdateData{
-		"@type":        "sendPhoneNumberVerificationCode",
-		"phone_number": phoneNumber,
-		"settings":     settings,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Data["@type"].(string) == "error" {
-		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
-	}
-
-	var authenticationCodeInfo AuthenticationCodeInfo
-	err = json.Unmarshal(result.Raw, &authenticationCodeInfo)
-	return &authenticationCodeInfo, err
-
-}
-
-// ResendPhoneNumberVerificationCode Resends the code to verify a phone number to be added to a user's Telegram Passport
-func (client *ClientImpl) ResendPhoneNumberVerificationCode() (*AuthenticationCodeInfo, error) {
-	result, err := client.SendAndCatch(UpdateData{
-		"@type": "resendPhoneNumberVerificationCode",
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Data["@type"].(string) == "error" {
-		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
-	}
-
-	var authenticationCodeInfo AuthenticationCodeInfo
-	err = json.Unmarshal(result.Raw, &authenticationCodeInfo)
-	return &authenticationCodeInfo, err
-
-}
-
-// CheckPhoneNumberVerificationCode Checks the phone number verification code for Telegram Passport
-// @param code Verification code to check
-func (client *ClientImpl) CheckPhoneNumberVerificationCode(code string) (*Ok, error) {
-	result, err := client.SendAndCatch(UpdateData{
-		"@type": "checkPhoneNumberVerificationCode",
-		"code":  code,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Data["@type"].(string) == "error" {
-		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
-	}
-
-	var ok Ok
-	err = json.Unmarshal(result.Raw, &ok)
-	return &ok, err
-
-}
-
 // SendEmailAddressVerificationCode Sends a code to verify an email address to be added to a user's Telegram Passport
 // @param emailAddress Email address
 func (client *ClientImpl) SendEmailAddressVerificationCode(emailAddress string) (*EmailAddressAuthenticationCodeInfo, error) {
@@ -16248,74 +19162,6 @@ func (client *ClientImpl) SendPassportAuthorizationForm(authorizationFormID int3
 
 }
 
-// SendPhoneNumberConfirmationCode Sends phone number confirmation code to handle links of the type internalLinkTypePhoneNumberConfirmation
-// @param hash Hash value from the link
-// @param phoneNumber Phone number value from the link
-// @param settings Settings for the authentication of the user's phone number; pass null to use default settings
-func (client *ClientImpl) SendPhoneNumberConfirmationCode(hash string, phoneNumber string, settings *PhoneNumberAuthenticationSettings) (*AuthenticationCodeInfo, error) {
-	result, err := client.SendAndCatch(UpdateData{
-		"@type":        "sendPhoneNumberConfirmationCode",
-		"hash":         hash,
-		"phone_number": phoneNumber,
-		"settings":     settings,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Data["@type"].(string) == "error" {
-		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
-	}
-
-	var authenticationCodeInfo AuthenticationCodeInfo
-	err = json.Unmarshal(result.Raw, &authenticationCodeInfo)
-	return &authenticationCodeInfo, err
-
-}
-
-// ResendPhoneNumberConfirmationCode Resends phone number confirmation code
-func (client *ClientImpl) ResendPhoneNumberConfirmationCode() (*AuthenticationCodeInfo, error) {
-	result, err := client.SendAndCatch(UpdateData{
-		"@type": "resendPhoneNumberConfirmationCode",
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Data["@type"].(string) == "error" {
-		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
-	}
-
-	var authenticationCodeInfo AuthenticationCodeInfo
-	err = json.Unmarshal(result.Raw, &authenticationCodeInfo)
-	return &authenticationCodeInfo, err
-
-}
-
-// CheckPhoneNumberConfirmationCode Checks phone number confirmation code
-// @param code Confirmation code to check
-func (client *ClientImpl) CheckPhoneNumberConfirmationCode(code string) (*Ok, error) {
-	result, err := client.SendAndCatch(UpdateData{
-		"@type": "checkPhoneNumberConfirmationCode",
-		"code":  code,
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if result.Data["@type"].(string) == "error" {
-		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
-	}
-
-	var ok Ok
-	err = json.Unmarshal(result.Raw, &ok)
-	return &ok, err
-
-}
-
 // SetBotUpdatesStatus Informs the server about the number of pending bot updates if they haven't been processed for a long time; for bots only
 // @param pendingUpdateCount The number of pending updates
 // @param errParamMessage The last error message
@@ -16429,19 +19275,17 @@ func (client *ClientImpl) CheckStickerSetName(name string) (CheckStickerSetNameR
 // CreateNewStickerSet Creates a new sticker set. Returns the newly created sticker set
 // @param userID Sticker set owner; ignored for regular users
 // @param title Sticker set title; 1-64 characters
-// @param name Sticker set name. Can contain only English letters, digits and underscores. Must end with *"_by_<bot username>"* (*<bot_username>* is case insensitive) for bots; 1-64 characters
-// @param stickerFormat Format of the stickers in the set
+// @param name Sticker set name. Can contain only English letters, digits and underscores. Must end with *"_by_<bot username>"* (*<bot_username>* is case insensitive) for bots; 0-64 characters. If empty, then the name returned by getSuggestedStickerSetName will be used automatically
 // @param stickerType Type of the stickers in the set
 // @param needsRepainting Pass true if stickers in the sticker set must be repainted; for custom emoji sticker sets only
-// @param stickers List of stickers to be added to the set; must be non-empty. All stickers must have the same format. For TGS stickers, uploadStickerFile must be used before the sticker is shown
+// @param stickers List of stickers to be added to the set; 1-200 stickers for custom emoji sticker sets, and 1-120 stickers otherwise. For TGS stickers, uploadStickerFile must be used before the sticker is shown
 // @param source Source of the sticker set; may be empty if unknown
-func (client *ClientImpl) CreateNewStickerSet(userID int64, title string, name string, stickerFormat StickerFormat, stickerType StickerType, needsRepainting bool, stickers []InputSticker, source string) (*StickerSet, error) {
+func (client *ClientImpl) CreateNewStickerSet(userID int64, title string, name string, stickerType StickerType, needsRepainting bool, stickers []InputSticker, source string) (*StickerSet, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":            "createNewStickerSet",
 		"user_id":          userID,
 		"title":            title,
 		"name":             name,
-		"sticker_format":   stickerFormat,
 		"sticker_type":     stickerType,
 		"needs_repainting": needsRepainting,
 		"stickers":         stickers,
@@ -16462,9 +19306,9 @@ func (client *ClientImpl) CreateNewStickerSet(userID int64, title string, name s
 
 }
 
-// AddStickerToSet Adds a new sticker to a set; for bots only
-// @param userID Sticker set owner
-// @param name Sticker set name
+// AddStickerToSet Adds a new sticker to a set
+// @param userID Sticker set owner; ignored for regular users
+// @param name Sticker set name. The sticker set must be owned by the current user, and contain less than 200 stickers for custom emoji sticker sets and less than 120 otherwise
 // @param sticker Sticker to add to the set
 func (client *ClientImpl) AddStickerToSet(userID int64, name string, sticker *InputSticker) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -16488,16 +19332,18 @@ func (client *ClientImpl) AddStickerToSet(userID int64, name string, sticker *In
 
 }
 
-// SetStickerSetThumbnail Sets a sticker set thumbnail; for bots only
-// @param userID Sticker set owner
-// @param name Sticker set name
-// @param thumbnail Thumbnail to set in PNG, TGS, or WEBM format; pass null to remove the sticker set thumbnail. Thumbnail format must match the format of stickers in the set
-func (client *ClientImpl) SetStickerSetThumbnail(userID int64, name string, thumbnail InputFile) (*Ok, error) {
+// ReplaceStickerInSet Replaces existing sticker in a set. The function is equivalent to removeStickerFromSet, then addStickerToSet, then setStickerPositionInSet
+// @param userID Sticker set owner; ignored for regular users
+// @param name Sticker set name. The sticker set must be owned by the current user
+// @param oldSticker Sticker to remove from the set
+// @param newSticker Sticker to add to the set
+func (client *ClientImpl) ReplaceStickerInSet(userID int64, name string, oldSticker InputFile, newSticker *InputSticker) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":     "setStickerSetThumbnail",
-		"user_id":   userID,
-		"name":      name,
-		"thumbnail": thumbnail,
+		"@type":       "replaceStickerInSet",
+		"user_id":     userID,
+		"name":        name,
+		"old_sticker": oldSticker,
+		"new_sticker": newSticker,
 	})
 
 	if err != nil {
@@ -16514,8 +19360,36 @@ func (client *ClientImpl) SetStickerSetThumbnail(userID int64, name string, thum
 
 }
 
-// SetCustomEmojiStickerSetThumbnail Sets a custom emoji sticker set thumbnail; for bots only
-// @param name Sticker set name
+// SetStickerSetThumbnail Sets a sticker set thumbnail
+// @param userID Sticker set owner; ignored for regular users
+// @param name Sticker set name. The sticker set must be owned by the current user
+// @param thumbnail Thumbnail to set; pass null to remove the sticker set thumbnail
+// @param format Format of the thumbnail; pass null if thumbnail is removed
+func (client *ClientImpl) SetStickerSetThumbnail(userID int64, name string, thumbnail InputFile, format StickerFormat) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":     "setStickerSetThumbnail",
+		"user_id":   userID,
+		"name":      name,
+		"thumbnail": thumbnail,
+		"format":    format,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// SetCustomEmojiStickerSetThumbnail Sets a custom emoji sticker set thumbnail
+// @param name Sticker set name. The sticker set must be owned by the current user
 // @param customEmojiID Identifier of the custom emoji from the sticker set, which will be set as sticker set thumbnail; pass 0 to remove the sticker set thumbnail
 func (client *ClientImpl) SetCustomEmojiStickerSetThumbnail(name string, customEmojiID *JSONInt64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -16538,8 +19412,8 @@ func (client *ClientImpl) SetCustomEmojiStickerSetThumbnail(name string, customE
 
 }
 
-// SetStickerSetTitle Sets a sticker set title; for bots only
-// @param name Sticker set name
+// SetStickerSetTitle Sets a sticker set title
+// @param name Sticker set name. The sticker set must be owned by the current user
 // @param title New sticker set title
 func (client *ClientImpl) SetStickerSetTitle(name string, title string) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
@@ -16562,8 +19436,8 @@ func (client *ClientImpl) SetStickerSetTitle(name string, title string) (*Ok, er
 
 }
 
-// DeleteStickerSet Deleted a sticker set; for bots only
-// @param name Sticker set name
+// DeleteStickerSet Completely deletes a sticker set
+// @param name Sticker set name. The sticker set must be owned by the current user
 func (client *ClientImpl) DeleteStickerSet(name string) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "deleteStickerSet",
@@ -16584,7 +19458,7 @@ func (client *ClientImpl) DeleteStickerSet(name string) (*Ok, error) {
 
 }
 
-// SetStickerPositionInSet Changes the position of a sticker in the set to which it belongs; for bots only. The sticker set must have been created by the bot
+// SetStickerPositionInSet Changes the position of a sticker in the set to which it belongs. The sticker set must be owned by the current user
 // @param sticker Sticker
 // @param position New position of the sticker in the set, 0-based
 func (client *ClientImpl) SetStickerPositionInSet(sticker InputFile, position int32) (*Ok, error) {
@@ -16608,8 +19482,8 @@ func (client *ClientImpl) SetStickerPositionInSet(sticker InputFile, position in
 
 }
 
-// RemoveStickerFromSet Removes a sticker from the set to which it belongs; for bots only. The sticker set must have been created by the bot
-// @param sticker Sticker
+// RemoveStickerFromSet Removes a sticker from the set to which it belongs. The sticker set must be owned by the current user
+// @param sticker Sticker to remove from the set
 func (client *ClientImpl) RemoveStickerFromSet(sticker InputFile) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":   "removeStickerFromSet",
@@ -16630,7 +19504,7 @@ func (client *ClientImpl) RemoveStickerFromSet(sticker InputFile) (*Ok, error) {
 
 }
 
-// SetStickerEmojis Changes the list of emoji corresponding to a sticker; for bots only. The sticker must belong to a regular or custom emoji sticker set created by the bot
+// SetStickerEmojis Changes the list of emojis corresponding to a sticker. The sticker must belong to a regular or custom emoji sticker set that is owned by the current user
 // @param sticker Sticker
 // @param emojis New string with 1-20 emoji corresponding to the sticker
 func (client *ClientImpl) SetStickerEmojis(sticker InputFile, emojis string) (*Ok, error) {
@@ -16654,7 +19528,7 @@ func (client *ClientImpl) SetStickerEmojis(sticker InputFile, emojis string) (*O
 
 }
 
-// SetStickerKeywords Changes the list of keywords of a sticker; for bots only. The sticker must belong to a regular or custom emoji sticker set created by the bot
+// SetStickerKeywords Changes the list of keywords of a sticker. The sticker must belong to a regular or custom emoji sticker set that is owned by the current user
 // @param sticker Sticker
 // @param keywords List of up to 20 keywords with total length up to 64 characters, which can be used to find the sticker
 func (client *ClientImpl) SetStickerKeywords(sticker InputFile, keywords []string) (*Ok, error) {
@@ -16678,7 +19552,7 @@ func (client *ClientImpl) SetStickerKeywords(sticker InputFile, keywords []strin
 
 }
 
-// SetStickerMaskPosition Changes the mask position of a mask sticker; for bots only. The sticker must belong to a mask sticker set created by the bot
+// SetStickerMaskPosition Changes the mask position of a mask sticker. The sticker must belong to a mask sticker set that is owned by the current user
 // @param sticker Sticker
 // @param maskPosition Position where the mask is placed; pass null to remove mask position
 func (client *ClientImpl) SetStickerMaskPosition(sticker InputFile, maskPosition *MaskPosition) (*Ok, error) {
@@ -16699,6 +19573,30 @@ func (client *ClientImpl) SetStickerMaskPosition(sticker InputFile, maskPosition
 	var ok Ok
 	err = json.Unmarshal(result.Raw, &ok)
 	return &ok, err
+
+}
+
+// GetOwnedStickerSets Returns sticker sets owned by the current user
+// @param offsetStickerSetID Identifier of the sticker set from which to return owned sticker sets; use 0 to get results from the beginning
+// @param limit The maximum number of sticker sets to be returned; must be positive and can't be greater than 100. For optimal performance, the number of returned objects is chosen by TDLib and can be smaller than the specified limit
+func (client *ClientImpl) GetOwnedStickerSets(offsetStickerSetID *JSONInt64, limit int32) (*StickerSets, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":                 "getOwnedStickerSets",
+		"offset_sticker_set_id": offsetStickerSetID,
+		"limit":                 limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var stickerSets StickerSets
+	err = json.Unmarshal(result.Raw, &stickerSets)
+	return &stickerSets, err
 
 }
 
@@ -16860,8 +19758,8 @@ func (client *ClientImpl) GetPremiumState() (*PremiumState, error) {
 
 }
 
-// GetPremiumGiftCodePaymentOptions Returns available options for Telegram Premium gift code or giveaway creation
-// @param boostedChatID Identifier of the channel chat, which will be automatically boosted by receivers of the gift codes and which is administered by the user; 0 if none
+// GetPremiumGiftCodePaymentOptions Returns available options for Telegram Premium gift code or Telegram Premium giveaway creation
+// @param boostedChatID Identifier of the supergroup or channel chat, which will be automatically boosted by receivers of the gift codes and which is administered by the user; 0 if none
 func (client *ClientImpl) GetPremiumGiftCodePaymentOptions(boostedChatID int64) (*PremiumGiftCodePaymentOptions, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type":           "getPremiumGiftCodePaymentOptions",
@@ -16926,14 +19824,18 @@ func (client *ClientImpl) ApplyPremiumGiftCode(code string) (*Ok, error) {
 
 }
 
-// LaunchPrepaidPremiumGiveaway Launches a prepaid Telegram Premium giveaway for subscribers of channel chats; requires can_post_messages rights in the channels
+// LaunchPrepaidGiveaway Launches a prepaid giveaway
 // @param giveawayID Unique identifier of the prepaid giveaway
 // @param parameters Giveaway parameters
-func (client *ClientImpl) LaunchPrepaidPremiumGiveaway(giveawayID *JSONInt64, parameters *PremiumGiveawayParameters) (*Ok, error) {
+// @param winnerCount The number of users to receive giveaway prize
+// @param starCount The number of Telegram Stars to be distributed through the giveaway; pass 0 for Telegram Premium giveaways
+func (client *ClientImpl) LaunchPrepaidGiveaway(giveawayID *JSONInt64, parameters *GiveawayParameters, winnerCount int32, starCount int64) (*Ok, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":       "launchPrepaidPremiumGiveaway",
-		"giveaway_id": giveawayID,
-		"parameters":  parameters,
+		"@type":        "launchPrepaidGiveaway",
+		"giveaway_id":  giveawayID,
+		"parameters":   parameters,
+		"winner_count": winnerCount,
+		"star_count":   starCount,
 	})
 
 	if err != nil {
@@ -16950,12 +19852,12 @@ func (client *ClientImpl) LaunchPrepaidPremiumGiveaway(giveawayID *JSONInt64, pa
 
 }
 
-// GetPremiumGiveawayInfo Returns information about a Telegram Premium giveaway
+// GetGiveawayInfo Returns information about a giveaway
 // @param chatID Identifier of the channel chat which started the giveaway
 // @param messageID Identifier of the giveaway or a giveaway winners message in the chat
-func (client *ClientImpl) GetPremiumGiveawayInfo(chatID int64, messageID int64) (PremiumGiveawayInfo, error) {
+func (client *ClientImpl) GetGiveawayInfo(chatID int64, messageID int64) (GiveawayInfo, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":      "getPremiumGiveawayInfo",
+		"@type":      "getGiveawayInfo",
 		"chat_id":    chatID,
 		"message_id": messageID,
 	})
@@ -16968,28 +19870,144 @@ func (client *ClientImpl) GetPremiumGiveawayInfo(chatID int64, messageID int64) 
 		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
 	}
 
-	switch PremiumGiveawayInfoEnum(result.Data["@type"].(string)) {
+	switch GiveawayInfoEnum(result.Data["@type"].(string)) {
 
-	case PremiumGiveawayInfoOngoingType:
-		var premiumGiveawayInfo PremiumGiveawayInfoOngoing
-		err = json.Unmarshal(result.Raw, &premiumGiveawayInfo)
-		return &premiumGiveawayInfo, err
+	case GiveawayInfoOngoingType:
+		var giveawayInfo GiveawayInfoOngoing
+		err = json.Unmarshal(result.Raw, &giveawayInfo)
+		return &giveawayInfo, err
 
-	case PremiumGiveawayInfoCompletedType:
-		var premiumGiveawayInfo PremiumGiveawayInfoCompleted
-		err = json.Unmarshal(result.Raw, &premiumGiveawayInfo)
-		return &premiumGiveawayInfo, err
+	case GiveawayInfoCompletedType:
+		var giveawayInfo GiveawayInfoCompleted
+		err = json.Unmarshal(result.Raw, &giveawayInfo)
+		return &giveawayInfo, err
 
 	default:
 		return nil, fmt.Errorf("Invalid type")
 	}
 }
 
-// CanPurchasePremium Checks whether Telegram Premium purchase is possible. Must be called before in-store Premium purchase
-// @param purpose Transaction purpose
-func (client *ClientImpl) CanPurchasePremium(purpose StorePaymentPurpose) (*Ok, error) {
+// GetStarPaymentOptions Returns available options for Telegram Stars purchase
+func (client *ClientImpl) GetStarPaymentOptions() (*StarPaymentOptions, error) {
 	result, err := client.SendAndCatch(UpdateData{
-		"@type":   "canPurchasePremium",
+		"@type": "getStarPaymentOptions",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var starPaymentOptions StarPaymentOptions
+	err = json.Unmarshal(result.Raw, &starPaymentOptions)
+	return &starPaymentOptions, err
+
+}
+
+// GetStarGiftPaymentOptions Returns available options for Telegram Stars gifting
+// @param userID Identifier of the user that will receive Telegram Stars; pass 0 to get options for an unspecified user
+func (client *ClientImpl) GetStarGiftPaymentOptions(userID int64) (*StarPaymentOptions, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":   "getStarGiftPaymentOptions",
+		"user_id": userID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var starPaymentOptions StarPaymentOptions
+	err = json.Unmarshal(result.Raw, &starPaymentOptions)
+	return &starPaymentOptions, err
+
+}
+
+// GetStarGiveawayPaymentOptions Returns available options for Telegram Star giveaway creation
+func (client *ClientImpl) GetStarGiveawayPaymentOptions() (*StarGiveawayPaymentOptions, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getStarGiveawayPaymentOptions",
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var starGiveawayPaymentOptions StarGiveawayPaymentOptions
+	err = json.Unmarshal(result.Raw, &starGiveawayPaymentOptions)
+	return &starGiveawayPaymentOptions, err
+
+}
+
+// GetStarTransactions Returns the list of Telegram Star transactions for the specified owner
+// @param ownerID Identifier of the owner of the Telegram Stars; can be the identifier of the current user, identifier of an owned bot, or identifier of a channel chat with supergroupFullInfo.can_get_star_revenue_statistics == true
+// @param subscriptionID If non-empty, only transactions related to the Star Subscription will be returned
+// @param direction Direction of the transactions to receive; pass null to get all transactions
+// @param offset Offset of the first transaction to return as received from the previous request; use empty string to get the first chunk of results
+// @param limit The maximum number of transactions to return
+func (client *ClientImpl) GetStarTransactions(ownerID MessageSender, subscriptionID string, direction StarTransactionDirection, offset string, limit int32) (*StarTransactions, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":           "getStarTransactions",
+		"owner_id":        ownerID,
+		"subscription_id": subscriptionID,
+		"direction":       direction,
+		"offset":          offset,
+		"limit":           limit,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var starTransactions StarTransactions
+	err = json.Unmarshal(result.Raw, &starTransactions)
+	return &starTransactions, err
+
+}
+
+// GetStarSubscriptions Returns the list of Telegram Star subscriptions for the current user
+// @param onlyExpiring Pass true to receive only expiring subscriptions for which there are no enough Telegram Stars to extend
+// @param offset Offset of the first subscription to return as received from the previous request; use empty string to get the first chunk of results
+func (client *ClientImpl) GetStarSubscriptions(onlyExpiring bool, offset string) (*StarSubscriptions, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":         "getStarSubscriptions",
+		"only_expiring": onlyExpiring,
+		"offset":        offset,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var starSubscriptions StarSubscriptions
+	err = json.Unmarshal(result.Raw, &starSubscriptions)
+	return &starSubscriptions, err
+
+}
+
+// CanPurchaseFromStore Checks whether an in-store purchase is possible. Must be called before any in-store purchase
+// @param purpose Transaction purpose
+func (client *ClientImpl) CanPurchaseFromStore(purpose StorePaymentPurpose) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":   "canPurchaseFromStore",
 		"purpose": purpose,
 	})
 
@@ -17056,6 +20074,74 @@ func (client *ClientImpl) AssignGooglePlayTransaction(packageName string, storeP
 	var okDummy Ok
 	err = json.Unmarshal(result.Raw, &okDummy)
 	return &okDummy, err
+
+}
+
+// EditStarSubscription Cancels or reenables Telegram Star subscription to a channel
+// @param subscriptionID Identifier of the subscription to change
+// @param isCanceled New value of is_canceled
+func (client *ClientImpl) EditStarSubscription(subscriptionID string, isCanceled bool) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":           "editStarSubscription",
+		"subscription_id": subscriptionID,
+		"is_canceled":     isCanceled,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// ReuseStarSubscription Reuses an active subscription and joins the subscribed chat again
+// @param subscriptionID Identifier of the subscription
+func (client *ClientImpl) ReuseStarSubscription(subscriptionID string) (*Ok, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":           "reuseStarSubscription",
+		"subscription_id": subscriptionID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var ok Ok
+	err = json.Unmarshal(result.Raw, &ok)
+	return &ok, err
+
+}
+
+// GetBusinessFeatures Returns information about features, available to Business users
+// @param source Source of the request; pass null if the method is called from settings or some non-standard source
+func (client *ClientImpl) GetBusinessFeatures(source BusinessFeature) (*BusinessFeatures, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type":  "getBusinessFeatures",
+		"source": source,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var businessFeatures BusinessFeatures
+	err = json.Unmarshal(result.Raw, &businessFeatures)
+	return &businessFeatures, err
 
 }
 
@@ -17262,6 +20348,28 @@ func (client *ClientImpl) GetPhoneNumberInfoSync(languageCode string, phoneNumbe
 	var phoneNumberInfo PhoneNumberInfo
 	err = json.Unmarshal(result.Raw, &phoneNumberInfo)
 	return &phoneNumberInfo, err
+
+}
+
+// GetCollectibleItemInfo Returns information about a given collectible item that was purchased at https://fragment.com
+// @param typeParam Type of the collectible item. The item must be used by a user and must be visible to the current user
+func (client *ClientImpl) GetCollectibleItemInfo(typeParam CollectibleItemType) (*CollectibleItemInfo, error) {
+	result, err := client.SendAndCatch(UpdateData{
+		"@type": "getCollectibleItemInfo",
+		"type":  typeParam,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if result.Data["@type"].(string) == "error" {
+		return nil, RequestError{Code: int(result.Data["code"].(float64)), Message: result.Data["message"].(string)}
+	}
+
+	var collectibleItemInfo CollectibleItemInfo
+	err = json.Unmarshal(result.Raw, &collectibleItemInfo)
+	return &collectibleItemInfo, err
 
 }
 
@@ -17506,7 +20614,7 @@ func (client *ClientImpl) RemoveProxy(proxyID int32) (*Ok, error) {
 
 }
 
-// GetProxies Returns list of proxies that are currently set up. Can be called before authorization
+// GetProxies Returns the list of proxies that are currently set up. Can be called before authorization
 func (client *ClientImpl) GetProxies() (*Proxies, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "getProxies",
@@ -17670,7 +20778,7 @@ func (client *ClientImpl) GetLogVerbosityLevel() (*LogVerbosityLevel, error) {
 
 }
 
-// GetLogTags Returns list of available TDLib internal log tags, for example, ["actor", "binlog", "connections", "notifications", "proxy"]. Can be called synchronously
+// GetLogTags Returns the list of available TDLib internal log tags, for example, ["actor", "binlog", "connections", "notifications", "proxy"]. Can be called synchronously
 func (client *ClientImpl) GetLogTags() (*LogTags, error) {
 	result, err := client.SendAndCatch(UpdateData{
 		"@type": "getLogTags",
@@ -18146,6 +21254,11 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
+	case UpdateMessageFactCheckType:
+		var update UpdateMessageFactCheck
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
 	case UpdateMessageLiveLocationViewedType:
 		var update UpdateMessageLiveLocationViewed
 		err = json.Unmarshal(result.Raw, &update)
@@ -18186,6 +21299,16 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
+	case UpdateChatAddedToListType:
+		var update UpdateChatAddedToList
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateChatRemovedFromListType:
+		var update UpdateChatRemovedFromList
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
 	case UpdateChatReadInboxType:
 		var update UpdateChatReadInbox
 		err = json.Unmarshal(result.Raw, &update)
@@ -18198,6 +21321,11 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 
 	case UpdateChatActionBarType:
 		var update UpdateChatActionBar
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateChatBusinessBotManageBarType:
+		var update UpdateChatBusinessBotManageBar
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
@@ -18311,6 +21439,36 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
+	case UpdateSavedMessagesTopicType:
+		var update UpdateSavedMessagesTopic
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateSavedMessagesTopicCountType:
+		var update UpdateSavedMessagesTopicCount
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateQuickReplyShortcutType:
+		var update UpdateQuickReplyShortcut
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateQuickReplyShortcutDeletedType:
+		var update UpdateQuickReplyShortcutDeleted
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateQuickReplyShortcutsType:
+		var update UpdateQuickReplyShortcuts
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateQuickReplyShortcutMessagesType:
+		var update UpdateQuickReplyShortcutMessages
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
 	case UpdateForumTopicInfoType:
 		var update UpdateForumTopicInfo
 		err = json.Unmarshal(result.Raw, &update)
@@ -18318,6 +21476,11 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 
 	case UpdateScopeNotificationSettingsType:
 		var update UpdateScopeNotificationSettings
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateReactionNotificationSettingsType:
+		var update UpdateReactionNotificationSettings
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
@@ -18428,6 +21591,11 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 
 	case UpdateFileRemovedFromDownloadsType:
 		var update UpdateFileRemovedFromDownloads
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateApplicationVerificationRequiredType:
+		var update UpdateApplicationVerificationRequired
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
@@ -18601,8 +21769,38 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
+	case UpdateAvailableMessageEffectsType:
+		var update UpdateAvailableMessageEffects
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
 	case UpdateDefaultReactionTypeType:
 		var update UpdateDefaultReactionType
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateSavedMessagesTagsType:
+		var update UpdateSavedMessagesTags
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateActiveLiveLocationMessagesType:
+		var update UpdateActiveLiveLocationMessages
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateOwnedStarCountType:
+		var update UpdateOwnedStarCount
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateChatRevenueAmountType:
+		var update UpdateChatRevenueAmount
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateStarRevenueStatusType:
+		var update UpdateStarRevenueStatus
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
@@ -18631,13 +21829,38 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
-	case UpdateAddChatMembersPrivacyForbiddenType:
-		var update UpdateAddChatMembersPrivacyForbidden
+	case UpdateSpeedLimitNotificationType:
+		var update UpdateSpeedLimitNotification
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateContactCloseBirthdaysType:
+		var update UpdateContactCloseBirthdays
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
 	case UpdateAutosaveSettingsType:
 		var update UpdateAutosaveSettings
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateBusinessConnectionType:
+		var update UpdateBusinessConnection
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateNewBusinessMessageType:
+		var update UpdateNewBusinessMessage
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateBusinessMessageEditedType:
+		var update UpdateBusinessMessageEdited
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateBusinessMessagesDeletedType:
+		var update UpdateBusinessMessagesDeleted
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
@@ -18658,6 +21881,11 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 
 	case UpdateNewInlineCallbackQueryType:
 		var update UpdateNewInlineCallbackQuery
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdateNewBusinessCallbackQueryType:
+		var update UpdateNewBusinessCallbackQuery
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 
@@ -18713,6 +21941,11 @@ func (client *ClientImpl) TestUseUpdate() (Update, error) {
 
 	case UpdateMessageReactionsType:
 		var update UpdateMessageReactions
+		err = json.Unmarshal(result.Raw, &update)
+		return &update, err
+
+	case UpdatePaidMediaPurchasedType:
+		var update UpdatePaidMediaPurchased
 		err = json.Unmarshal(result.Raw, &update)
 		return &update, err
 

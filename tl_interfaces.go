@@ -19,6 +19,8 @@ type AuthenticationCodeTypeEnum string
 const (
 	AuthenticationCodeTypeTelegramMessageType AuthenticationCodeTypeEnum = "authenticationCodeTypeTelegramMessage"
 	AuthenticationCodeTypeSmsType             AuthenticationCodeTypeEnum = "authenticationCodeTypeSms"
+	AuthenticationCodeTypeSmsWordType         AuthenticationCodeTypeEnum = "authenticationCodeTypeSmsWord"
+	AuthenticationCodeTypeSmsPhraseType       AuthenticationCodeTypeEnum = "authenticationCodeTypeSmsPhrase"
 	AuthenticationCodeTypeCallType            AuthenticationCodeTypeEnum = "authenticationCodeTypeCall"
 	AuthenticationCodeTypeFlashCallType       AuthenticationCodeTypeEnum = "authenticationCodeTypeFlashCall"
 	AuthenticationCodeTypeMissedCallType      AuthenticationCodeTypeEnum = "authenticationCodeTypeMissedCall"
@@ -48,6 +50,16 @@ func unmarshalAuthenticationCodeType(rawMsg *json.RawMessage) (AuthenticationCod
 		var authenticationCodeTypeSms AuthenticationCodeTypeSms
 		err := json.Unmarshal(*rawMsg, &authenticationCodeTypeSms)
 		return &authenticationCodeTypeSms, err
+
+	case AuthenticationCodeTypeSmsWordType:
+		var authenticationCodeTypeSmsWord AuthenticationCodeTypeSmsWord
+		err := json.Unmarshal(*rawMsg, &authenticationCodeTypeSmsWord)
+		return &authenticationCodeTypeSmsWord, err
+
+	case AuthenticationCodeTypeSmsPhraseType:
+		var authenticationCodeTypeSmsPhrase AuthenticationCodeTypeSmsPhrase
+		err := json.Unmarshal(*rawMsg, &authenticationCodeTypeSmsPhrase)
+		return &authenticationCodeTypeSmsPhrase, err
 
 	case AuthenticationCodeTypeCallType:
 		var authenticationCodeTypeCall AuthenticationCodeTypeCall
@@ -123,6 +135,32 @@ func unmarshalAuthenticationCodeTypeSlice(rawMsg *json.RawMessage) ([]Authentica
 			}
 
 			objects = append(objects, &authenticationCodeTypeSms)
+		case AuthenticationCodeTypeSmsWordType:
+			var authenticationCodeTypeSmsWord AuthenticationCodeTypeSmsWord
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &authenticationCodeTypeSmsWord)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &authenticationCodeTypeSmsWord)
+		case AuthenticationCodeTypeSmsPhraseType:
+			var authenticationCodeTypeSmsPhrase AuthenticationCodeTypeSmsPhrase
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &authenticationCodeTypeSmsPhrase)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &authenticationCodeTypeSmsPhrase)
 		case AuthenticationCodeTypeCallType:
 			var authenticationCodeTypeCall AuthenticationCodeTypeCall
 			obj, err := json.Marshal(objMap)
@@ -210,7 +248,7 @@ func unmarshalAuthenticationCodeTypeSlice(rawMsg *json.RawMessage) ([]Authentica
 	return objects, nil
 }
 
-// EmailAddressAuthentication Contains authentication data for a email address
+// EmailAddressAuthentication Contains authentication data for an email address
 type EmailAddressAuthentication interface {
 	GetEmailAddressAuthenticationEnum() EmailAddressAuthenticationEnum
 }
@@ -318,7 +356,7 @@ func unmarshalEmailAddressAuthenticationSlice(rawMsg *json.RawMessage) ([]EmailA
 	return objects, nil
 }
 
-// EmailAddressResetState Describes reset state of a email address
+// EmailAddressResetState Describes reset state of an email address
 type EmailAddressResetState interface {
 	GetEmailAddressResetStateEnum() EmailAddressResetStateEnum
 }
@@ -677,6 +715,95 @@ func unmarshalAuthorizationStateSlice(rawMsg *json.RawMessage) ([]AuthorizationS
 			}
 
 			objects = append(objects, &authorizationStateClosed)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// FirebaseDeviceVerificationParameters Describes parameters to be used for device verification
+type FirebaseDeviceVerificationParameters interface {
+	GetFirebaseDeviceVerificationParametersEnum() FirebaseDeviceVerificationParametersEnum
+}
+
+// FirebaseDeviceVerificationParametersEnum Alias for abstract FirebaseDeviceVerificationParameters 'Sub-Classes', used as constant-enum here
+type FirebaseDeviceVerificationParametersEnum string
+
+// FirebaseDeviceVerificationParameters enums
+const (
+	FirebaseDeviceVerificationParametersSafetyNetType     FirebaseDeviceVerificationParametersEnum = "firebaseDeviceVerificationParametersSafetyNet"
+	FirebaseDeviceVerificationParametersPlayIntegrityType FirebaseDeviceVerificationParametersEnum = "firebaseDeviceVerificationParametersPlayIntegrity"
+)
+
+func unmarshalFirebaseDeviceVerificationParameters(rawMsg *json.RawMessage) (FirebaseDeviceVerificationParameters, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch FirebaseDeviceVerificationParametersEnum(objMap["@type"].(string)) {
+	case FirebaseDeviceVerificationParametersSafetyNetType:
+		var firebaseDeviceVerificationParametersSafetyNet FirebaseDeviceVerificationParametersSafetyNet
+		err := json.Unmarshal(*rawMsg, &firebaseDeviceVerificationParametersSafetyNet)
+		return &firebaseDeviceVerificationParametersSafetyNet, err
+
+	case FirebaseDeviceVerificationParametersPlayIntegrityType:
+		var firebaseDeviceVerificationParametersPlayIntegrity FirebaseDeviceVerificationParametersPlayIntegrity
+		err := json.Unmarshal(*rawMsg, &firebaseDeviceVerificationParametersPlayIntegrity)
+		return &firebaseDeviceVerificationParametersPlayIntegrity, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalFirebaseDeviceVerificationParametersSlice(rawMsg *json.RawMessage) ([]FirebaseDeviceVerificationParameters, error) {
+	objects := make([]FirebaseDeviceVerificationParameters, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch FirebaseDeviceVerificationParametersEnum(objMap["@type"].(string)) {
+		case FirebaseDeviceVerificationParametersSafetyNetType:
+			var firebaseDeviceVerificationParametersSafetyNet FirebaseDeviceVerificationParametersSafetyNet
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &firebaseDeviceVerificationParametersSafetyNet)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &firebaseDeviceVerificationParametersSafetyNet)
+		case FirebaseDeviceVerificationParametersPlayIntegrityType:
+			var firebaseDeviceVerificationParametersPlayIntegrity FirebaseDeviceVerificationParametersPlayIntegrity
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &firebaseDeviceVerificationParametersPlayIntegrity)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &firebaseDeviceVerificationParametersPlayIntegrity)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -1232,7 +1359,7 @@ func unmarshalStickerFormatSlice(rawMsg *json.RawMessage) ([]StickerFormat, erro
 	return objects, nil
 }
 
-// StickerType Describes type of a sticker
+// StickerType Describes type of sticker
 type StickerType interface {
 	GetStickerTypeEnum() StickerTypeEnum
 }
@@ -1448,7 +1575,7 @@ func unmarshalStickerFullTypeSlice(rawMsg *json.RawMessage) ([]StickerFullType, 
 	return objects, nil
 }
 
-// PollType Describes the type of a poll
+// PollType Describes the type of poll
 type PollType interface {
 	GetPollTypeEnum() PollTypeEnum
 }
@@ -1537,7 +1664,7 @@ func unmarshalPollTypeSlice(rawMsg *json.RawMessage) ([]PollType, error) {
 	return objects, nil
 }
 
-// UserType Represents the type of a user. The following types are possible: regular users, deleted users and bots
+// UserType Represents the type of user. The following types are possible: regular users, deleted users and bots
 type UserType interface {
 	GetUserTypeEnum() UserTypeEnum
 }
@@ -1664,7 +1791,115 @@ func unmarshalUserTypeSlice(rawMsg *json.RawMessage) ([]UserType, error) {
 	return objects, nil
 }
 
-// ChatPhotoStickerType Describes type of a sticker, which was used to create a chat photo
+// BusinessAwayMessageSchedule Describes conditions for sending of away messages by a Telegram Business account
+type BusinessAwayMessageSchedule interface {
+	GetBusinessAwayMessageScheduleEnum() BusinessAwayMessageScheduleEnum
+}
+
+// BusinessAwayMessageScheduleEnum Alias for abstract BusinessAwayMessageSchedule 'Sub-Classes', used as constant-enum here
+type BusinessAwayMessageScheduleEnum string
+
+// BusinessAwayMessageSchedule enums
+const (
+	BusinessAwayMessageScheduleAlwaysType                BusinessAwayMessageScheduleEnum = "businessAwayMessageScheduleAlways"
+	BusinessAwayMessageScheduleOutsideOfOpeningHoursType BusinessAwayMessageScheduleEnum = "businessAwayMessageScheduleOutsideOfOpeningHours"
+	BusinessAwayMessageScheduleCustomType                BusinessAwayMessageScheduleEnum = "businessAwayMessageScheduleCustom"
+)
+
+func unmarshalBusinessAwayMessageSchedule(rawMsg *json.RawMessage) (BusinessAwayMessageSchedule, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch BusinessAwayMessageScheduleEnum(objMap["@type"].(string)) {
+	case BusinessAwayMessageScheduleAlwaysType:
+		var businessAwayMessageScheduleAlways BusinessAwayMessageScheduleAlways
+		err := json.Unmarshal(*rawMsg, &businessAwayMessageScheduleAlways)
+		return &businessAwayMessageScheduleAlways, err
+
+	case BusinessAwayMessageScheduleOutsideOfOpeningHoursType:
+		var businessAwayMessageScheduleOutsideOfOpeningHours BusinessAwayMessageScheduleOutsideOfOpeningHours
+		err := json.Unmarshal(*rawMsg, &businessAwayMessageScheduleOutsideOfOpeningHours)
+		return &businessAwayMessageScheduleOutsideOfOpeningHours, err
+
+	case BusinessAwayMessageScheduleCustomType:
+		var businessAwayMessageScheduleCustom BusinessAwayMessageScheduleCustom
+		err := json.Unmarshal(*rawMsg, &businessAwayMessageScheduleCustom)
+		return &businessAwayMessageScheduleCustom, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalBusinessAwayMessageScheduleSlice(rawMsg *json.RawMessage) ([]BusinessAwayMessageSchedule, error) {
+	objects := make([]BusinessAwayMessageSchedule, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch BusinessAwayMessageScheduleEnum(objMap["@type"].(string)) {
+		case BusinessAwayMessageScheduleAlwaysType:
+			var businessAwayMessageScheduleAlways BusinessAwayMessageScheduleAlways
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessAwayMessageScheduleAlways)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessAwayMessageScheduleAlways)
+		case BusinessAwayMessageScheduleOutsideOfOpeningHoursType:
+			var businessAwayMessageScheduleOutsideOfOpeningHours BusinessAwayMessageScheduleOutsideOfOpeningHours
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessAwayMessageScheduleOutsideOfOpeningHours)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessAwayMessageScheduleOutsideOfOpeningHours)
+		case BusinessAwayMessageScheduleCustomType:
+			var businessAwayMessageScheduleCustom BusinessAwayMessageScheduleCustom
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessAwayMessageScheduleCustom)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessAwayMessageScheduleCustom)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// ChatPhotoStickerType Describes type of sticker, which was used to create a chat photo
 type ChatPhotoStickerType interface {
 	GetChatPhotoStickerTypeEnum() ChatPhotoStickerTypeEnum
 }
@@ -1880,24 +2115,21 @@ func unmarshalInputChatPhotoSlice(rawMsg *json.RawMessage) ([]InputChatPhoto, er
 	return objects, nil
 }
 
-// PremiumGiveawayParticipantStatus Contains information about status of a user in a Telegram Premium giveaway
-type PremiumGiveawayParticipantStatus interface {
-	GetPremiumGiveawayParticipantStatusEnum() PremiumGiveawayParticipantStatusEnum
+// StarTransactionDirection Describes direction of a transaction with Telegram Stars
+type StarTransactionDirection interface {
+	GetStarTransactionDirectionEnum() StarTransactionDirectionEnum
 }
 
-// PremiumGiveawayParticipantStatusEnum Alias for abstract PremiumGiveawayParticipantStatus 'Sub-Classes', used as constant-enum here
-type PremiumGiveawayParticipantStatusEnum string
+// StarTransactionDirectionEnum Alias for abstract StarTransactionDirection 'Sub-Classes', used as constant-enum here
+type StarTransactionDirectionEnum string
 
-// PremiumGiveawayParticipantStatus enums
+// StarTransactionDirection enums
 const (
-	PremiumGiveawayParticipantStatusEligibleType          PremiumGiveawayParticipantStatusEnum = "premiumGiveawayParticipantStatusEligible"
-	PremiumGiveawayParticipantStatusParticipatingType     PremiumGiveawayParticipantStatusEnum = "premiumGiveawayParticipantStatusParticipating"
-	PremiumGiveawayParticipantStatusAlreadyWasMemberType  PremiumGiveawayParticipantStatusEnum = "premiumGiveawayParticipantStatusAlreadyWasMember"
-	PremiumGiveawayParticipantStatusAdministratorType     PremiumGiveawayParticipantStatusEnum = "premiumGiveawayParticipantStatusAdministrator"
-	PremiumGiveawayParticipantStatusDisallowedCountryType PremiumGiveawayParticipantStatusEnum = "premiumGiveawayParticipantStatusDisallowedCountry"
+	StarTransactionDirectionIncomingType StarTransactionDirectionEnum = "starTransactionDirectionIncoming"
+	StarTransactionDirectionOutgoingType StarTransactionDirectionEnum = "starTransactionDirectionOutgoing"
 )
 
-func unmarshalPremiumGiveawayParticipantStatus(rawMsg *json.RawMessage) (PremiumGiveawayParticipantStatus, error) {
+func unmarshalStarTransactionDirection(rawMsg *json.RawMessage) (StarTransactionDirection, error) {
 
 	if rawMsg == nil {
 		return nil, nil
@@ -1908,39 +2140,24 @@ func unmarshalPremiumGiveawayParticipantStatus(rawMsg *json.RawMessage) (Premium
 		return nil, err
 	}
 
-	switch PremiumGiveawayParticipantStatusEnum(objMap["@type"].(string)) {
-	case PremiumGiveawayParticipantStatusEligibleType:
-		var premiumGiveawayParticipantStatusEligible PremiumGiveawayParticipantStatusEligible
-		err := json.Unmarshal(*rawMsg, &premiumGiveawayParticipantStatusEligible)
-		return &premiumGiveawayParticipantStatusEligible, err
+	switch StarTransactionDirectionEnum(objMap["@type"].(string)) {
+	case StarTransactionDirectionIncomingType:
+		var starTransactionDirectionIncoming StarTransactionDirectionIncoming
+		err := json.Unmarshal(*rawMsg, &starTransactionDirectionIncoming)
+		return &starTransactionDirectionIncoming, err
 
-	case PremiumGiveawayParticipantStatusParticipatingType:
-		var premiumGiveawayParticipantStatusParticipating PremiumGiveawayParticipantStatusParticipating
-		err := json.Unmarshal(*rawMsg, &premiumGiveawayParticipantStatusParticipating)
-		return &premiumGiveawayParticipantStatusParticipating, err
-
-	case PremiumGiveawayParticipantStatusAlreadyWasMemberType:
-		var premiumGiveawayParticipantStatusAlreadyWasMember PremiumGiveawayParticipantStatusAlreadyWasMember
-		err := json.Unmarshal(*rawMsg, &premiumGiveawayParticipantStatusAlreadyWasMember)
-		return &premiumGiveawayParticipantStatusAlreadyWasMember, err
-
-	case PremiumGiveawayParticipantStatusAdministratorType:
-		var premiumGiveawayParticipantStatusAdministrator PremiumGiveawayParticipantStatusAdministrator
-		err := json.Unmarshal(*rawMsg, &premiumGiveawayParticipantStatusAdministrator)
-		return &premiumGiveawayParticipantStatusAdministrator, err
-
-	case PremiumGiveawayParticipantStatusDisallowedCountryType:
-		var premiumGiveawayParticipantStatusDisallowedCountry PremiumGiveawayParticipantStatusDisallowedCountry
-		err := json.Unmarshal(*rawMsg, &premiumGiveawayParticipantStatusDisallowedCountry)
-		return &premiumGiveawayParticipantStatusDisallowedCountry, err
+	case StarTransactionDirectionOutgoingType:
+		var starTransactionDirectionOutgoing StarTransactionDirectionOutgoing
+		err := json.Unmarshal(*rawMsg, &starTransactionDirectionOutgoing)
+		return &starTransactionDirectionOutgoing, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
 	}
 }
 
-func unmarshalPremiumGiveawayParticipantStatusSlice(rawMsg *json.RawMessage) ([]PremiumGiveawayParticipantStatus, error) {
-	objects := make([]PremiumGiveawayParticipantStatus, 0)
+func unmarshalStarTransactionDirectionSlice(rawMsg *json.RawMessage) ([]StarTransactionDirection, error) {
+	objects := make([]StarTransactionDirection, 0)
 	if rawMsg == nil {
 		return nil, nil
 	}
@@ -1951,72 +2168,33 @@ func unmarshalPremiumGiveawayParticipantStatusSlice(rawMsg *json.RawMessage) ([]
 	}
 
 	for _, objMap := range objsMap {
-		switch PremiumGiveawayParticipantStatusEnum(objMap["@type"].(string)) {
-		case PremiumGiveawayParticipantStatusEligibleType:
-			var premiumGiveawayParticipantStatusEligible PremiumGiveawayParticipantStatusEligible
+		switch StarTransactionDirectionEnum(objMap["@type"].(string)) {
+		case StarTransactionDirectionIncomingType:
+			var starTransactionDirectionIncoming StarTransactionDirectionIncoming
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &premiumGiveawayParticipantStatusEligible)
+			err = json.Unmarshal(obj, &starTransactionDirectionIncoming)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &premiumGiveawayParticipantStatusEligible)
-		case PremiumGiveawayParticipantStatusParticipatingType:
-			var premiumGiveawayParticipantStatusParticipating PremiumGiveawayParticipantStatusParticipating
+			objects = append(objects, &starTransactionDirectionIncoming)
+		case StarTransactionDirectionOutgoingType:
+			var starTransactionDirectionOutgoing StarTransactionDirectionOutgoing
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &premiumGiveawayParticipantStatusParticipating)
+			err = json.Unmarshal(obj, &starTransactionDirectionOutgoing)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &premiumGiveawayParticipantStatusParticipating)
-		case PremiumGiveawayParticipantStatusAlreadyWasMemberType:
-			var premiumGiveawayParticipantStatusAlreadyWasMember PremiumGiveawayParticipantStatusAlreadyWasMember
-			obj, err := json.Marshal(objMap)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(obj, &premiumGiveawayParticipantStatusAlreadyWasMember)
-			if err != nil {
-				return nil, err
-			}
-
-			objects = append(objects, &premiumGiveawayParticipantStatusAlreadyWasMember)
-		case PremiumGiveawayParticipantStatusAdministratorType:
-			var premiumGiveawayParticipantStatusAdministrator PremiumGiveawayParticipantStatusAdministrator
-			obj, err := json.Marshal(objMap)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(obj, &premiumGiveawayParticipantStatusAdministrator)
-			if err != nil {
-				return nil, err
-			}
-
-			objects = append(objects, &premiumGiveawayParticipantStatusAdministrator)
-		case PremiumGiveawayParticipantStatusDisallowedCountryType:
-			var premiumGiveawayParticipantStatusDisallowedCountry PremiumGiveawayParticipantStatusDisallowedCountry
-			obj, err := json.Marshal(objMap)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(obj, &premiumGiveawayParticipantStatusDisallowedCountry)
-			if err != nil {
-				return nil, err
-			}
-
-			objects = append(objects, &premiumGiveawayParticipantStatusDisallowedCountry)
+			objects = append(objects, &starTransactionDirectionOutgoing)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -2026,21 +2204,21 @@ func unmarshalPremiumGiveawayParticipantStatusSlice(rawMsg *json.RawMessage) ([]
 	return objects, nil
 }
 
-// PremiumGiveawayInfo Contains information about Telegram Premium giveaway
-type PremiumGiveawayInfo interface {
-	GetPremiumGiveawayInfoEnum() PremiumGiveawayInfoEnum
+// BotTransactionPurpose Describes purpose of a transaction with a bot
+type BotTransactionPurpose interface {
+	GetBotTransactionPurposeEnum() BotTransactionPurposeEnum
 }
 
-// PremiumGiveawayInfoEnum Alias for abstract PremiumGiveawayInfo 'Sub-Classes', used as constant-enum here
-type PremiumGiveawayInfoEnum string
+// BotTransactionPurposeEnum Alias for abstract BotTransactionPurpose 'Sub-Classes', used as constant-enum here
+type BotTransactionPurposeEnum string
 
-// PremiumGiveawayInfo enums
+// BotTransactionPurpose enums
 const (
-	PremiumGiveawayInfoOngoingType   PremiumGiveawayInfoEnum = "premiumGiveawayInfoOngoing"
-	PremiumGiveawayInfoCompletedType PremiumGiveawayInfoEnum = "premiumGiveawayInfoCompleted"
+	BotTransactionPurposePaidMediaType      BotTransactionPurposeEnum = "botTransactionPurposePaidMedia"
+	BotTransactionPurposeInvoicePaymentType BotTransactionPurposeEnum = "botTransactionPurposeInvoicePayment"
 )
 
-func unmarshalPremiumGiveawayInfo(rawMsg *json.RawMessage) (PremiumGiveawayInfo, error) {
+func unmarshalBotTransactionPurpose(rawMsg *json.RawMessage) (BotTransactionPurpose, error) {
 
 	if rawMsg == nil {
 		return nil, nil
@@ -2051,24 +2229,24 @@ func unmarshalPremiumGiveawayInfo(rawMsg *json.RawMessage) (PremiumGiveawayInfo,
 		return nil, err
 	}
 
-	switch PremiumGiveawayInfoEnum(objMap["@type"].(string)) {
-	case PremiumGiveawayInfoOngoingType:
-		var premiumGiveawayInfoOngoing PremiumGiveawayInfoOngoing
-		err := json.Unmarshal(*rawMsg, &premiumGiveawayInfoOngoing)
-		return &premiumGiveawayInfoOngoing, err
+	switch BotTransactionPurposeEnum(objMap["@type"].(string)) {
+	case BotTransactionPurposePaidMediaType:
+		var botTransactionPurposePaidMedia BotTransactionPurposePaidMedia
+		err := json.Unmarshal(*rawMsg, &botTransactionPurposePaidMedia)
+		return &botTransactionPurposePaidMedia, err
 
-	case PremiumGiveawayInfoCompletedType:
-		var premiumGiveawayInfoCompleted PremiumGiveawayInfoCompleted
-		err := json.Unmarshal(*rawMsg, &premiumGiveawayInfoCompleted)
-		return &premiumGiveawayInfoCompleted, err
+	case BotTransactionPurposeInvoicePaymentType:
+		var botTransactionPurposeInvoicePayment BotTransactionPurposeInvoicePayment
+		err := json.Unmarshal(*rawMsg, &botTransactionPurposeInvoicePayment)
+		return &botTransactionPurposeInvoicePayment, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
 	}
 }
 
-func unmarshalPremiumGiveawayInfoSlice(rawMsg *json.RawMessage) ([]PremiumGiveawayInfo, error) {
-	objects := make([]PremiumGiveawayInfo, 0)
+func unmarshalBotTransactionPurposeSlice(rawMsg *json.RawMessage) ([]BotTransactionPurpose, error) {
+	objects := make([]BotTransactionPurpose, 0)
 	if rawMsg == nil {
 		return nil, nil
 	}
@@ -2079,33 +2257,725 @@ func unmarshalPremiumGiveawayInfoSlice(rawMsg *json.RawMessage) ([]PremiumGiveaw
 	}
 
 	for _, objMap := range objsMap {
-		switch PremiumGiveawayInfoEnum(objMap["@type"].(string)) {
-		case PremiumGiveawayInfoOngoingType:
-			var premiumGiveawayInfoOngoing PremiumGiveawayInfoOngoing
+		switch BotTransactionPurposeEnum(objMap["@type"].(string)) {
+		case BotTransactionPurposePaidMediaType:
+			var botTransactionPurposePaidMedia BotTransactionPurposePaidMedia
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &premiumGiveawayInfoOngoing)
+			err = json.Unmarshal(obj, &botTransactionPurposePaidMedia)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &premiumGiveawayInfoOngoing)
-		case PremiumGiveawayInfoCompletedType:
-			var premiumGiveawayInfoCompleted PremiumGiveawayInfoCompleted
+			objects = append(objects, &botTransactionPurposePaidMedia)
+		case BotTransactionPurposeInvoicePaymentType:
+			var botTransactionPurposeInvoicePayment BotTransactionPurposeInvoicePayment
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &premiumGiveawayInfoCompleted)
+			err = json.Unmarshal(obj, &botTransactionPurposeInvoicePayment)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &premiumGiveawayInfoCompleted)
+			objects = append(objects, &botTransactionPurposeInvoicePayment)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// ChatTransactionPurpose Describes purpose of a transaction with a supergroup or a channel
+type ChatTransactionPurpose interface {
+	GetChatTransactionPurposeEnum() ChatTransactionPurposeEnum
+}
+
+// ChatTransactionPurposeEnum Alias for abstract ChatTransactionPurpose 'Sub-Classes', used as constant-enum here
+type ChatTransactionPurposeEnum string
+
+// ChatTransactionPurpose enums
+const (
+	ChatTransactionPurposePaidMediaType ChatTransactionPurposeEnum = "chatTransactionPurposePaidMedia"
+	ChatTransactionPurposeJoinType      ChatTransactionPurposeEnum = "chatTransactionPurposeJoin"
+	ChatTransactionPurposeReactionType  ChatTransactionPurposeEnum = "chatTransactionPurposeReaction"
+	ChatTransactionPurposeGiveawayType  ChatTransactionPurposeEnum = "chatTransactionPurposeGiveaway"
+)
+
+func unmarshalChatTransactionPurpose(rawMsg *json.RawMessage) (ChatTransactionPurpose, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch ChatTransactionPurposeEnum(objMap["@type"].(string)) {
+	case ChatTransactionPurposePaidMediaType:
+		var chatTransactionPurposePaidMedia ChatTransactionPurposePaidMedia
+		err := json.Unmarshal(*rawMsg, &chatTransactionPurposePaidMedia)
+		return &chatTransactionPurposePaidMedia, err
+
+	case ChatTransactionPurposeJoinType:
+		var chatTransactionPurposeJoin ChatTransactionPurposeJoin
+		err := json.Unmarshal(*rawMsg, &chatTransactionPurposeJoin)
+		return &chatTransactionPurposeJoin, err
+
+	case ChatTransactionPurposeReactionType:
+		var chatTransactionPurposeReaction ChatTransactionPurposeReaction
+		err := json.Unmarshal(*rawMsg, &chatTransactionPurposeReaction)
+		return &chatTransactionPurposeReaction, err
+
+	case ChatTransactionPurposeGiveawayType:
+		var chatTransactionPurposeGiveaway ChatTransactionPurposeGiveaway
+		err := json.Unmarshal(*rawMsg, &chatTransactionPurposeGiveaway)
+		return &chatTransactionPurposeGiveaway, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalChatTransactionPurposeSlice(rawMsg *json.RawMessage) ([]ChatTransactionPurpose, error) {
+	objects := make([]ChatTransactionPurpose, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch ChatTransactionPurposeEnum(objMap["@type"].(string)) {
+		case ChatTransactionPurposePaidMediaType:
+			var chatTransactionPurposePaidMedia ChatTransactionPurposePaidMedia
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatTransactionPurposePaidMedia)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatTransactionPurposePaidMedia)
+		case ChatTransactionPurposeJoinType:
+			var chatTransactionPurposeJoin ChatTransactionPurposeJoin
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatTransactionPurposeJoin)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatTransactionPurposeJoin)
+		case ChatTransactionPurposeReactionType:
+			var chatTransactionPurposeReaction ChatTransactionPurposeReaction
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatTransactionPurposeReaction)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatTransactionPurposeReaction)
+		case ChatTransactionPurposeGiveawayType:
+			var chatTransactionPurposeGiveaway ChatTransactionPurposeGiveaway
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatTransactionPurposeGiveaway)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatTransactionPurposeGiveaway)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// StarTransactionPartner Describes source or recipient of a transaction with Telegram Stars
+type StarTransactionPartner interface {
+	GetStarTransactionPartnerEnum() StarTransactionPartnerEnum
+}
+
+// StarTransactionPartnerEnum Alias for abstract StarTransactionPartner 'Sub-Classes', used as constant-enum here
+type StarTransactionPartnerEnum string
+
+// StarTransactionPartner enums
+const (
+	StarTransactionPartnerTelegramType    StarTransactionPartnerEnum = "starTransactionPartnerTelegram"
+	StarTransactionPartnerAppStoreType    StarTransactionPartnerEnum = "starTransactionPartnerAppStore"
+	StarTransactionPartnerGooglePlayType  StarTransactionPartnerEnum = "starTransactionPartnerGooglePlay"
+	StarTransactionPartnerFragmentType    StarTransactionPartnerEnum = "starTransactionPartnerFragment"
+	StarTransactionPartnerTelegramAdsType StarTransactionPartnerEnum = "starTransactionPartnerTelegramAds"
+	StarTransactionPartnerBotType         StarTransactionPartnerEnum = "starTransactionPartnerBot"
+	StarTransactionPartnerBusinessType    StarTransactionPartnerEnum = "starTransactionPartnerBusiness"
+	StarTransactionPartnerChatType        StarTransactionPartnerEnum = "starTransactionPartnerChat"
+	StarTransactionPartnerUserType        StarTransactionPartnerEnum = "starTransactionPartnerUser"
+	StarTransactionPartnerUnsupportedType StarTransactionPartnerEnum = "starTransactionPartnerUnsupported"
+)
+
+func unmarshalStarTransactionPartner(rawMsg *json.RawMessage) (StarTransactionPartner, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch StarTransactionPartnerEnum(objMap["@type"].(string)) {
+	case StarTransactionPartnerTelegramType:
+		var starTransactionPartnerTelegram StarTransactionPartnerTelegram
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerTelegram)
+		return &starTransactionPartnerTelegram, err
+
+	case StarTransactionPartnerAppStoreType:
+		var starTransactionPartnerAppStore StarTransactionPartnerAppStore
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerAppStore)
+		return &starTransactionPartnerAppStore, err
+
+	case StarTransactionPartnerGooglePlayType:
+		var starTransactionPartnerGooglePlay StarTransactionPartnerGooglePlay
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerGooglePlay)
+		return &starTransactionPartnerGooglePlay, err
+
+	case StarTransactionPartnerFragmentType:
+		var starTransactionPartnerFragment StarTransactionPartnerFragment
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerFragment)
+		return &starTransactionPartnerFragment, err
+
+	case StarTransactionPartnerTelegramAdsType:
+		var starTransactionPartnerTelegramAds StarTransactionPartnerTelegramAds
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerTelegramAds)
+		return &starTransactionPartnerTelegramAds, err
+
+	case StarTransactionPartnerBotType:
+		var starTransactionPartnerBot StarTransactionPartnerBot
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerBot)
+		return &starTransactionPartnerBot, err
+
+	case StarTransactionPartnerBusinessType:
+		var starTransactionPartnerBusiness StarTransactionPartnerBusiness
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerBusiness)
+		return &starTransactionPartnerBusiness, err
+
+	case StarTransactionPartnerChatType:
+		var starTransactionPartnerChat StarTransactionPartnerChat
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerChat)
+		return &starTransactionPartnerChat, err
+
+	case StarTransactionPartnerUserType:
+		var starTransactionPartnerUser StarTransactionPartnerUser
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerUser)
+		return &starTransactionPartnerUser, err
+
+	case StarTransactionPartnerUnsupportedType:
+		var starTransactionPartnerUnsupported StarTransactionPartnerUnsupported
+		err := json.Unmarshal(*rawMsg, &starTransactionPartnerUnsupported)
+		return &starTransactionPartnerUnsupported, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalStarTransactionPartnerSlice(rawMsg *json.RawMessage) ([]StarTransactionPartner, error) {
+	objects := make([]StarTransactionPartner, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch StarTransactionPartnerEnum(objMap["@type"].(string)) {
+		case StarTransactionPartnerTelegramType:
+			var starTransactionPartnerTelegram StarTransactionPartnerTelegram
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerTelegram)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerTelegram)
+		case StarTransactionPartnerAppStoreType:
+			var starTransactionPartnerAppStore StarTransactionPartnerAppStore
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerAppStore)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerAppStore)
+		case StarTransactionPartnerGooglePlayType:
+			var starTransactionPartnerGooglePlay StarTransactionPartnerGooglePlay
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerGooglePlay)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerGooglePlay)
+		case StarTransactionPartnerFragmentType:
+			var starTransactionPartnerFragment StarTransactionPartnerFragment
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerFragment)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerFragment)
+		case StarTransactionPartnerTelegramAdsType:
+			var starTransactionPartnerTelegramAds StarTransactionPartnerTelegramAds
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerTelegramAds)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerTelegramAds)
+		case StarTransactionPartnerBotType:
+			var starTransactionPartnerBot StarTransactionPartnerBot
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerBot)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerBot)
+		case StarTransactionPartnerBusinessType:
+			var starTransactionPartnerBusiness StarTransactionPartnerBusiness
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerBusiness)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerBusiness)
+		case StarTransactionPartnerChatType:
+			var starTransactionPartnerChat StarTransactionPartnerChat
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerChat)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerChat)
+		case StarTransactionPartnerUserType:
+			var starTransactionPartnerUser StarTransactionPartnerUser
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerUser)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerUser)
+		case StarTransactionPartnerUnsupportedType:
+			var starTransactionPartnerUnsupported StarTransactionPartnerUnsupported
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &starTransactionPartnerUnsupported)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &starTransactionPartnerUnsupported)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// GiveawayParticipantStatus Contains information about status of a user in a giveaway
+type GiveawayParticipantStatus interface {
+	GetGiveawayParticipantStatusEnum() GiveawayParticipantStatusEnum
+}
+
+// GiveawayParticipantStatusEnum Alias for abstract GiveawayParticipantStatus 'Sub-Classes', used as constant-enum here
+type GiveawayParticipantStatusEnum string
+
+// GiveawayParticipantStatus enums
+const (
+	GiveawayParticipantStatusEligibleType          GiveawayParticipantStatusEnum = "giveawayParticipantStatusEligible"
+	GiveawayParticipantStatusParticipatingType     GiveawayParticipantStatusEnum = "giveawayParticipantStatusParticipating"
+	GiveawayParticipantStatusAlreadyWasMemberType  GiveawayParticipantStatusEnum = "giveawayParticipantStatusAlreadyWasMember"
+	GiveawayParticipantStatusAdministratorType     GiveawayParticipantStatusEnum = "giveawayParticipantStatusAdministrator"
+	GiveawayParticipantStatusDisallowedCountryType GiveawayParticipantStatusEnum = "giveawayParticipantStatusDisallowedCountry"
+)
+
+func unmarshalGiveawayParticipantStatus(rawMsg *json.RawMessage) (GiveawayParticipantStatus, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch GiveawayParticipantStatusEnum(objMap["@type"].(string)) {
+	case GiveawayParticipantStatusEligibleType:
+		var giveawayParticipantStatusEligible GiveawayParticipantStatusEligible
+		err := json.Unmarshal(*rawMsg, &giveawayParticipantStatusEligible)
+		return &giveawayParticipantStatusEligible, err
+
+	case GiveawayParticipantStatusParticipatingType:
+		var giveawayParticipantStatusParticipating GiveawayParticipantStatusParticipating
+		err := json.Unmarshal(*rawMsg, &giveawayParticipantStatusParticipating)
+		return &giveawayParticipantStatusParticipating, err
+
+	case GiveawayParticipantStatusAlreadyWasMemberType:
+		var giveawayParticipantStatusAlreadyWasMember GiveawayParticipantStatusAlreadyWasMember
+		err := json.Unmarshal(*rawMsg, &giveawayParticipantStatusAlreadyWasMember)
+		return &giveawayParticipantStatusAlreadyWasMember, err
+
+	case GiveawayParticipantStatusAdministratorType:
+		var giveawayParticipantStatusAdministrator GiveawayParticipantStatusAdministrator
+		err := json.Unmarshal(*rawMsg, &giveawayParticipantStatusAdministrator)
+		return &giveawayParticipantStatusAdministrator, err
+
+	case GiveawayParticipantStatusDisallowedCountryType:
+		var giveawayParticipantStatusDisallowedCountry GiveawayParticipantStatusDisallowedCountry
+		err := json.Unmarshal(*rawMsg, &giveawayParticipantStatusDisallowedCountry)
+		return &giveawayParticipantStatusDisallowedCountry, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalGiveawayParticipantStatusSlice(rawMsg *json.RawMessage) ([]GiveawayParticipantStatus, error) {
+	objects := make([]GiveawayParticipantStatus, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch GiveawayParticipantStatusEnum(objMap["@type"].(string)) {
+		case GiveawayParticipantStatusEligibleType:
+			var giveawayParticipantStatusEligible GiveawayParticipantStatusEligible
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayParticipantStatusEligible)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayParticipantStatusEligible)
+		case GiveawayParticipantStatusParticipatingType:
+			var giveawayParticipantStatusParticipating GiveawayParticipantStatusParticipating
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayParticipantStatusParticipating)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayParticipantStatusParticipating)
+		case GiveawayParticipantStatusAlreadyWasMemberType:
+			var giveawayParticipantStatusAlreadyWasMember GiveawayParticipantStatusAlreadyWasMember
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayParticipantStatusAlreadyWasMember)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayParticipantStatusAlreadyWasMember)
+		case GiveawayParticipantStatusAdministratorType:
+			var giveawayParticipantStatusAdministrator GiveawayParticipantStatusAdministrator
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayParticipantStatusAdministrator)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayParticipantStatusAdministrator)
+		case GiveawayParticipantStatusDisallowedCountryType:
+			var giveawayParticipantStatusDisallowedCountry GiveawayParticipantStatusDisallowedCountry
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayParticipantStatusDisallowedCountry)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayParticipantStatusDisallowedCountry)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// GiveawayInfo Contains information about a giveaway
+type GiveawayInfo interface {
+	GetGiveawayInfoEnum() GiveawayInfoEnum
+}
+
+// GiveawayInfoEnum Alias for abstract GiveawayInfo 'Sub-Classes', used as constant-enum here
+type GiveawayInfoEnum string
+
+// GiveawayInfo enums
+const (
+	GiveawayInfoOngoingType   GiveawayInfoEnum = "giveawayInfoOngoing"
+	GiveawayInfoCompletedType GiveawayInfoEnum = "giveawayInfoCompleted"
+)
+
+func unmarshalGiveawayInfo(rawMsg *json.RawMessage) (GiveawayInfo, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch GiveawayInfoEnum(objMap["@type"].(string)) {
+	case GiveawayInfoOngoingType:
+		var giveawayInfoOngoing GiveawayInfoOngoing
+		err := json.Unmarshal(*rawMsg, &giveawayInfoOngoing)
+		return &giveawayInfoOngoing, err
+
+	case GiveawayInfoCompletedType:
+		var giveawayInfoCompleted GiveawayInfoCompleted
+		err := json.Unmarshal(*rawMsg, &giveawayInfoCompleted)
+		return &giveawayInfoCompleted, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalGiveawayInfoSlice(rawMsg *json.RawMessage) ([]GiveawayInfo, error) {
+	objects := make([]GiveawayInfo, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch GiveawayInfoEnum(objMap["@type"].(string)) {
+		case GiveawayInfoOngoingType:
+			var giveawayInfoOngoing GiveawayInfoOngoing
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayInfoOngoing)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayInfoOngoing)
+		case GiveawayInfoCompletedType:
+			var giveawayInfoCompleted GiveawayInfoCompleted
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayInfoCompleted)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayInfoCompleted)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// GiveawayPrize Contains information about a giveaway prize
+type GiveawayPrize interface {
+	GetGiveawayPrizeEnum() GiveawayPrizeEnum
+}
+
+// GiveawayPrizeEnum Alias for abstract GiveawayPrize 'Sub-Classes', used as constant-enum here
+type GiveawayPrizeEnum string
+
+// GiveawayPrize enums
+const (
+	GiveawayPrizePremiumType GiveawayPrizeEnum = "giveawayPrizePremium"
+	GiveawayPrizeStarsType   GiveawayPrizeEnum = "giveawayPrizeStars"
+)
+
+func unmarshalGiveawayPrize(rawMsg *json.RawMessage) (GiveawayPrize, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch GiveawayPrizeEnum(objMap["@type"].(string)) {
+	case GiveawayPrizePremiumType:
+		var giveawayPrizePremium GiveawayPrizePremium
+		err := json.Unmarshal(*rawMsg, &giveawayPrizePremium)
+		return &giveawayPrizePremium, err
+
+	case GiveawayPrizeStarsType:
+		var giveawayPrizeStars GiveawayPrizeStars
+		err := json.Unmarshal(*rawMsg, &giveawayPrizeStars)
+		return &giveawayPrizeStars, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalGiveawayPrizeSlice(rawMsg *json.RawMessage) ([]GiveawayPrize, error) {
+	objects := make([]GiveawayPrize, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch GiveawayPrizeEnum(objMap["@type"].(string)) {
+		case GiveawayPrizePremiumType:
+			var giveawayPrizePremium GiveawayPrizePremium
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayPrizePremium)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayPrizePremium)
+		case GiveawayPrizeStarsType:
+			var giveawayPrizeStars GiveawayPrizeStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &giveawayPrizeStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &giveawayPrizeStars)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -2667,7 +3537,7 @@ func unmarshalSupergroupMembersFilterSlice(rawMsg *json.RawMessage) ([]Supergrou
 	return objects, nil
 }
 
-// InviteLinkChatType Describes the type of a chat to which points an invite link
+// InviteLinkChatType Describes the type of chat to which points an invite link
 type InviteLinkChatType interface {
 	GetInviteLinkChatTypeEnum() InviteLinkChatTypeEnum
 }
@@ -2972,6 +3842,152 @@ func unmarshalMessageSenderSlice(rawMsg *json.RawMessage) ([]MessageSender, erro
 	return objects, nil
 }
 
+// MessageReadDate Describes read date of a recent outgoing message in a private chat
+type MessageReadDate interface {
+	GetMessageReadDateEnum() MessageReadDateEnum
+}
+
+// MessageReadDateEnum Alias for abstract MessageReadDate 'Sub-Classes', used as constant-enum here
+type MessageReadDateEnum string
+
+// MessageReadDate enums
+const (
+	MessageReadDateReadType                  MessageReadDateEnum = "messageReadDateRead"
+	MessageReadDateUnreadType                MessageReadDateEnum = "messageReadDateUnread"
+	MessageReadDateTooOldType                MessageReadDateEnum = "messageReadDateTooOld"
+	MessageReadDateUserPrivacyRestrictedType MessageReadDateEnum = "messageReadDateUserPrivacyRestricted"
+	MessageReadDateMyPrivacyRestrictedType   MessageReadDateEnum = "messageReadDateMyPrivacyRestricted"
+)
+
+func unmarshalMessageReadDate(rawMsg *json.RawMessage) (MessageReadDate, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch MessageReadDateEnum(objMap["@type"].(string)) {
+	case MessageReadDateReadType:
+		var messageReadDateRead MessageReadDateRead
+		err := json.Unmarshal(*rawMsg, &messageReadDateRead)
+		return &messageReadDateRead, err
+
+	case MessageReadDateUnreadType:
+		var messageReadDateUnread MessageReadDateUnread
+		err := json.Unmarshal(*rawMsg, &messageReadDateUnread)
+		return &messageReadDateUnread, err
+
+	case MessageReadDateTooOldType:
+		var messageReadDateTooOld MessageReadDateTooOld
+		err := json.Unmarshal(*rawMsg, &messageReadDateTooOld)
+		return &messageReadDateTooOld, err
+
+	case MessageReadDateUserPrivacyRestrictedType:
+		var messageReadDateUserPrivacyRestricted MessageReadDateUserPrivacyRestricted
+		err := json.Unmarshal(*rawMsg, &messageReadDateUserPrivacyRestricted)
+		return &messageReadDateUserPrivacyRestricted, err
+
+	case MessageReadDateMyPrivacyRestrictedType:
+		var messageReadDateMyPrivacyRestricted MessageReadDateMyPrivacyRestricted
+		err := json.Unmarshal(*rawMsg, &messageReadDateMyPrivacyRestricted)
+		return &messageReadDateMyPrivacyRestricted, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalMessageReadDateSlice(rawMsg *json.RawMessage) ([]MessageReadDate, error) {
+	objects := make([]MessageReadDate, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch MessageReadDateEnum(objMap["@type"].(string)) {
+		case MessageReadDateReadType:
+			var messageReadDateRead MessageReadDateRead
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageReadDateRead)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageReadDateRead)
+		case MessageReadDateUnreadType:
+			var messageReadDateUnread MessageReadDateUnread
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageReadDateUnread)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageReadDateUnread)
+		case MessageReadDateTooOldType:
+			var messageReadDateTooOld MessageReadDateTooOld
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageReadDateTooOld)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageReadDateTooOld)
+		case MessageReadDateUserPrivacyRestrictedType:
+			var messageReadDateUserPrivacyRestricted MessageReadDateUserPrivacyRestricted
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageReadDateUserPrivacyRestricted)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageReadDateUserPrivacyRestricted)
+		case MessageReadDateMyPrivacyRestrictedType:
+			var messageReadDateMyPrivacyRestricted MessageReadDateMyPrivacyRestricted
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageReadDateMyPrivacyRestricted)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageReadDateMyPrivacyRestricted)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
 // MessageOrigin Contains information about the origin of a message
 type MessageOrigin interface {
 	GetMessageOriginEnum() MessageOriginEnum
@@ -3111,6 +4127,7 @@ type ReactionTypeEnum string
 const (
 	ReactionTypeEmojiType       ReactionTypeEnum = "reactionTypeEmoji"
 	ReactionTypeCustomEmojiType ReactionTypeEnum = "reactionTypeCustomEmoji"
+	ReactionTypePaidType        ReactionTypeEnum = "reactionTypePaid"
 )
 
 func unmarshalReactionType(rawMsg *json.RawMessage) (ReactionType, error) {
@@ -3134,6 +4151,11 @@ func unmarshalReactionType(rawMsg *json.RawMessage) (ReactionType, error) {
 		var reactionTypeCustomEmoji ReactionTypeCustomEmoji
 		err := json.Unmarshal(*rawMsg, &reactionTypeCustomEmoji)
 		return &reactionTypeCustomEmoji, err
+
+	case ReactionTypePaidType:
+		var reactionTypePaid ReactionTypePaid
+		err := json.Unmarshal(*rawMsg, &reactionTypePaid)
+		return &reactionTypePaid, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -3179,6 +4201,108 @@ func unmarshalReactionTypeSlice(rawMsg *json.RawMessage) ([]ReactionType, error)
 			}
 
 			objects = append(objects, &reactionTypeCustomEmoji)
+		case ReactionTypePaidType:
+			var reactionTypePaid ReactionTypePaid
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &reactionTypePaid)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &reactionTypePaid)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// MessageEffectType Describes type of emoji effect
+type MessageEffectType interface {
+	GetMessageEffectTypeEnum() MessageEffectTypeEnum
+}
+
+// MessageEffectTypeEnum Alias for abstract MessageEffectType 'Sub-Classes', used as constant-enum here
+type MessageEffectTypeEnum string
+
+// MessageEffectType enums
+const (
+	MessageEffectTypeEmojiReactionType  MessageEffectTypeEnum = "messageEffectTypeEmojiReaction"
+	MessageEffectTypePremiumStickerType MessageEffectTypeEnum = "messageEffectTypePremiumSticker"
+)
+
+func unmarshalMessageEffectType(rawMsg *json.RawMessage) (MessageEffectType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch MessageEffectTypeEnum(objMap["@type"].(string)) {
+	case MessageEffectTypeEmojiReactionType:
+		var messageEffectTypeEmojiReaction MessageEffectTypeEmojiReaction
+		err := json.Unmarshal(*rawMsg, &messageEffectTypeEmojiReaction)
+		return &messageEffectTypeEmojiReaction, err
+
+	case MessageEffectTypePremiumStickerType:
+		var messageEffectTypePremiumSticker MessageEffectTypePremiumSticker
+		err := json.Unmarshal(*rawMsg, &messageEffectTypePremiumSticker)
+		return &messageEffectTypePremiumSticker, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalMessageEffectTypeSlice(rawMsg *json.RawMessage) ([]MessageEffectType, error) {
+	objects := make([]MessageEffectType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch MessageEffectTypeEnum(objMap["@type"].(string)) {
+		case MessageEffectTypeEmojiReactionType:
+			var messageEffectTypeEmojiReaction MessageEffectTypeEmojiReaction
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageEffectTypeEmojiReaction)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageEffectTypeEmojiReaction)
+		case MessageEffectTypePremiumStickerType:
+			var messageEffectTypePremiumSticker MessageEffectTypePremiumSticker
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageEffectTypePremiumSticker)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageEffectTypePremiumSticker)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -3376,8 +4500,9 @@ type InputMessageReplyToEnum string
 
 // InputMessageReplyTo enums
 const (
-	InputMessageReplyToMessageType InputMessageReplyToEnum = "inputMessageReplyToMessage"
-	InputMessageReplyToStoryType   InputMessageReplyToEnum = "inputMessageReplyToStory"
+	InputMessageReplyToMessageType         InputMessageReplyToEnum = "inputMessageReplyToMessage"
+	InputMessageReplyToExternalMessageType InputMessageReplyToEnum = "inputMessageReplyToExternalMessage"
+	InputMessageReplyToStoryType           InputMessageReplyToEnum = "inputMessageReplyToStory"
 )
 
 func unmarshalInputMessageReplyTo(rawMsg *json.RawMessage) (InputMessageReplyTo, error) {
@@ -3396,6 +4521,11 @@ func unmarshalInputMessageReplyTo(rawMsg *json.RawMessage) (InputMessageReplyTo,
 		var inputMessageReplyToMessage InputMessageReplyToMessage
 		err := json.Unmarshal(*rawMsg, &inputMessageReplyToMessage)
 		return &inputMessageReplyToMessage, err
+
+	case InputMessageReplyToExternalMessageType:
+		var inputMessageReplyToExternalMessage InputMessageReplyToExternalMessage
+		err := json.Unmarshal(*rawMsg, &inputMessageReplyToExternalMessage)
+		return &inputMessageReplyToExternalMessage, err
 
 	case InputMessageReplyToStoryType:
 		var inputMessageReplyToStory InputMessageReplyToStory
@@ -3433,6 +4563,19 @@ func unmarshalInputMessageReplyToSlice(rawMsg *json.RawMessage) ([]InputMessageR
 			}
 
 			objects = append(objects, &inputMessageReplyToMessage)
+		case InputMessageReplyToExternalMessageType:
+			var inputMessageReplyToExternalMessage InputMessageReplyToExternalMessage
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &inputMessageReplyToExternalMessage)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &inputMessageReplyToExternalMessage)
 		case InputMessageReplyToStoryType:
 			var inputMessageReplyToStory InputMessageReplyToStory
 			obj, err := json.Marshal(objMap)
@@ -3696,24 +4839,24 @@ func unmarshalMessageSourceSlice(rawMsg *json.RawMessage) ([]MessageSource, erro
 	return objects, nil
 }
 
-// MessageSponsorType Describes type of a message sponsor
-type MessageSponsorType interface {
-	GetMessageSponsorTypeEnum() MessageSponsorTypeEnum
+// ReportChatSponsoredMessageResult Describes result of sponsored message report
+type ReportChatSponsoredMessageResult interface {
+	GetReportChatSponsoredMessageResultEnum() ReportChatSponsoredMessageResultEnum
 }
 
-// MessageSponsorTypeEnum Alias for abstract MessageSponsorType 'Sub-Classes', used as constant-enum here
-type MessageSponsorTypeEnum string
+// ReportChatSponsoredMessageResultEnum Alias for abstract ReportChatSponsoredMessageResult 'Sub-Classes', used as constant-enum here
+type ReportChatSponsoredMessageResultEnum string
 
-// MessageSponsorType enums
+// ReportChatSponsoredMessageResult enums
 const (
-	MessageSponsorTypeBotType            MessageSponsorTypeEnum = "messageSponsorTypeBot"
-	MessageSponsorTypeWebAppType         MessageSponsorTypeEnum = "messageSponsorTypeWebApp"
-	MessageSponsorTypePublicChannelType  MessageSponsorTypeEnum = "messageSponsorTypePublicChannel"
-	MessageSponsorTypePrivateChannelType MessageSponsorTypeEnum = "messageSponsorTypePrivateChannel"
-	MessageSponsorTypeWebsiteType        MessageSponsorTypeEnum = "messageSponsorTypeWebsite"
+	ReportChatSponsoredMessageResultOkType              ReportChatSponsoredMessageResultEnum = "reportChatSponsoredMessageResultOk"
+	ReportChatSponsoredMessageResultFailedType          ReportChatSponsoredMessageResultEnum = "reportChatSponsoredMessageResultFailed"
+	ReportChatSponsoredMessageResultOptionRequiredType  ReportChatSponsoredMessageResultEnum = "reportChatSponsoredMessageResultOptionRequired"
+	ReportChatSponsoredMessageResultAdsHiddenType       ReportChatSponsoredMessageResultEnum = "reportChatSponsoredMessageResultAdsHidden"
+	ReportChatSponsoredMessageResultPremiumRequiredType ReportChatSponsoredMessageResultEnum = "reportChatSponsoredMessageResultPremiumRequired"
 )
 
-func unmarshalMessageSponsorType(rawMsg *json.RawMessage) (MessageSponsorType, error) {
+func unmarshalReportChatSponsoredMessageResult(rawMsg *json.RawMessage) (ReportChatSponsoredMessageResult, error) {
 
 	if rawMsg == nil {
 		return nil, nil
@@ -3724,39 +4867,39 @@ func unmarshalMessageSponsorType(rawMsg *json.RawMessage) (MessageSponsorType, e
 		return nil, err
 	}
 
-	switch MessageSponsorTypeEnum(objMap["@type"].(string)) {
-	case MessageSponsorTypeBotType:
-		var messageSponsorTypeBot MessageSponsorTypeBot
-		err := json.Unmarshal(*rawMsg, &messageSponsorTypeBot)
-		return &messageSponsorTypeBot, err
+	switch ReportChatSponsoredMessageResultEnum(objMap["@type"].(string)) {
+	case ReportChatSponsoredMessageResultOkType:
+		var reportChatSponsoredMessageResultOk ReportChatSponsoredMessageResultOk
+		err := json.Unmarshal(*rawMsg, &reportChatSponsoredMessageResultOk)
+		return &reportChatSponsoredMessageResultOk, err
 
-	case MessageSponsorTypeWebAppType:
-		var messageSponsorTypeWebApp MessageSponsorTypeWebApp
-		err := json.Unmarshal(*rawMsg, &messageSponsorTypeWebApp)
-		return &messageSponsorTypeWebApp, err
+	case ReportChatSponsoredMessageResultFailedType:
+		var reportChatSponsoredMessageResultFailed ReportChatSponsoredMessageResultFailed
+		err := json.Unmarshal(*rawMsg, &reportChatSponsoredMessageResultFailed)
+		return &reportChatSponsoredMessageResultFailed, err
 
-	case MessageSponsorTypePublicChannelType:
-		var messageSponsorTypePublicChannel MessageSponsorTypePublicChannel
-		err := json.Unmarshal(*rawMsg, &messageSponsorTypePublicChannel)
-		return &messageSponsorTypePublicChannel, err
+	case ReportChatSponsoredMessageResultOptionRequiredType:
+		var reportChatSponsoredMessageResultOptionRequired ReportChatSponsoredMessageResultOptionRequired
+		err := json.Unmarshal(*rawMsg, &reportChatSponsoredMessageResultOptionRequired)
+		return &reportChatSponsoredMessageResultOptionRequired, err
 
-	case MessageSponsorTypePrivateChannelType:
-		var messageSponsorTypePrivateChannel MessageSponsorTypePrivateChannel
-		err := json.Unmarshal(*rawMsg, &messageSponsorTypePrivateChannel)
-		return &messageSponsorTypePrivateChannel, err
+	case ReportChatSponsoredMessageResultAdsHiddenType:
+		var reportChatSponsoredMessageResultAdsHidden ReportChatSponsoredMessageResultAdsHidden
+		err := json.Unmarshal(*rawMsg, &reportChatSponsoredMessageResultAdsHidden)
+		return &reportChatSponsoredMessageResultAdsHidden, err
 
-	case MessageSponsorTypeWebsiteType:
-		var messageSponsorTypeWebsite MessageSponsorTypeWebsite
-		err := json.Unmarshal(*rawMsg, &messageSponsorTypeWebsite)
-		return &messageSponsorTypeWebsite, err
+	case ReportChatSponsoredMessageResultPremiumRequiredType:
+		var reportChatSponsoredMessageResultPremiumRequired ReportChatSponsoredMessageResultPremiumRequired
+		err := json.Unmarshal(*rawMsg, &reportChatSponsoredMessageResultPremiumRequired)
+		return &reportChatSponsoredMessageResultPremiumRequired, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
 	}
 }
 
-func unmarshalMessageSponsorTypeSlice(rawMsg *json.RawMessage) ([]MessageSponsorType, error) {
-	objects := make([]MessageSponsorType, 0)
+func unmarshalReportChatSponsoredMessageResultSlice(rawMsg *json.RawMessage) ([]ReportChatSponsoredMessageResult, error) {
+	objects := make([]ReportChatSponsoredMessageResult, 0)
 	if rawMsg == nil {
 		return nil, nil
 	}
@@ -3767,72 +4910,72 @@ func unmarshalMessageSponsorTypeSlice(rawMsg *json.RawMessage) ([]MessageSponsor
 	}
 
 	for _, objMap := range objsMap {
-		switch MessageSponsorTypeEnum(objMap["@type"].(string)) {
-		case MessageSponsorTypeBotType:
-			var messageSponsorTypeBot MessageSponsorTypeBot
+		switch ReportChatSponsoredMessageResultEnum(objMap["@type"].(string)) {
+		case ReportChatSponsoredMessageResultOkType:
+			var reportChatSponsoredMessageResultOk ReportChatSponsoredMessageResultOk
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageSponsorTypeBot)
+			err = json.Unmarshal(obj, &reportChatSponsoredMessageResultOk)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageSponsorTypeBot)
-		case MessageSponsorTypeWebAppType:
-			var messageSponsorTypeWebApp MessageSponsorTypeWebApp
+			objects = append(objects, &reportChatSponsoredMessageResultOk)
+		case ReportChatSponsoredMessageResultFailedType:
+			var reportChatSponsoredMessageResultFailed ReportChatSponsoredMessageResultFailed
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageSponsorTypeWebApp)
+			err = json.Unmarshal(obj, &reportChatSponsoredMessageResultFailed)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageSponsorTypeWebApp)
-		case MessageSponsorTypePublicChannelType:
-			var messageSponsorTypePublicChannel MessageSponsorTypePublicChannel
+			objects = append(objects, &reportChatSponsoredMessageResultFailed)
+		case ReportChatSponsoredMessageResultOptionRequiredType:
+			var reportChatSponsoredMessageResultOptionRequired ReportChatSponsoredMessageResultOptionRequired
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageSponsorTypePublicChannel)
+			err = json.Unmarshal(obj, &reportChatSponsoredMessageResultOptionRequired)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageSponsorTypePublicChannel)
-		case MessageSponsorTypePrivateChannelType:
-			var messageSponsorTypePrivateChannel MessageSponsorTypePrivateChannel
+			objects = append(objects, &reportChatSponsoredMessageResultOptionRequired)
+		case ReportChatSponsoredMessageResultAdsHiddenType:
+			var reportChatSponsoredMessageResultAdsHidden ReportChatSponsoredMessageResultAdsHidden
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageSponsorTypePrivateChannel)
+			err = json.Unmarshal(obj, &reportChatSponsoredMessageResultAdsHidden)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageSponsorTypePrivateChannel)
-		case MessageSponsorTypeWebsiteType:
-			var messageSponsorTypeWebsite MessageSponsorTypeWebsite
+			objects = append(objects, &reportChatSponsoredMessageResultAdsHidden)
+		case ReportChatSponsoredMessageResultPremiumRequiredType:
+			var reportChatSponsoredMessageResultPremiumRequired ReportChatSponsoredMessageResultPremiumRequired
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageSponsorTypeWebsite)
+			err = json.Unmarshal(obj, &reportChatSponsoredMessageResultPremiumRequired)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageSponsorTypeWebsite)
+			objects = append(objects, &reportChatSponsoredMessageResultPremiumRequired)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -3950,7 +5093,115 @@ func unmarshalNotificationSettingsScopeSlice(rawMsg *json.RawMessage) ([]Notific
 	return objects, nil
 }
 
-// ChatType Describes the type of a chat
+// ReactionNotificationSource Describes sources of reactions for which notifications will be shown
+type ReactionNotificationSource interface {
+	GetReactionNotificationSourceEnum() ReactionNotificationSourceEnum
+}
+
+// ReactionNotificationSourceEnum Alias for abstract ReactionNotificationSource 'Sub-Classes', used as constant-enum here
+type ReactionNotificationSourceEnum string
+
+// ReactionNotificationSource enums
+const (
+	ReactionNotificationSourceNoneType     ReactionNotificationSourceEnum = "reactionNotificationSourceNone"
+	ReactionNotificationSourceContactsType ReactionNotificationSourceEnum = "reactionNotificationSourceContacts"
+	ReactionNotificationSourceAllType      ReactionNotificationSourceEnum = "reactionNotificationSourceAll"
+)
+
+func unmarshalReactionNotificationSource(rawMsg *json.RawMessage) (ReactionNotificationSource, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch ReactionNotificationSourceEnum(objMap["@type"].(string)) {
+	case ReactionNotificationSourceNoneType:
+		var reactionNotificationSourceNone ReactionNotificationSourceNone
+		err := json.Unmarshal(*rawMsg, &reactionNotificationSourceNone)
+		return &reactionNotificationSourceNone, err
+
+	case ReactionNotificationSourceContactsType:
+		var reactionNotificationSourceContacts ReactionNotificationSourceContacts
+		err := json.Unmarshal(*rawMsg, &reactionNotificationSourceContacts)
+		return &reactionNotificationSourceContacts, err
+
+	case ReactionNotificationSourceAllType:
+		var reactionNotificationSourceAll ReactionNotificationSourceAll
+		err := json.Unmarshal(*rawMsg, &reactionNotificationSourceAll)
+		return &reactionNotificationSourceAll, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalReactionNotificationSourceSlice(rawMsg *json.RawMessage) ([]ReactionNotificationSource, error) {
+	objects := make([]ReactionNotificationSource, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch ReactionNotificationSourceEnum(objMap["@type"].(string)) {
+		case ReactionNotificationSourceNoneType:
+			var reactionNotificationSourceNone ReactionNotificationSourceNone
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &reactionNotificationSourceNone)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &reactionNotificationSourceNone)
+		case ReactionNotificationSourceContactsType:
+			var reactionNotificationSourceContacts ReactionNotificationSourceContacts
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &reactionNotificationSourceContacts)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &reactionNotificationSourceContacts)
+		case ReactionNotificationSourceAllType:
+			var reactionNotificationSourceAll ReactionNotificationSourceAll
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &reactionNotificationSourceAll)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &reactionNotificationSourceAll)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// ChatType Describes the type of chat
 type ChatType interface {
 	GetChatTypeEnum() ChatTypeEnum
 }
@@ -4363,7 +5614,7 @@ func unmarshalChatAvailableReactionsSlice(rawMsg *json.RawMessage) ([]ChatAvaila
 	return objects, nil
 }
 
-// PublicChatType Describes a type of public chats
+// PublicChatType Describes type of public chat
 type PublicChatType interface {
 	GetPublicChatTypeEnum() PublicChatTypeEnum
 }
@@ -4820,7 +6071,7 @@ func unmarshalKeyboardButtonTypeSlice(rawMsg *json.RawMessage) ([]KeyboardButton
 	return objects, nil
 }
 
-// InlineKeyboardButtonType Describes the type of an inline keyboard button
+// InlineKeyboardButtonType Describes the type of inline keyboard button
 type InlineKeyboardButtonType interface {
 	GetInlineKeyboardButtonTypeEnum() InlineKeyboardButtonTypeEnum
 }
@@ -5220,7 +6471,115 @@ func unmarshalLoginURLInfoSlice(rawMsg *json.RawMessage) ([]LoginURLInfo, error)
 	return objects, nil
 }
 
-// RichText Describes a text object inside an instant-view web page
+// SavedMessagesTopicType Describes type of Saved Messages topic
+type SavedMessagesTopicType interface {
+	GetSavedMessagesTopicTypeEnum() SavedMessagesTopicTypeEnum
+}
+
+// SavedMessagesTopicTypeEnum Alias for abstract SavedMessagesTopicType 'Sub-Classes', used as constant-enum here
+type SavedMessagesTopicTypeEnum string
+
+// SavedMessagesTopicType enums
+const (
+	SavedMessagesTopicTypeMyNotesType       SavedMessagesTopicTypeEnum = "savedMessagesTopicTypeMyNotes"
+	SavedMessagesTopicTypeAuthorHiddenType  SavedMessagesTopicTypeEnum = "savedMessagesTopicTypeAuthorHidden"
+	SavedMessagesTopicTypeSavedFromChatType SavedMessagesTopicTypeEnum = "savedMessagesTopicTypeSavedFromChat"
+)
+
+func unmarshalSavedMessagesTopicType(rawMsg *json.RawMessage) (SavedMessagesTopicType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch SavedMessagesTopicTypeEnum(objMap["@type"].(string)) {
+	case SavedMessagesTopicTypeMyNotesType:
+		var savedMessagesTopicTypeMyNotes SavedMessagesTopicTypeMyNotes
+		err := json.Unmarshal(*rawMsg, &savedMessagesTopicTypeMyNotes)
+		return &savedMessagesTopicTypeMyNotes, err
+
+	case SavedMessagesTopicTypeAuthorHiddenType:
+		var savedMessagesTopicTypeAuthorHidden SavedMessagesTopicTypeAuthorHidden
+		err := json.Unmarshal(*rawMsg, &savedMessagesTopicTypeAuthorHidden)
+		return &savedMessagesTopicTypeAuthorHidden, err
+
+	case SavedMessagesTopicTypeSavedFromChatType:
+		var savedMessagesTopicTypeSavedFromChat SavedMessagesTopicTypeSavedFromChat
+		err := json.Unmarshal(*rawMsg, &savedMessagesTopicTypeSavedFromChat)
+		return &savedMessagesTopicTypeSavedFromChat, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalSavedMessagesTopicTypeSlice(rawMsg *json.RawMessage) ([]SavedMessagesTopicType, error) {
+	objects := make([]SavedMessagesTopicType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch SavedMessagesTopicTypeEnum(objMap["@type"].(string)) {
+		case SavedMessagesTopicTypeMyNotesType:
+			var savedMessagesTopicTypeMyNotes SavedMessagesTopicTypeMyNotes
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &savedMessagesTopicTypeMyNotes)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &savedMessagesTopicTypeMyNotes)
+		case SavedMessagesTopicTypeAuthorHiddenType:
+			var savedMessagesTopicTypeAuthorHidden SavedMessagesTopicTypeAuthorHidden
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &savedMessagesTopicTypeAuthorHidden)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &savedMessagesTopicTypeAuthorHidden)
+		case SavedMessagesTopicTypeSavedFromChatType:
+			var savedMessagesTopicTypeSavedFromChat SavedMessagesTopicTypeSavedFromChat
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &savedMessagesTopicTypeSavedFromChat)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &savedMessagesTopicTypeSavedFromChat)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// RichText Describes a formatted text object
 type RichText interface {
 	GetRichTextEnum() RichTextEnum
 }
@@ -5810,7 +7169,7 @@ func unmarshalPageBlockVerticalAlignmentSlice(rawMsg *json.RawMessage) ([]PageBl
 	return objects, nil
 }
 
-// PageBlock Describes a block of an instant view web page
+// PageBlock Describes a block of an instant view for a web page
 type PageBlock interface {
 	GetPageBlockEnum() PageBlockEnum
 }
@@ -6412,6 +7771,824 @@ func unmarshalPageBlockSlice(rawMsg *json.RawMessage) ([]PageBlock, error) {
 	return objects, nil
 }
 
+// LinkPreviewAlbumMedia Describes a media from a link preview album
+type LinkPreviewAlbumMedia interface {
+	GetLinkPreviewAlbumMediaEnum() LinkPreviewAlbumMediaEnum
+}
+
+// LinkPreviewAlbumMediaEnum Alias for abstract LinkPreviewAlbumMedia 'Sub-Classes', used as constant-enum here
+type LinkPreviewAlbumMediaEnum string
+
+// LinkPreviewAlbumMedia enums
+const (
+	LinkPreviewAlbumMediaPhotoType LinkPreviewAlbumMediaEnum = "linkPreviewAlbumMediaPhoto"
+	LinkPreviewAlbumMediaVideoType LinkPreviewAlbumMediaEnum = "linkPreviewAlbumMediaVideo"
+)
+
+func unmarshalLinkPreviewAlbumMedia(rawMsg *json.RawMessage) (LinkPreviewAlbumMedia, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch LinkPreviewAlbumMediaEnum(objMap["@type"].(string)) {
+	case LinkPreviewAlbumMediaPhotoType:
+		var linkPreviewAlbumMediaPhoto LinkPreviewAlbumMediaPhoto
+		err := json.Unmarshal(*rawMsg, &linkPreviewAlbumMediaPhoto)
+		return &linkPreviewAlbumMediaPhoto, err
+
+	case LinkPreviewAlbumMediaVideoType:
+		var linkPreviewAlbumMediaVideo LinkPreviewAlbumMediaVideo
+		err := json.Unmarshal(*rawMsg, &linkPreviewAlbumMediaVideo)
+		return &linkPreviewAlbumMediaVideo, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalLinkPreviewAlbumMediaSlice(rawMsg *json.RawMessage) ([]LinkPreviewAlbumMedia, error) {
+	objects := make([]LinkPreviewAlbumMedia, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch LinkPreviewAlbumMediaEnum(objMap["@type"].(string)) {
+		case LinkPreviewAlbumMediaPhotoType:
+			var linkPreviewAlbumMediaPhoto LinkPreviewAlbumMediaPhoto
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewAlbumMediaPhoto)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewAlbumMediaPhoto)
+		case LinkPreviewAlbumMediaVideoType:
+			var linkPreviewAlbumMediaVideo LinkPreviewAlbumMediaVideo
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewAlbumMediaVideo)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewAlbumMediaVideo)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// LinkPreviewType Describes type of link preview
+type LinkPreviewType interface {
+	GetLinkPreviewTypeEnum() LinkPreviewTypeEnum
+}
+
+// LinkPreviewTypeEnum Alias for abstract LinkPreviewType 'Sub-Classes', used as constant-enum here
+type LinkPreviewTypeEnum string
+
+// LinkPreviewType enums
+const (
+	LinkPreviewTypeAlbumType                   LinkPreviewTypeEnum = "linkPreviewTypeAlbum"
+	LinkPreviewTypeAnimationType               LinkPreviewTypeEnum = "linkPreviewTypeAnimation"
+	LinkPreviewTypeAppType                     LinkPreviewTypeEnum = "linkPreviewTypeApp"
+	LinkPreviewTypeArticleType                 LinkPreviewTypeEnum = "linkPreviewTypeArticle"
+	LinkPreviewTypeAudioType                   LinkPreviewTypeEnum = "linkPreviewTypeAudio"
+	LinkPreviewTypeBackgroundType              LinkPreviewTypeEnum = "linkPreviewTypeBackground"
+	LinkPreviewTypeChannelBoostType            LinkPreviewTypeEnum = "linkPreviewTypeChannelBoost"
+	LinkPreviewTypeChatType                    LinkPreviewTypeEnum = "linkPreviewTypeChat"
+	LinkPreviewTypeDocumentType                LinkPreviewTypeEnum = "linkPreviewTypeDocument"
+	LinkPreviewTypeEmbeddedAnimationPlayerType LinkPreviewTypeEnum = "linkPreviewTypeEmbeddedAnimationPlayer"
+	LinkPreviewTypeEmbeddedAudioPlayerType     LinkPreviewTypeEnum = "linkPreviewTypeEmbeddedAudioPlayer"
+	LinkPreviewTypeEmbeddedVideoPlayerType     LinkPreviewTypeEnum = "linkPreviewTypeEmbeddedVideoPlayer"
+	LinkPreviewTypeExternalAudioType           LinkPreviewTypeEnum = "linkPreviewTypeExternalAudio"
+	LinkPreviewTypeExternalVideoType           LinkPreviewTypeEnum = "linkPreviewTypeExternalVideo"
+	LinkPreviewTypeInvoiceType                 LinkPreviewTypeEnum = "linkPreviewTypeInvoice"
+	LinkPreviewTypeMessageType                 LinkPreviewTypeEnum = "linkPreviewTypeMessage"
+	LinkPreviewTypePhotoType                   LinkPreviewTypeEnum = "linkPreviewTypePhoto"
+	LinkPreviewTypePremiumGiftCodeType         LinkPreviewTypeEnum = "linkPreviewTypePremiumGiftCode"
+	LinkPreviewTypeShareableChatFolderType     LinkPreviewTypeEnum = "linkPreviewTypeShareableChatFolder"
+	LinkPreviewTypeStickerType                 LinkPreviewTypeEnum = "linkPreviewTypeSticker"
+	LinkPreviewTypeStickerSetType              LinkPreviewTypeEnum = "linkPreviewTypeStickerSet"
+	LinkPreviewTypeStoryType                   LinkPreviewTypeEnum = "linkPreviewTypeStory"
+	LinkPreviewTypeSupergroupBoostType         LinkPreviewTypeEnum = "linkPreviewTypeSupergroupBoost"
+	LinkPreviewTypeThemeType                   LinkPreviewTypeEnum = "linkPreviewTypeTheme"
+	LinkPreviewTypeUnsupportedType             LinkPreviewTypeEnum = "linkPreviewTypeUnsupported"
+	LinkPreviewTypeUserType                    LinkPreviewTypeEnum = "linkPreviewTypeUser"
+	LinkPreviewTypeVideoType                   LinkPreviewTypeEnum = "linkPreviewTypeVideo"
+	LinkPreviewTypeVideoChatType               LinkPreviewTypeEnum = "linkPreviewTypeVideoChat"
+	LinkPreviewTypeVideoNoteType               LinkPreviewTypeEnum = "linkPreviewTypeVideoNote"
+	LinkPreviewTypeVoiceNoteType               LinkPreviewTypeEnum = "linkPreviewTypeVoiceNote"
+	LinkPreviewTypeWebAppType                  LinkPreviewTypeEnum = "linkPreviewTypeWebApp"
+)
+
+func unmarshalLinkPreviewType(rawMsg *json.RawMessage) (LinkPreviewType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch LinkPreviewTypeEnum(objMap["@type"].(string)) {
+	case LinkPreviewTypeAlbumType:
+		var linkPreviewTypeAlbum LinkPreviewTypeAlbum
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeAlbum)
+		return &linkPreviewTypeAlbum, err
+
+	case LinkPreviewTypeAnimationType:
+		var linkPreviewTypeAnimation LinkPreviewTypeAnimation
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeAnimation)
+		return &linkPreviewTypeAnimation, err
+
+	case LinkPreviewTypeAppType:
+		var linkPreviewTypeApp LinkPreviewTypeApp
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeApp)
+		return &linkPreviewTypeApp, err
+
+	case LinkPreviewTypeArticleType:
+		var linkPreviewTypeArticle LinkPreviewTypeArticle
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeArticle)
+		return &linkPreviewTypeArticle, err
+
+	case LinkPreviewTypeAudioType:
+		var linkPreviewTypeAudio LinkPreviewTypeAudio
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeAudio)
+		return &linkPreviewTypeAudio, err
+
+	case LinkPreviewTypeBackgroundType:
+		var linkPreviewTypeBackground LinkPreviewTypeBackground
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeBackground)
+		return &linkPreviewTypeBackground, err
+
+	case LinkPreviewTypeChannelBoostType:
+		var linkPreviewTypeChannelBoost LinkPreviewTypeChannelBoost
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeChannelBoost)
+		return &linkPreviewTypeChannelBoost, err
+
+	case LinkPreviewTypeChatType:
+		var linkPreviewTypeChat LinkPreviewTypeChat
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeChat)
+		return &linkPreviewTypeChat, err
+
+	case LinkPreviewTypeDocumentType:
+		var linkPreviewTypeDocument LinkPreviewTypeDocument
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeDocument)
+		return &linkPreviewTypeDocument, err
+
+	case LinkPreviewTypeEmbeddedAnimationPlayerType:
+		var linkPreviewTypeEmbeddedAnimationPlayer LinkPreviewTypeEmbeddedAnimationPlayer
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeEmbeddedAnimationPlayer)
+		return &linkPreviewTypeEmbeddedAnimationPlayer, err
+
+	case LinkPreviewTypeEmbeddedAudioPlayerType:
+		var linkPreviewTypeEmbeddedAudioPlayer LinkPreviewTypeEmbeddedAudioPlayer
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeEmbeddedAudioPlayer)
+		return &linkPreviewTypeEmbeddedAudioPlayer, err
+
+	case LinkPreviewTypeEmbeddedVideoPlayerType:
+		var linkPreviewTypeEmbeddedVideoPlayer LinkPreviewTypeEmbeddedVideoPlayer
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeEmbeddedVideoPlayer)
+		return &linkPreviewTypeEmbeddedVideoPlayer, err
+
+	case LinkPreviewTypeExternalAudioType:
+		var linkPreviewTypeExternalAudio LinkPreviewTypeExternalAudio
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeExternalAudio)
+		return &linkPreviewTypeExternalAudio, err
+
+	case LinkPreviewTypeExternalVideoType:
+		var linkPreviewTypeExternalVideo LinkPreviewTypeExternalVideo
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeExternalVideo)
+		return &linkPreviewTypeExternalVideo, err
+
+	case LinkPreviewTypeInvoiceType:
+		var linkPreviewTypeInvoice LinkPreviewTypeInvoice
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeInvoice)
+		return &linkPreviewTypeInvoice, err
+
+	case LinkPreviewTypeMessageType:
+		var linkPreviewTypeMessage LinkPreviewTypeMessage
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeMessage)
+		return &linkPreviewTypeMessage, err
+
+	case LinkPreviewTypePhotoType:
+		var linkPreviewTypePhoto LinkPreviewTypePhoto
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypePhoto)
+		return &linkPreviewTypePhoto, err
+
+	case LinkPreviewTypePremiumGiftCodeType:
+		var linkPreviewTypePremiumGiftCode LinkPreviewTypePremiumGiftCode
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypePremiumGiftCode)
+		return &linkPreviewTypePremiumGiftCode, err
+
+	case LinkPreviewTypeShareableChatFolderType:
+		var linkPreviewTypeShareableChatFolder LinkPreviewTypeShareableChatFolder
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeShareableChatFolder)
+		return &linkPreviewTypeShareableChatFolder, err
+
+	case LinkPreviewTypeStickerType:
+		var linkPreviewTypeSticker LinkPreviewTypeSticker
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeSticker)
+		return &linkPreviewTypeSticker, err
+
+	case LinkPreviewTypeStickerSetType:
+		var linkPreviewTypeStickerSet LinkPreviewTypeStickerSet
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeStickerSet)
+		return &linkPreviewTypeStickerSet, err
+
+	case LinkPreviewTypeStoryType:
+		var linkPreviewTypeStory LinkPreviewTypeStory
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeStory)
+		return &linkPreviewTypeStory, err
+
+	case LinkPreviewTypeSupergroupBoostType:
+		var linkPreviewTypeSupergroupBoost LinkPreviewTypeSupergroupBoost
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeSupergroupBoost)
+		return &linkPreviewTypeSupergroupBoost, err
+
+	case LinkPreviewTypeThemeType:
+		var linkPreviewTypeTheme LinkPreviewTypeTheme
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeTheme)
+		return &linkPreviewTypeTheme, err
+
+	case LinkPreviewTypeUnsupportedType:
+		var linkPreviewTypeUnsupported LinkPreviewTypeUnsupported
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeUnsupported)
+		return &linkPreviewTypeUnsupported, err
+
+	case LinkPreviewTypeUserType:
+		var linkPreviewTypeUser LinkPreviewTypeUser
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeUser)
+		return &linkPreviewTypeUser, err
+
+	case LinkPreviewTypeVideoType:
+		var linkPreviewTypeVideo LinkPreviewTypeVideo
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeVideo)
+		return &linkPreviewTypeVideo, err
+
+	case LinkPreviewTypeVideoChatType:
+		var linkPreviewTypeVideoChat LinkPreviewTypeVideoChat
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeVideoChat)
+		return &linkPreviewTypeVideoChat, err
+
+	case LinkPreviewTypeVideoNoteType:
+		var linkPreviewTypeVideoNote LinkPreviewTypeVideoNote
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeVideoNote)
+		return &linkPreviewTypeVideoNote, err
+
+	case LinkPreviewTypeVoiceNoteType:
+		var linkPreviewTypeVoiceNote LinkPreviewTypeVoiceNote
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeVoiceNote)
+		return &linkPreviewTypeVoiceNote, err
+
+	case LinkPreviewTypeWebAppType:
+		var linkPreviewTypeWebApp LinkPreviewTypeWebApp
+		err := json.Unmarshal(*rawMsg, &linkPreviewTypeWebApp)
+		return &linkPreviewTypeWebApp, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalLinkPreviewTypeSlice(rawMsg *json.RawMessage) ([]LinkPreviewType, error) {
+	objects := make([]LinkPreviewType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch LinkPreviewTypeEnum(objMap["@type"].(string)) {
+		case LinkPreviewTypeAlbumType:
+			var linkPreviewTypeAlbum LinkPreviewTypeAlbum
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeAlbum)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeAlbum)
+		case LinkPreviewTypeAnimationType:
+			var linkPreviewTypeAnimation LinkPreviewTypeAnimation
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeAnimation)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeAnimation)
+		case LinkPreviewTypeAppType:
+			var linkPreviewTypeApp LinkPreviewTypeApp
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeApp)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeApp)
+		case LinkPreviewTypeArticleType:
+			var linkPreviewTypeArticle LinkPreviewTypeArticle
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeArticle)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeArticle)
+		case LinkPreviewTypeAudioType:
+			var linkPreviewTypeAudio LinkPreviewTypeAudio
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeAudio)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeAudio)
+		case LinkPreviewTypeBackgroundType:
+			var linkPreviewTypeBackground LinkPreviewTypeBackground
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeBackground)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeBackground)
+		case LinkPreviewTypeChannelBoostType:
+			var linkPreviewTypeChannelBoost LinkPreviewTypeChannelBoost
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeChannelBoost)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeChannelBoost)
+		case LinkPreviewTypeChatType:
+			var linkPreviewTypeChat LinkPreviewTypeChat
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeChat)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeChat)
+		case LinkPreviewTypeDocumentType:
+			var linkPreviewTypeDocument LinkPreviewTypeDocument
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeDocument)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeDocument)
+		case LinkPreviewTypeEmbeddedAnimationPlayerType:
+			var linkPreviewTypeEmbeddedAnimationPlayer LinkPreviewTypeEmbeddedAnimationPlayer
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeEmbeddedAnimationPlayer)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeEmbeddedAnimationPlayer)
+		case LinkPreviewTypeEmbeddedAudioPlayerType:
+			var linkPreviewTypeEmbeddedAudioPlayer LinkPreviewTypeEmbeddedAudioPlayer
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeEmbeddedAudioPlayer)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeEmbeddedAudioPlayer)
+		case LinkPreviewTypeEmbeddedVideoPlayerType:
+			var linkPreviewTypeEmbeddedVideoPlayer LinkPreviewTypeEmbeddedVideoPlayer
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeEmbeddedVideoPlayer)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeEmbeddedVideoPlayer)
+		case LinkPreviewTypeExternalAudioType:
+			var linkPreviewTypeExternalAudio LinkPreviewTypeExternalAudio
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeExternalAudio)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeExternalAudio)
+		case LinkPreviewTypeExternalVideoType:
+			var linkPreviewTypeExternalVideo LinkPreviewTypeExternalVideo
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeExternalVideo)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeExternalVideo)
+		case LinkPreviewTypeInvoiceType:
+			var linkPreviewTypeInvoice LinkPreviewTypeInvoice
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeInvoice)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeInvoice)
+		case LinkPreviewTypeMessageType:
+			var linkPreviewTypeMessage LinkPreviewTypeMessage
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeMessage)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeMessage)
+		case LinkPreviewTypePhotoType:
+			var linkPreviewTypePhoto LinkPreviewTypePhoto
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypePhoto)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypePhoto)
+		case LinkPreviewTypePremiumGiftCodeType:
+			var linkPreviewTypePremiumGiftCode LinkPreviewTypePremiumGiftCode
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypePremiumGiftCode)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypePremiumGiftCode)
+		case LinkPreviewTypeShareableChatFolderType:
+			var linkPreviewTypeShareableChatFolder LinkPreviewTypeShareableChatFolder
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeShareableChatFolder)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeShareableChatFolder)
+		case LinkPreviewTypeStickerType:
+			var linkPreviewTypeSticker LinkPreviewTypeSticker
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeSticker)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeSticker)
+		case LinkPreviewTypeStickerSetType:
+			var linkPreviewTypeStickerSet LinkPreviewTypeStickerSet
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeStickerSet)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeStickerSet)
+		case LinkPreviewTypeStoryType:
+			var linkPreviewTypeStory LinkPreviewTypeStory
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeStory)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeStory)
+		case LinkPreviewTypeSupergroupBoostType:
+			var linkPreviewTypeSupergroupBoost LinkPreviewTypeSupergroupBoost
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeSupergroupBoost)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeSupergroupBoost)
+		case LinkPreviewTypeThemeType:
+			var linkPreviewTypeTheme LinkPreviewTypeTheme
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeTheme)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeTheme)
+		case LinkPreviewTypeUnsupportedType:
+			var linkPreviewTypeUnsupported LinkPreviewTypeUnsupported
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeUnsupported)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeUnsupported)
+		case LinkPreviewTypeUserType:
+			var linkPreviewTypeUser LinkPreviewTypeUser
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeUser)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeUser)
+		case LinkPreviewTypeVideoType:
+			var linkPreviewTypeVideo LinkPreviewTypeVideo
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeVideo)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeVideo)
+		case LinkPreviewTypeVideoChatType:
+			var linkPreviewTypeVideoChat LinkPreviewTypeVideoChat
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeVideoChat)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeVideoChat)
+		case LinkPreviewTypeVideoNoteType:
+			var linkPreviewTypeVideoNote LinkPreviewTypeVideoNote
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeVideoNote)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeVideoNote)
+		case LinkPreviewTypeVoiceNoteType:
+			var linkPreviewTypeVoiceNote LinkPreviewTypeVoiceNote
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeVoiceNote)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeVoiceNote)
+		case LinkPreviewTypeWebAppType:
+			var linkPreviewTypeWebApp LinkPreviewTypeWebApp
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &linkPreviewTypeWebApp)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &linkPreviewTypeWebApp)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// CollectibleItemType Describes a collectible item that can be purchased at https://fragment.com
+type CollectibleItemType interface {
+	GetCollectibleItemTypeEnum() CollectibleItemTypeEnum
+}
+
+// CollectibleItemTypeEnum Alias for abstract CollectibleItemType 'Sub-Classes', used as constant-enum here
+type CollectibleItemTypeEnum string
+
+// CollectibleItemType enums
+const (
+	CollectibleItemTypeUsernameType    CollectibleItemTypeEnum = "collectibleItemTypeUsername"
+	CollectibleItemTypePhoneNumberType CollectibleItemTypeEnum = "collectibleItemTypePhoneNumber"
+)
+
+func unmarshalCollectibleItemType(rawMsg *json.RawMessage) (CollectibleItemType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch CollectibleItemTypeEnum(objMap["@type"].(string)) {
+	case CollectibleItemTypeUsernameType:
+		var collectibleItemTypeUsername CollectibleItemTypeUsername
+		err := json.Unmarshal(*rawMsg, &collectibleItemTypeUsername)
+		return &collectibleItemTypeUsername, err
+
+	case CollectibleItemTypePhoneNumberType:
+		var collectibleItemTypePhoneNumber CollectibleItemTypePhoneNumber
+		err := json.Unmarshal(*rawMsg, &collectibleItemTypePhoneNumber)
+		return &collectibleItemTypePhoneNumber, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalCollectibleItemTypeSlice(rawMsg *json.RawMessage) ([]CollectibleItemType, error) {
+	objects := make([]CollectibleItemType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch CollectibleItemTypeEnum(objMap["@type"].(string)) {
+		case CollectibleItemTypeUsernameType:
+			var collectibleItemTypeUsername CollectibleItemTypeUsername
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &collectibleItemTypeUsername)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &collectibleItemTypeUsername)
+		case CollectibleItemTypePhoneNumberType:
+			var collectibleItemTypePhoneNumber CollectibleItemTypePhoneNumber
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &collectibleItemTypePhoneNumber)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &collectibleItemTypePhoneNumber)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
 // InputCredentials Contains information about the payment method chosen by the user
 type InputCredentials interface {
 	GetInputCredentialsEnum() InputCredentialsEnum
@@ -6647,6 +8824,184 @@ func unmarshalPaymentProviderSlice(rawMsg *json.RawMessage) ([]PaymentProvider, 
 	return objects, nil
 }
 
+// PaymentFormType Describes type of payment form
+type PaymentFormType interface {
+	GetPaymentFormTypeEnum() PaymentFormTypeEnum
+}
+
+// PaymentFormTypeEnum Alias for abstract PaymentFormType 'Sub-Classes', used as constant-enum here
+type PaymentFormTypeEnum string
+
+// PaymentFormType enums
+const (
+	PaymentFormTypeRegularType PaymentFormTypeEnum = "paymentFormTypeRegular"
+	PaymentFormTypeStarsType   PaymentFormTypeEnum = "paymentFormTypeStars"
+)
+
+func unmarshalPaymentFormType(rawMsg *json.RawMessage) (PaymentFormType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch PaymentFormTypeEnum(objMap["@type"].(string)) {
+	case PaymentFormTypeRegularType:
+		var paymentFormTypeRegular PaymentFormTypeRegular
+		err := json.Unmarshal(*rawMsg, &paymentFormTypeRegular)
+		return &paymentFormTypeRegular, err
+
+	case PaymentFormTypeStarsType:
+		var paymentFormTypeStars PaymentFormTypeStars
+		err := json.Unmarshal(*rawMsg, &paymentFormTypeStars)
+		return &paymentFormTypeStars, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalPaymentFormTypeSlice(rawMsg *json.RawMessage) ([]PaymentFormType, error) {
+	objects := make([]PaymentFormType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch PaymentFormTypeEnum(objMap["@type"].(string)) {
+		case PaymentFormTypeRegularType:
+			var paymentFormTypeRegular PaymentFormTypeRegular
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &paymentFormTypeRegular)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &paymentFormTypeRegular)
+		case PaymentFormTypeStarsType:
+			var paymentFormTypeStars PaymentFormTypeStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &paymentFormTypeStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &paymentFormTypeStars)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// PaymentReceiptType Describes type of successful payment
+type PaymentReceiptType interface {
+	GetPaymentReceiptTypeEnum() PaymentReceiptTypeEnum
+}
+
+// PaymentReceiptTypeEnum Alias for abstract PaymentReceiptType 'Sub-Classes', used as constant-enum here
+type PaymentReceiptTypeEnum string
+
+// PaymentReceiptType enums
+const (
+	PaymentReceiptTypeRegularType PaymentReceiptTypeEnum = "paymentReceiptTypeRegular"
+	PaymentReceiptTypeStarsType   PaymentReceiptTypeEnum = "paymentReceiptTypeStars"
+)
+
+func unmarshalPaymentReceiptType(rawMsg *json.RawMessage) (PaymentReceiptType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch PaymentReceiptTypeEnum(objMap["@type"].(string)) {
+	case PaymentReceiptTypeRegularType:
+		var paymentReceiptTypeRegular PaymentReceiptTypeRegular
+		err := json.Unmarshal(*rawMsg, &paymentReceiptTypeRegular)
+		return &paymentReceiptTypeRegular, err
+
+	case PaymentReceiptTypeStarsType:
+		var paymentReceiptTypeStars PaymentReceiptTypeStars
+		err := json.Unmarshal(*rawMsg, &paymentReceiptTypeStars)
+		return &paymentReceiptTypeStars, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalPaymentReceiptTypeSlice(rawMsg *json.RawMessage) ([]PaymentReceiptType, error) {
+	objects := make([]PaymentReceiptType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch PaymentReceiptTypeEnum(objMap["@type"].(string)) {
+		case PaymentReceiptTypeRegularType:
+			var paymentReceiptTypeRegular PaymentReceiptTypeRegular
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &paymentReceiptTypeRegular)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &paymentReceiptTypeRegular)
+		case PaymentReceiptTypeStarsType:
+			var paymentReceiptTypeStars PaymentReceiptTypeStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &paymentReceiptTypeStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &paymentReceiptTypeStars)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
 // InputInvoice Describes an invoice to process
 type InputInvoice interface {
 	GetInputInvoiceEnum() InputInvoiceEnum
@@ -6755,23 +9110,23 @@ func unmarshalInputInvoiceSlice(rawMsg *json.RawMessage) ([]InputInvoice, error)
 	return objects, nil
 }
 
-// MessageExtendedMedia Describes a media, which is attached to an invoice
-type MessageExtendedMedia interface {
-	GetMessageExtendedMediaEnum() MessageExtendedMediaEnum
+// PaidMedia Describes a paid media
+type PaidMedia interface {
+	GetPaidMediaEnum() PaidMediaEnum
 }
 
-// MessageExtendedMediaEnum Alias for abstract MessageExtendedMedia 'Sub-Classes', used as constant-enum here
-type MessageExtendedMediaEnum string
+// PaidMediaEnum Alias for abstract PaidMedia 'Sub-Classes', used as constant-enum here
+type PaidMediaEnum string
 
-// MessageExtendedMedia enums
+// PaidMedia enums
 const (
-	MessageExtendedMediaPreviewType     MessageExtendedMediaEnum = "messageExtendedMediaPreview"
-	MessageExtendedMediaPhotoType       MessageExtendedMediaEnum = "messageExtendedMediaPhoto"
-	MessageExtendedMediaVideoType       MessageExtendedMediaEnum = "messageExtendedMediaVideo"
-	MessageExtendedMediaUnsupportedType MessageExtendedMediaEnum = "messageExtendedMediaUnsupported"
+	PaidMediaPreviewType     PaidMediaEnum = "paidMediaPreview"
+	PaidMediaPhotoType       PaidMediaEnum = "paidMediaPhoto"
+	PaidMediaVideoType       PaidMediaEnum = "paidMediaVideo"
+	PaidMediaUnsupportedType PaidMediaEnum = "paidMediaUnsupported"
 )
 
-func unmarshalMessageExtendedMedia(rawMsg *json.RawMessage) (MessageExtendedMedia, error) {
+func unmarshalPaidMedia(rawMsg *json.RawMessage) (PaidMedia, error) {
 
 	if rawMsg == nil {
 		return nil, nil
@@ -6782,34 +9137,34 @@ func unmarshalMessageExtendedMedia(rawMsg *json.RawMessage) (MessageExtendedMedi
 		return nil, err
 	}
 
-	switch MessageExtendedMediaEnum(objMap["@type"].(string)) {
-	case MessageExtendedMediaPreviewType:
-		var messageExtendedMediaPreview MessageExtendedMediaPreview
-		err := json.Unmarshal(*rawMsg, &messageExtendedMediaPreview)
-		return &messageExtendedMediaPreview, err
+	switch PaidMediaEnum(objMap["@type"].(string)) {
+	case PaidMediaPreviewType:
+		var paidMediaPreview PaidMediaPreview
+		err := json.Unmarshal(*rawMsg, &paidMediaPreview)
+		return &paidMediaPreview, err
 
-	case MessageExtendedMediaPhotoType:
-		var messageExtendedMediaPhoto MessageExtendedMediaPhoto
-		err := json.Unmarshal(*rawMsg, &messageExtendedMediaPhoto)
-		return &messageExtendedMediaPhoto, err
+	case PaidMediaPhotoType:
+		var paidMediaPhoto PaidMediaPhoto
+		err := json.Unmarshal(*rawMsg, &paidMediaPhoto)
+		return &paidMediaPhoto, err
 
-	case MessageExtendedMediaVideoType:
-		var messageExtendedMediaVideo MessageExtendedMediaVideo
-		err := json.Unmarshal(*rawMsg, &messageExtendedMediaVideo)
-		return &messageExtendedMediaVideo, err
+	case PaidMediaVideoType:
+		var paidMediaVideo PaidMediaVideo
+		err := json.Unmarshal(*rawMsg, &paidMediaVideo)
+		return &paidMediaVideo, err
 
-	case MessageExtendedMediaUnsupportedType:
-		var messageExtendedMediaUnsupported MessageExtendedMediaUnsupported
-		err := json.Unmarshal(*rawMsg, &messageExtendedMediaUnsupported)
-		return &messageExtendedMediaUnsupported, err
+	case PaidMediaUnsupportedType:
+		var paidMediaUnsupported PaidMediaUnsupported
+		err := json.Unmarshal(*rawMsg, &paidMediaUnsupported)
+		return &paidMediaUnsupported, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
 	}
 }
 
-func unmarshalMessageExtendedMediaSlice(rawMsg *json.RawMessage) ([]MessageExtendedMedia, error) {
-	objects := make([]MessageExtendedMedia, 0)
+func unmarshalPaidMediaSlice(rawMsg *json.RawMessage) ([]PaidMedia, error) {
+	objects := make([]PaidMedia, 0)
 	if rawMsg == nil {
 		return nil, nil
 	}
@@ -6820,59 +9175,59 @@ func unmarshalMessageExtendedMediaSlice(rawMsg *json.RawMessage) ([]MessageExten
 	}
 
 	for _, objMap := range objsMap {
-		switch MessageExtendedMediaEnum(objMap["@type"].(string)) {
-		case MessageExtendedMediaPreviewType:
-			var messageExtendedMediaPreview MessageExtendedMediaPreview
+		switch PaidMediaEnum(objMap["@type"].(string)) {
+		case PaidMediaPreviewType:
+			var paidMediaPreview PaidMediaPreview
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageExtendedMediaPreview)
+			err = json.Unmarshal(obj, &paidMediaPreview)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageExtendedMediaPreview)
-		case MessageExtendedMediaPhotoType:
-			var messageExtendedMediaPhoto MessageExtendedMediaPhoto
+			objects = append(objects, &paidMediaPreview)
+		case PaidMediaPhotoType:
+			var paidMediaPhoto PaidMediaPhoto
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageExtendedMediaPhoto)
+			err = json.Unmarshal(obj, &paidMediaPhoto)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageExtendedMediaPhoto)
-		case MessageExtendedMediaVideoType:
-			var messageExtendedMediaVideo MessageExtendedMediaVideo
+			objects = append(objects, &paidMediaPhoto)
+		case PaidMediaVideoType:
+			var paidMediaVideo PaidMediaVideo
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageExtendedMediaVideo)
+			err = json.Unmarshal(obj, &paidMediaVideo)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageExtendedMediaVideo)
-		case MessageExtendedMediaUnsupportedType:
-			var messageExtendedMediaUnsupported MessageExtendedMediaUnsupported
+			objects = append(objects, &paidMediaVideo)
+		case PaidMediaUnsupportedType:
+			var paidMediaUnsupported PaidMediaUnsupported
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messageExtendedMediaUnsupported)
+			err = json.Unmarshal(obj, &paidMediaUnsupported)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messageExtendedMediaUnsupported)
+			objects = append(objects, &paidMediaUnsupported)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -6882,7 +9237,7 @@ func unmarshalMessageExtendedMediaSlice(rawMsg *json.RawMessage) ([]MessageExten
 	return objects, nil
 }
 
-// PassportElementType Contains the type of a Telegram Passport element
+// PassportElementType Contains the type of Telegram Passport element
 type PassportElementType interface {
 	GetPassportElementTypeEnum() PassportElementTypeEnum
 }
@@ -8234,13 +10589,16 @@ const (
 	MessageAnimationType                    MessageContentEnum = "messageAnimation"
 	MessageAudioType                        MessageContentEnum = "messageAudio"
 	MessageDocumentType                     MessageContentEnum = "messageDocument"
+	MessagePaidMediaType                    MessageContentEnum = "messagePaidMedia"
 	MessagePhotoType                        MessageContentEnum = "messagePhoto"
-	MessageExpiredPhotoType                 MessageContentEnum = "messageExpiredPhoto"
 	MessageStickerType                      MessageContentEnum = "messageSticker"
 	MessageVideoType                        MessageContentEnum = "messageVideo"
-	MessageExpiredVideoType                 MessageContentEnum = "messageExpiredVideo"
 	MessageVideoNoteType                    MessageContentEnum = "messageVideoNote"
 	MessageVoiceNoteType                    MessageContentEnum = "messageVoiceNote"
+	MessageExpiredPhotoType                 MessageContentEnum = "messageExpiredPhoto"
+	MessageExpiredVideoType                 MessageContentEnum = "messageExpiredVideo"
+	MessageExpiredVideoNoteType             MessageContentEnum = "messageExpiredVideoNote"
+	MessageExpiredVoiceNoteType             MessageContentEnum = "messageExpiredVoiceNote"
 	MessageLocationType                     MessageContentEnum = "messageLocation"
 	MessageVenueType                        MessageContentEnum = "messageVenue"
 	MessageContactType                      MessageContentEnum = "messageContact"
@@ -8271,6 +10629,7 @@ const (
 	MessageChatSetBackgroundType            MessageContentEnum = "messageChatSetBackground"
 	MessageChatSetThemeType                 MessageContentEnum = "messageChatSetTheme"
 	MessageChatSetMessageAutoDeleteTimeType MessageContentEnum = "messageChatSetMessageAutoDeleteTime"
+	MessageChatBoostType                    MessageContentEnum = "messageChatBoost"
 	MessageForumTopicCreatedType            MessageContentEnum = "messageForumTopicCreated"
 	MessageForumTopicEditedType             MessageContentEnum = "messageForumTopicEdited"
 	MessageForumTopicIsClosedToggledType    MessageContentEnum = "messageForumTopicIsClosedToggled"
@@ -8280,12 +10639,15 @@ const (
 	MessageGameScoreType                    MessageContentEnum = "messageGameScore"
 	MessagePaymentSuccessfulType            MessageContentEnum = "messagePaymentSuccessful"
 	MessagePaymentSuccessfulBotType         MessageContentEnum = "messagePaymentSuccessfulBot"
+	MessagePaymentRefundedType              MessageContentEnum = "messagePaymentRefunded"
 	MessageGiftedPremiumType                MessageContentEnum = "messageGiftedPremium"
 	MessagePremiumGiftCodeType              MessageContentEnum = "messagePremiumGiftCode"
-	MessagePremiumGiveawayCreatedType       MessageContentEnum = "messagePremiumGiveawayCreated"
-	MessagePremiumGiveawayType              MessageContentEnum = "messagePremiumGiveaway"
-	MessagePremiumGiveawayCompletedType     MessageContentEnum = "messagePremiumGiveawayCompleted"
-	MessagePremiumGiveawayWinnersType       MessageContentEnum = "messagePremiumGiveawayWinners"
+	MessageGiveawayCreatedType              MessageContentEnum = "messageGiveawayCreated"
+	MessageGiveawayType                     MessageContentEnum = "messageGiveaway"
+	MessageGiveawayCompletedType            MessageContentEnum = "messageGiveawayCompleted"
+	MessageGiveawayWinnersType              MessageContentEnum = "messageGiveawayWinners"
+	MessageGiftedStarsType                  MessageContentEnum = "messageGiftedStars"
+	MessageGiveawayPrizeStarsType           MessageContentEnum = "messageGiveawayPrizeStars"
 	MessageContactRegisteredType            MessageContentEnum = "messageContactRegistered"
 	MessageUsersSharedType                  MessageContentEnum = "messageUsersShared"
 	MessageChatSharedType                   MessageContentEnum = "messageChatShared"
@@ -8330,15 +10692,15 @@ func unmarshalMessageContent(rawMsg *json.RawMessage) (MessageContent, error) {
 		err := json.Unmarshal(*rawMsg, &messageDocument)
 		return &messageDocument, err
 
+	case MessagePaidMediaType:
+		var messagePaidMedia MessagePaidMedia
+		err := json.Unmarshal(*rawMsg, &messagePaidMedia)
+		return &messagePaidMedia, err
+
 	case MessagePhotoType:
 		var messagePhoto MessagePhoto
 		err := json.Unmarshal(*rawMsg, &messagePhoto)
 		return &messagePhoto, err
-
-	case MessageExpiredPhotoType:
-		var messageExpiredPhoto MessageExpiredPhoto
-		err := json.Unmarshal(*rawMsg, &messageExpiredPhoto)
-		return &messageExpiredPhoto, err
 
 	case MessageStickerType:
 		var messageSticker MessageSticker
@@ -8350,11 +10712,6 @@ func unmarshalMessageContent(rawMsg *json.RawMessage) (MessageContent, error) {
 		err := json.Unmarshal(*rawMsg, &messageVideo)
 		return &messageVideo, err
 
-	case MessageExpiredVideoType:
-		var messageExpiredVideo MessageExpiredVideo
-		err := json.Unmarshal(*rawMsg, &messageExpiredVideo)
-		return &messageExpiredVideo, err
-
 	case MessageVideoNoteType:
 		var messageVideoNote MessageVideoNote
 		err := json.Unmarshal(*rawMsg, &messageVideoNote)
@@ -8364,6 +10721,26 @@ func unmarshalMessageContent(rawMsg *json.RawMessage) (MessageContent, error) {
 		var messageVoiceNote MessageVoiceNote
 		err := json.Unmarshal(*rawMsg, &messageVoiceNote)
 		return &messageVoiceNote, err
+
+	case MessageExpiredPhotoType:
+		var messageExpiredPhoto MessageExpiredPhoto
+		err := json.Unmarshal(*rawMsg, &messageExpiredPhoto)
+		return &messageExpiredPhoto, err
+
+	case MessageExpiredVideoType:
+		var messageExpiredVideo MessageExpiredVideo
+		err := json.Unmarshal(*rawMsg, &messageExpiredVideo)
+		return &messageExpiredVideo, err
+
+	case MessageExpiredVideoNoteType:
+		var messageExpiredVideoNote MessageExpiredVideoNote
+		err := json.Unmarshal(*rawMsg, &messageExpiredVideoNote)
+		return &messageExpiredVideoNote, err
+
+	case MessageExpiredVoiceNoteType:
+		var messageExpiredVoiceNote MessageExpiredVoiceNote
+		err := json.Unmarshal(*rawMsg, &messageExpiredVoiceNote)
+		return &messageExpiredVoiceNote, err
 
 	case MessageLocationType:
 		var messageLocation MessageLocation
@@ -8515,6 +10892,11 @@ func unmarshalMessageContent(rawMsg *json.RawMessage) (MessageContent, error) {
 		err := json.Unmarshal(*rawMsg, &messageChatSetMessageAutoDeleteTime)
 		return &messageChatSetMessageAutoDeleteTime, err
 
+	case MessageChatBoostType:
+		var messageChatBoost MessageChatBoost
+		err := json.Unmarshal(*rawMsg, &messageChatBoost)
+		return &messageChatBoost, err
+
 	case MessageForumTopicCreatedType:
 		var messageForumTopicCreated MessageForumTopicCreated
 		err := json.Unmarshal(*rawMsg, &messageForumTopicCreated)
@@ -8560,6 +10942,11 @@ func unmarshalMessageContent(rawMsg *json.RawMessage) (MessageContent, error) {
 		err := json.Unmarshal(*rawMsg, &messagePaymentSuccessfulBot)
 		return &messagePaymentSuccessfulBot, err
 
+	case MessagePaymentRefundedType:
+		var messagePaymentRefunded MessagePaymentRefunded
+		err := json.Unmarshal(*rawMsg, &messagePaymentRefunded)
+		return &messagePaymentRefunded, err
+
 	case MessageGiftedPremiumType:
 		var messageGiftedPremium MessageGiftedPremium
 		err := json.Unmarshal(*rawMsg, &messageGiftedPremium)
@@ -8570,25 +10957,35 @@ func unmarshalMessageContent(rawMsg *json.RawMessage) (MessageContent, error) {
 		err := json.Unmarshal(*rawMsg, &messagePremiumGiftCode)
 		return &messagePremiumGiftCode, err
 
-	case MessagePremiumGiveawayCreatedType:
-		var messagePremiumGiveawayCreated MessagePremiumGiveawayCreated
-		err := json.Unmarshal(*rawMsg, &messagePremiumGiveawayCreated)
-		return &messagePremiumGiveawayCreated, err
+	case MessageGiveawayCreatedType:
+		var messageGiveawayCreated MessageGiveawayCreated
+		err := json.Unmarshal(*rawMsg, &messageGiveawayCreated)
+		return &messageGiveawayCreated, err
 
-	case MessagePremiumGiveawayType:
-		var messagePremiumGiveaway MessagePremiumGiveaway
-		err := json.Unmarshal(*rawMsg, &messagePremiumGiveaway)
-		return &messagePremiumGiveaway, err
+	case MessageGiveawayType:
+		var messageGiveaway MessageGiveaway
+		err := json.Unmarshal(*rawMsg, &messageGiveaway)
+		return &messageGiveaway, err
 
-	case MessagePremiumGiveawayCompletedType:
-		var messagePremiumGiveawayCompleted MessagePremiumGiveawayCompleted
-		err := json.Unmarshal(*rawMsg, &messagePremiumGiveawayCompleted)
-		return &messagePremiumGiveawayCompleted, err
+	case MessageGiveawayCompletedType:
+		var messageGiveawayCompleted MessageGiveawayCompleted
+		err := json.Unmarshal(*rawMsg, &messageGiveawayCompleted)
+		return &messageGiveawayCompleted, err
 
-	case MessagePremiumGiveawayWinnersType:
-		var messagePremiumGiveawayWinners MessagePremiumGiveawayWinners
-		err := json.Unmarshal(*rawMsg, &messagePremiumGiveawayWinners)
-		return &messagePremiumGiveawayWinners, err
+	case MessageGiveawayWinnersType:
+		var messageGiveawayWinners MessageGiveawayWinners
+		err := json.Unmarshal(*rawMsg, &messageGiveawayWinners)
+		return &messageGiveawayWinners, err
+
+	case MessageGiftedStarsType:
+		var messageGiftedStars MessageGiftedStars
+		err := json.Unmarshal(*rawMsg, &messageGiftedStars)
+		return &messageGiftedStars, err
+
+	case MessageGiveawayPrizeStarsType:
+		var messageGiveawayPrizeStars MessageGiveawayPrizeStars
+		err := json.Unmarshal(*rawMsg, &messageGiveawayPrizeStars)
+		return &messageGiveawayPrizeStars, err
 
 	case MessageContactRegisteredType:
 		var messageContactRegistered MessageContactRegistered
@@ -8710,6 +11107,19 @@ func unmarshalMessageContentSlice(rawMsg *json.RawMessage) ([]MessageContent, er
 			}
 
 			objects = append(objects, &messageDocument)
+		case MessagePaidMediaType:
+			var messagePaidMedia MessagePaidMedia
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messagePaidMedia)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messagePaidMedia)
 		case MessagePhotoType:
 			var messagePhoto MessagePhoto
 			obj, err := json.Marshal(objMap)
@@ -8723,19 +11133,6 @@ func unmarshalMessageContentSlice(rawMsg *json.RawMessage) ([]MessageContent, er
 			}
 
 			objects = append(objects, &messagePhoto)
-		case MessageExpiredPhotoType:
-			var messageExpiredPhoto MessageExpiredPhoto
-			obj, err := json.Marshal(objMap)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(obj, &messageExpiredPhoto)
-			if err != nil {
-				return nil, err
-			}
-
-			objects = append(objects, &messageExpiredPhoto)
 		case MessageStickerType:
 			var messageSticker MessageSticker
 			obj, err := json.Marshal(objMap)
@@ -8762,19 +11159,6 @@ func unmarshalMessageContentSlice(rawMsg *json.RawMessage) ([]MessageContent, er
 			}
 
 			objects = append(objects, &messageVideo)
-		case MessageExpiredVideoType:
-			var messageExpiredVideo MessageExpiredVideo
-			obj, err := json.Marshal(objMap)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(obj, &messageExpiredVideo)
-			if err != nil {
-				return nil, err
-			}
-
-			objects = append(objects, &messageExpiredVideo)
 		case MessageVideoNoteType:
 			var messageVideoNote MessageVideoNote
 			obj, err := json.Marshal(objMap)
@@ -8801,6 +11185,58 @@ func unmarshalMessageContentSlice(rawMsg *json.RawMessage) ([]MessageContent, er
 			}
 
 			objects = append(objects, &messageVoiceNote)
+		case MessageExpiredPhotoType:
+			var messageExpiredPhoto MessageExpiredPhoto
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageExpiredPhoto)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageExpiredPhoto)
+		case MessageExpiredVideoType:
+			var messageExpiredVideo MessageExpiredVideo
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageExpiredVideo)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageExpiredVideo)
+		case MessageExpiredVideoNoteType:
+			var messageExpiredVideoNote MessageExpiredVideoNote
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageExpiredVideoNote)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageExpiredVideoNote)
+		case MessageExpiredVoiceNoteType:
+			var messageExpiredVoiceNote MessageExpiredVoiceNote
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageExpiredVoiceNote)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageExpiredVoiceNote)
 		case MessageLocationType:
 			var messageLocation MessageLocation
 			obj, err := json.Marshal(objMap)
@@ -9191,6 +11627,19 @@ func unmarshalMessageContentSlice(rawMsg *json.RawMessage) ([]MessageContent, er
 			}
 
 			objects = append(objects, &messageChatSetMessageAutoDeleteTime)
+		case MessageChatBoostType:
+			var messageChatBoost MessageChatBoost
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageChatBoost)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageChatBoost)
 		case MessageForumTopicCreatedType:
 			var messageForumTopicCreated MessageForumTopicCreated
 			obj, err := json.Marshal(objMap)
@@ -9308,6 +11757,19 @@ func unmarshalMessageContentSlice(rawMsg *json.RawMessage) ([]MessageContent, er
 			}
 
 			objects = append(objects, &messagePaymentSuccessfulBot)
+		case MessagePaymentRefundedType:
+			var messagePaymentRefunded MessagePaymentRefunded
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messagePaymentRefunded)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messagePaymentRefunded)
 		case MessageGiftedPremiumType:
 			var messageGiftedPremium MessageGiftedPremium
 			obj, err := json.Marshal(objMap)
@@ -9334,58 +11796,84 @@ func unmarshalMessageContentSlice(rawMsg *json.RawMessage) ([]MessageContent, er
 			}
 
 			objects = append(objects, &messagePremiumGiftCode)
-		case MessagePremiumGiveawayCreatedType:
-			var messagePremiumGiveawayCreated MessagePremiumGiveawayCreated
+		case MessageGiveawayCreatedType:
+			var messageGiveawayCreated MessageGiveawayCreated
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messagePremiumGiveawayCreated)
+			err = json.Unmarshal(obj, &messageGiveawayCreated)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messagePremiumGiveawayCreated)
-		case MessagePremiumGiveawayType:
-			var messagePremiumGiveaway MessagePremiumGiveaway
+			objects = append(objects, &messageGiveawayCreated)
+		case MessageGiveawayType:
+			var messageGiveaway MessageGiveaway
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messagePremiumGiveaway)
+			err = json.Unmarshal(obj, &messageGiveaway)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messagePremiumGiveaway)
-		case MessagePremiumGiveawayCompletedType:
-			var messagePremiumGiveawayCompleted MessagePremiumGiveawayCompleted
+			objects = append(objects, &messageGiveaway)
+		case MessageGiveawayCompletedType:
+			var messageGiveawayCompleted MessageGiveawayCompleted
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messagePremiumGiveawayCompleted)
+			err = json.Unmarshal(obj, &messageGiveawayCompleted)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messagePremiumGiveawayCompleted)
-		case MessagePremiumGiveawayWinnersType:
-			var messagePremiumGiveawayWinners MessagePremiumGiveawayWinners
+			objects = append(objects, &messageGiveawayCompleted)
+		case MessageGiveawayWinnersType:
+			var messageGiveawayWinners MessageGiveawayWinners
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &messagePremiumGiveawayWinners)
+			err = json.Unmarshal(obj, &messageGiveawayWinners)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &messagePremiumGiveawayWinners)
+			objects = append(objects, &messageGiveawayWinners)
+		case MessageGiftedStarsType:
+			var messageGiftedStars MessageGiftedStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageGiftedStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageGiftedStars)
+		case MessageGiveawayPrizeStarsType:
+			var messageGiveawayPrizeStars MessageGiveawayPrizeStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &messageGiveawayPrizeStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &messageGiveawayPrizeStars)
 		case MessageContactRegisteredType:
 			var messageContactRegistered MessageContactRegistered
 			obj, err := json.Marshal(objMap)
@@ -9535,27 +12023,28 @@ type TextEntityTypeEnum string
 
 // TextEntityType enums
 const (
-	TextEntityTypeMentionType        TextEntityTypeEnum = "textEntityTypeMention"
-	TextEntityTypeHashtagType        TextEntityTypeEnum = "textEntityTypeHashtag"
-	TextEntityTypeCashtagType        TextEntityTypeEnum = "textEntityTypeCashtag"
-	TextEntityTypeBotCommandType     TextEntityTypeEnum = "textEntityTypeBotCommand"
-	TextEntityTypeURLType            TextEntityTypeEnum = "textEntityTypeUrl"
-	TextEntityTypeEmailAddressType   TextEntityTypeEnum = "textEntityTypeEmailAddress"
-	TextEntityTypePhoneNumberType    TextEntityTypeEnum = "textEntityTypePhoneNumber"
-	TextEntityTypeBankCardNumberType TextEntityTypeEnum = "textEntityTypeBankCardNumber"
-	TextEntityTypeBoldType           TextEntityTypeEnum = "textEntityTypeBold"
-	TextEntityTypeItalicType         TextEntityTypeEnum = "textEntityTypeItalic"
-	TextEntityTypeUnderlineType      TextEntityTypeEnum = "textEntityTypeUnderline"
-	TextEntityTypeStrikethroughType  TextEntityTypeEnum = "textEntityTypeStrikethrough"
-	TextEntityTypeSpoilerType        TextEntityTypeEnum = "textEntityTypeSpoiler"
-	TextEntityTypeCodeType           TextEntityTypeEnum = "textEntityTypeCode"
-	TextEntityTypePreType            TextEntityTypeEnum = "textEntityTypePre"
-	TextEntityTypePreCodeType        TextEntityTypeEnum = "textEntityTypePreCode"
-	TextEntityTypeBlockQuoteType     TextEntityTypeEnum = "textEntityTypeBlockQuote"
-	TextEntityTypeTextURLType        TextEntityTypeEnum = "textEntityTypeTextUrl"
-	TextEntityTypeMentionNameType    TextEntityTypeEnum = "textEntityTypeMentionName"
-	TextEntityTypeCustomEmojiType    TextEntityTypeEnum = "textEntityTypeCustomEmoji"
-	TextEntityTypeMediaTimestampType TextEntityTypeEnum = "textEntityTypeMediaTimestamp"
+	TextEntityTypeMentionType              TextEntityTypeEnum = "textEntityTypeMention"
+	TextEntityTypeHashtagType              TextEntityTypeEnum = "textEntityTypeHashtag"
+	TextEntityTypeCashtagType              TextEntityTypeEnum = "textEntityTypeCashtag"
+	TextEntityTypeBotCommandType           TextEntityTypeEnum = "textEntityTypeBotCommand"
+	TextEntityTypeURLType                  TextEntityTypeEnum = "textEntityTypeUrl"
+	TextEntityTypeEmailAddressType         TextEntityTypeEnum = "textEntityTypeEmailAddress"
+	TextEntityTypePhoneNumberType          TextEntityTypeEnum = "textEntityTypePhoneNumber"
+	TextEntityTypeBankCardNumberType       TextEntityTypeEnum = "textEntityTypeBankCardNumber"
+	TextEntityTypeBoldType                 TextEntityTypeEnum = "textEntityTypeBold"
+	TextEntityTypeItalicType               TextEntityTypeEnum = "textEntityTypeItalic"
+	TextEntityTypeUnderlineType            TextEntityTypeEnum = "textEntityTypeUnderline"
+	TextEntityTypeStrikethroughType        TextEntityTypeEnum = "textEntityTypeStrikethrough"
+	TextEntityTypeSpoilerType              TextEntityTypeEnum = "textEntityTypeSpoiler"
+	TextEntityTypeCodeType                 TextEntityTypeEnum = "textEntityTypeCode"
+	TextEntityTypePreType                  TextEntityTypeEnum = "textEntityTypePre"
+	TextEntityTypePreCodeType              TextEntityTypeEnum = "textEntityTypePreCode"
+	TextEntityTypeBlockQuoteType           TextEntityTypeEnum = "textEntityTypeBlockQuote"
+	TextEntityTypeExpandableBlockQuoteType TextEntityTypeEnum = "textEntityTypeExpandableBlockQuote"
+	TextEntityTypeTextURLType              TextEntityTypeEnum = "textEntityTypeTextUrl"
+	TextEntityTypeMentionNameType          TextEntityTypeEnum = "textEntityTypeMentionName"
+	TextEntityTypeCustomEmojiType          TextEntityTypeEnum = "textEntityTypeCustomEmoji"
+	TextEntityTypeMediaTimestampType       TextEntityTypeEnum = "textEntityTypeMediaTimestamp"
 )
 
 func unmarshalTextEntityType(rawMsg *json.RawMessage) (TextEntityType, error) {
@@ -9654,6 +12143,11 @@ func unmarshalTextEntityType(rawMsg *json.RawMessage) (TextEntityType, error) {
 		var textEntityTypeBlockQuote TextEntityTypeBlockQuote
 		err := json.Unmarshal(*rawMsg, &textEntityTypeBlockQuote)
 		return &textEntityTypeBlockQuote, err
+
+	case TextEntityTypeExpandableBlockQuoteType:
+		var textEntityTypeExpandableBlockQuote TextEntityTypeExpandableBlockQuote
+		err := json.Unmarshal(*rawMsg, &textEntityTypeExpandableBlockQuote)
+		return &textEntityTypeExpandableBlockQuote, err
 
 	case TextEntityTypeTextURLType:
 		var textEntityTypeTextURL TextEntityTypeTextURL
@@ -9914,6 +12408,19 @@ func unmarshalTextEntityTypeSlice(rawMsg *json.RawMessage) ([]TextEntityType, er
 			}
 
 			objects = append(objects, &textEntityTypeBlockQuote)
+		case TextEntityTypeExpandableBlockQuoteType:
+			var textEntityTypeExpandableBlockQuote TextEntityTypeExpandableBlockQuote
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &textEntityTypeExpandableBlockQuote)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &textEntityTypeExpandableBlockQuote)
 		case TextEntityTypeTextURLType:
 			var textEntityTypeTextURL TextEntityTypeTextURL
 			obj, err := json.Marshal(objMap)
@@ -9966,6 +12473,95 @@ func unmarshalTextEntityTypeSlice(rawMsg *json.RawMessage) ([]TextEntityType, er
 			}
 
 			objects = append(objects, &textEntityTypeMediaTimestamp)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// InputPaidMediaType Describes type of paid media to sent
+type InputPaidMediaType interface {
+	GetInputPaidMediaTypeEnum() InputPaidMediaTypeEnum
+}
+
+// InputPaidMediaTypeEnum Alias for abstract InputPaidMediaType 'Sub-Classes', used as constant-enum here
+type InputPaidMediaTypeEnum string
+
+// InputPaidMediaType enums
+const (
+	InputPaidMediaTypePhotoType InputPaidMediaTypeEnum = "inputPaidMediaTypePhoto"
+	InputPaidMediaTypeVideoType InputPaidMediaTypeEnum = "inputPaidMediaTypeVideo"
+)
+
+func unmarshalInputPaidMediaType(rawMsg *json.RawMessage) (InputPaidMediaType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch InputPaidMediaTypeEnum(objMap["@type"].(string)) {
+	case InputPaidMediaTypePhotoType:
+		var inputPaidMediaTypePhoto InputPaidMediaTypePhoto
+		err := json.Unmarshal(*rawMsg, &inputPaidMediaTypePhoto)
+		return &inputPaidMediaTypePhoto, err
+
+	case InputPaidMediaTypeVideoType:
+		var inputPaidMediaTypeVideo InputPaidMediaTypeVideo
+		err := json.Unmarshal(*rawMsg, &inputPaidMediaTypeVideo)
+		return &inputPaidMediaTypeVideo, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalInputPaidMediaTypeSlice(rawMsg *json.RawMessage) ([]InputPaidMediaType, error) {
+	objects := make([]InputPaidMediaType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch InputPaidMediaTypeEnum(objMap["@type"].(string)) {
+		case InputPaidMediaTypePhotoType:
+			var inputPaidMediaTypePhoto InputPaidMediaTypePhoto
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &inputPaidMediaTypePhoto)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &inputPaidMediaTypePhoto)
+		case InputPaidMediaTypeVideoType:
+			var inputPaidMediaTypeVideo InputPaidMediaTypeVideo
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &inputPaidMediaTypeVideo)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &inputPaidMediaTypeVideo)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -10167,6 +12763,7 @@ const (
 	InputMessageAnimationType InputMessageContentEnum = "inputMessageAnimation"
 	InputMessageAudioType     InputMessageContentEnum = "inputMessageAudio"
 	InputMessageDocumentType  InputMessageContentEnum = "inputMessageDocument"
+	InputMessagePaidMediaType InputMessageContentEnum = "inputMessagePaidMedia"
 	InputMessagePhotoType     InputMessageContentEnum = "inputMessagePhoto"
 	InputMessageStickerType   InputMessageContentEnum = "inputMessageSticker"
 	InputMessageVideoType     InputMessageContentEnum = "inputMessageVideo"
@@ -10214,6 +12811,11 @@ func unmarshalInputMessageContent(rawMsg *json.RawMessage) (InputMessageContent,
 		var inputMessageDocument InputMessageDocument
 		err := json.Unmarshal(*rawMsg, &inputMessageDocument)
 		return &inputMessageDocument, err
+
+	case InputMessagePaidMediaType:
+		var inputMessagePaidMedia InputMessagePaidMedia
+		err := json.Unmarshal(*rawMsg, &inputMessagePaidMedia)
+		return &inputMessagePaidMedia, err
 
 	case InputMessagePhotoType:
 		var inputMessagePhoto InputMessagePhoto
@@ -10355,6 +12957,19 @@ func unmarshalInputMessageContentSlice(rawMsg *json.RawMessage) ([]InputMessageC
 			}
 
 			objects = append(objects, &inputMessageDocument)
+		case InputMessagePaidMediaType:
+			var inputMessagePaidMedia InputMessagePaidMedia
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &inputMessagePaidMedia)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &inputMessagePaidMedia)
 		case InputMessagePhotoType:
 			var inputMessagePhoto InputMessagePhoto
 			obj, err := json.Marshal(objMap)
@@ -11421,7 +14036,96 @@ func unmarshalUserStatusSlice(rawMsg *json.RawMessage) ([]UserStatus, error) {
 	return objects, nil
 }
 
-// EmojiCategoryType Describes type of an emoji category
+// EmojiCategorySource Describes source of stickers for an emoji category
+type EmojiCategorySource interface {
+	GetEmojiCategorySourceEnum() EmojiCategorySourceEnum
+}
+
+// EmojiCategorySourceEnum Alias for abstract EmojiCategorySource 'Sub-Classes', used as constant-enum here
+type EmojiCategorySourceEnum string
+
+// EmojiCategorySource enums
+const (
+	EmojiCategorySourceSearchType  EmojiCategorySourceEnum = "emojiCategorySourceSearch"
+	EmojiCategorySourcePremiumType EmojiCategorySourceEnum = "emojiCategorySourcePremium"
+)
+
+func unmarshalEmojiCategorySource(rawMsg *json.RawMessage) (EmojiCategorySource, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch EmojiCategorySourceEnum(objMap["@type"].(string)) {
+	case EmojiCategorySourceSearchType:
+		var emojiCategorySourceSearch EmojiCategorySourceSearch
+		err := json.Unmarshal(*rawMsg, &emojiCategorySourceSearch)
+		return &emojiCategorySourceSearch, err
+
+	case EmojiCategorySourcePremiumType:
+		var emojiCategorySourcePremium EmojiCategorySourcePremium
+		err := json.Unmarshal(*rawMsg, &emojiCategorySourcePremium)
+		return &emojiCategorySourcePremium, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalEmojiCategorySourceSlice(rawMsg *json.RawMessage) ([]EmojiCategorySource, error) {
+	objects := make([]EmojiCategorySource, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch EmojiCategorySourceEnum(objMap["@type"].(string)) {
+		case EmojiCategorySourceSearchType:
+			var emojiCategorySourceSearch EmojiCategorySourceSearch
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &emojiCategorySourceSearch)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &emojiCategorySourceSearch)
+		case EmojiCategorySourcePremiumType:
+			var emojiCategorySourcePremium EmojiCategorySourcePremium
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &emojiCategorySourcePremium)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &emojiCategorySourcePremium)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// EmojiCategoryType Describes type of emoji category
 type EmojiCategoryType interface {
 	GetEmojiCategoryTypeEnum() EmojiCategoryTypeEnum
 }
@@ -11431,9 +14135,10 @@ type EmojiCategoryTypeEnum string
 
 // EmojiCategoryType enums
 const (
-	EmojiCategoryTypeDefaultType     EmojiCategoryTypeEnum = "emojiCategoryTypeDefault"
-	EmojiCategoryTypeEmojiStatusType EmojiCategoryTypeEnum = "emojiCategoryTypeEmojiStatus"
-	EmojiCategoryTypeChatPhotoType   EmojiCategoryTypeEnum = "emojiCategoryTypeChatPhoto"
+	EmojiCategoryTypeDefaultType         EmojiCategoryTypeEnum = "emojiCategoryTypeDefault"
+	EmojiCategoryTypeRegularStickersType EmojiCategoryTypeEnum = "emojiCategoryTypeRegularStickers"
+	EmojiCategoryTypeEmojiStatusType     EmojiCategoryTypeEnum = "emojiCategoryTypeEmojiStatus"
+	EmojiCategoryTypeChatPhotoType       EmojiCategoryTypeEnum = "emojiCategoryTypeChatPhoto"
 )
 
 func unmarshalEmojiCategoryType(rawMsg *json.RawMessage) (EmojiCategoryType, error) {
@@ -11452,6 +14157,11 @@ func unmarshalEmojiCategoryType(rawMsg *json.RawMessage) (EmojiCategoryType, err
 		var emojiCategoryTypeDefault EmojiCategoryTypeDefault
 		err := json.Unmarshal(*rawMsg, &emojiCategoryTypeDefault)
 		return &emojiCategoryTypeDefault, err
+
+	case EmojiCategoryTypeRegularStickersType:
+		var emojiCategoryTypeRegularStickers EmojiCategoryTypeRegularStickers
+		err := json.Unmarshal(*rawMsg, &emojiCategoryTypeRegularStickers)
+		return &emojiCategoryTypeRegularStickers, err
 
 	case EmojiCategoryTypeEmojiStatusType:
 		var emojiCategoryTypeEmojiStatus EmojiCategoryTypeEmojiStatus
@@ -11494,6 +14204,19 @@ func unmarshalEmojiCategoryTypeSlice(rawMsg *json.RawMessage) ([]EmojiCategoryTy
 			}
 
 			objects = append(objects, &emojiCategoryTypeDefault)
+		case EmojiCategoryTypeRegularStickersType:
+			var emojiCategoryTypeRegularStickers EmojiCategoryTypeRegularStickers
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &emojiCategoryTypeRegularStickers)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &emojiCategoryTypeRegularStickers)
 		case EmojiCategoryTypeEmojiStatusType:
 			var emojiCategoryTypeEmojiStatus EmojiCategoryTypeEmojiStatus
 			obj, err := json.Marshal(objMap)
@@ -11529,7 +14252,7 @@ func unmarshalEmojiCategoryTypeSlice(rawMsg *json.RawMessage) ([]EmojiCategoryTy
 	return objects, nil
 }
 
-// StoryAreaType Describes type of a clickable rectangle area on a story media
+// StoryAreaType Describes type of clickable area on a story media
 type StoryAreaType interface {
 	GetStoryAreaTypeEnum() StoryAreaTypeEnum
 }
@@ -11543,6 +14266,8 @@ const (
 	StoryAreaTypeVenueType             StoryAreaTypeEnum = "storyAreaTypeVenue"
 	StoryAreaTypeSuggestedReactionType StoryAreaTypeEnum = "storyAreaTypeSuggestedReaction"
 	StoryAreaTypeMessageType           StoryAreaTypeEnum = "storyAreaTypeMessage"
+	StoryAreaTypeLinkType              StoryAreaTypeEnum = "storyAreaTypeLink"
+	StoryAreaTypeWeatherType           StoryAreaTypeEnum = "storyAreaTypeWeather"
 )
 
 func unmarshalStoryAreaType(rawMsg *json.RawMessage) (StoryAreaType, error) {
@@ -11576,6 +14301,16 @@ func unmarshalStoryAreaType(rawMsg *json.RawMessage) (StoryAreaType, error) {
 		var storyAreaTypeMessage StoryAreaTypeMessage
 		err := json.Unmarshal(*rawMsg, &storyAreaTypeMessage)
 		return &storyAreaTypeMessage, err
+
+	case StoryAreaTypeLinkType:
+		var storyAreaTypeLink StoryAreaTypeLink
+		err := json.Unmarshal(*rawMsg, &storyAreaTypeLink)
+		return &storyAreaTypeLink, err
+
+	case StoryAreaTypeWeatherType:
+		var storyAreaTypeWeather StoryAreaTypeWeather
+		err := json.Unmarshal(*rawMsg, &storyAreaTypeWeather)
+		return &storyAreaTypeWeather, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -11647,6 +14382,32 @@ func unmarshalStoryAreaTypeSlice(rawMsg *json.RawMessage) ([]StoryAreaType, erro
 			}
 
 			objects = append(objects, &storyAreaTypeMessage)
+		case StoryAreaTypeLinkType:
+			var storyAreaTypeLink StoryAreaTypeLink
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &storyAreaTypeLink)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &storyAreaTypeLink)
+		case StoryAreaTypeWeatherType:
+			var storyAreaTypeWeather StoryAreaTypeWeather
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &storyAreaTypeWeather)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &storyAreaTypeWeather)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -11656,7 +14417,7 @@ func unmarshalStoryAreaTypeSlice(rawMsg *json.RawMessage) ([]StoryAreaType, erro
 	return objects, nil
 }
 
-// InputStoryAreaType Describes type of a clickable rectangle area on a story media to be added
+// InputStoryAreaType Describes type of clickable area on a story media to be added
 type InputStoryAreaType interface {
 	GetInputStoryAreaTypeEnum() InputStoryAreaTypeEnum
 }
@@ -11671,6 +14432,8 @@ const (
 	InputStoryAreaTypePreviousVenueType     InputStoryAreaTypeEnum = "inputStoryAreaTypePreviousVenue"
 	InputStoryAreaTypeSuggestedReactionType InputStoryAreaTypeEnum = "inputStoryAreaTypeSuggestedReaction"
 	InputStoryAreaTypeMessageType           InputStoryAreaTypeEnum = "inputStoryAreaTypeMessage"
+	InputStoryAreaTypeLinkType              InputStoryAreaTypeEnum = "inputStoryAreaTypeLink"
+	InputStoryAreaTypeWeatherType           InputStoryAreaTypeEnum = "inputStoryAreaTypeWeather"
 )
 
 func unmarshalInputStoryAreaType(rawMsg *json.RawMessage) (InputStoryAreaType, error) {
@@ -11709,6 +14472,16 @@ func unmarshalInputStoryAreaType(rawMsg *json.RawMessage) (InputStoryAreaType, e
 		var inputStoryAreaTypeMessage InputStoryAreaTypeMessage
 		err := json.Unmarshal(*rawMsg, &inputStoryAreaTypeMessage)
 		return &inputStoryAreaTypeMessage, err
+
+	case InputStoryAreaTypeLinkType:
+		var inputStoryAreaTypeLink InputStoryAreaTypeLink
+		err := json.Unmarshal(*rawMsg, &inputStoryAreaTypeLink)
+		return &inputStoryAreaTypeLink, err
+
+	case InputStoryAreaTypeWeatherType:
+		var inputStoryAreaTypeWeather InputStoryAreaTypeWeather
+		err := json.Unmarshal(*rawMsg, &inputStoryAreaTypeWeather)
+		return &inputStoryAreaTypeWeather, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -11793,6 +14566,32 @@ func unmarshalInputStoryAreaTypeSlice(rawMsg *json.RawMessage) ([]InputStoryArea
 			}
 
 			objects = append(objects, &inputStoryAreaTypeMessage)
+		case InputStoryAreaTypeLinkType:
+			var inputStoryAreaTypeLink InputStoryAreaTypeLink
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &inputStoryAreaTypeLink)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &inputStoryAreaTypeLink)
+		case InputStoryAreaTypeWeatherType:
+			var inputStoryAreaTypeWeather InputStoryAreaTypeWeather
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &inputStoryAreaTypeWeather)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &inputStoryAreaTypeWeather)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -12482,6 +15281,95 @@ func unmarshalChatBoostSourceSlice(rawMsg *json.RawMessage) ([]ChatBoostSource, 
 	return objects, nil
 }
 
+// ResendCodeReason Describes the reason why a code needs to be re-sent
+type ResendCodeReason interface {
+	GetResendCodeReasonEnum() ResendCodeReasonEnum
+}
+
+// ResendCodeReasonEnum Alias for abstract ResendCodeReason 'Sub-Classes', used as constant-enum here
+type ResendCodeReasonEnum string
+
+// ResendCodeReason enums
+const (
+	ResendCodeReasonUserRequestType        ResendCodeReasonEnum = "resendCodeReasonUserRequest"
+	ResendCodeReasonVerificationFailedType ResendCodeReasonEnum = "resendCodeReasonVerificationFailed"
+)
+
+func unmarshalResendCodeReason(rawMsg *json.RawMessage) (ResendCodeReason, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch ResendCodeReasonEnum(objMap["@type"].(string)) {
+	case ResendCodeReasonUserRequestType:
+		var resendCodeReasonUserRequest ResendCodeReasonUserRequest
+		err := json.Unmarshal(*rawMsg, &resendCodeReasonUserRequest)
+		return &resendCodeReasonUserRequest, err
+
+	case ResendCodeReasonVerificationFailedType:
+		var resendCodeReasonVerificationFailed ResendCodeReasonVerificationFailed
+		err := json.Unmarshal(*rawMsg, &resendCodeReasonVerificationFailed)
+		return &resendCodeReasonVerificationFailed, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalResendCodeReasonSlice(rawMsg *json.RawMessage) ([]ResendCodeReason, error) {
+	objects := make([]ResendCodeReason, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch ResendCodeReasonEnum(objMap["@type"].(string)) {
+		case ResendCodeReasonUserRequestType:
+			var resendCodeReasonUserRequest ResendCodeReasonUserRequest
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &resendCodeReasonUserRequest)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &resendCodeReasonUserRequest)
+		case ResendCodeReasonVerificationFailedType:
+			var resendCodeReasonVerificationFailed ResendCodeReasonVerificationFailed
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &resendCodeReasonVerificationFailed)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &resendCodeReasonVerificationFailed)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
 // CallDiscardReason Describes the reason why a call was discarded
 type CallDiscardReason interface {
 	GetCallDiscardReasonEnum() CallDiscardReasonEnum
@@ -12628,7 +15516,7 @@ func unmarshalCallDiscardReasonSlice(rawMsg *json.RawMessage) ([]CallDiscardReas
 	return objects, nil
 }
 
-// CallServerType Describes the type of a call server
+// CallServerType Describes the type of call server
 type CallServerType interface {
 	GetCallServerTypeEnum() CallServerTypeEnum
 }
@@ -12990,7 +15878,7 @@ func unmarshalGroupCallVideoQualitySlice(rawMsg *json.RawMessage) ([]GroupCallVi
 	return objects, nil
 }
 
-// CallProblem Describes the exact type of a problem with a call
+// CallProblem Describes the exact type of problem with a call
 type CallProblem interface {
 	GetCallProblemEnum() CallProblemEnum
 }
@@ -13292,6 +16180,95 @@ func unmarshalFirebaseAuthenticationSettingsSlice(rawMsg *json.RawMessage) ([]Fi
 			}
 
 			objects = append(objects, &firebaseAuthenticationSettingsIos)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// ReactionUnavailabilityReason Describes why the current user can't add reactions to the message, despite some other users can
+type ReactionUnavailabilityReason interface {
+	GetReactionUnavailabilityReasonEnum() ReactionUnavailabilityReasonEnum
+}
+
+// ReactionUnavailabilityReasonEnum Alias for abstract ReactionUnavailabilityReason 'Sub-Classes', used as constant-enum here
+type ReactionUnavailabilityReasonEnum string
+
+// ReactionUnavailabilityReason enums
+const (
+	ReactionUnavailabilityReasonAnonymousAdministratorType ReactionUnavailabilityReasonEnum = "reactionUnavailabilityReasonAnonymousAdministrator"
+	ReactionUnavailabilityReasonGuestType                  ReactionUnavailabilityReasonEnum = "reactionUnavailabilityReasonGuest"
+)
+
+func unmarshalReactionUnavailabilityReason(rawMsg *json.RawMessage) (ReactionUnavailabilityReason, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch ReactionUnavailabilityReasonEnum(objMap["@type"].(string)) {
+	case ReactionUnavailabilityReasonAnonymousAdministratorType:
+		var reactionUnavailabilityReasonAnonymousAdministrator ReactionUnavailabilityReasonAnonymousAdministrator
+		err := json.Unmarshal(*rawMsg, &reactionUnavailabilityReasonAnonymousAdministrator)
+		return &reactionUnavailabilityReasonAnonymousAdministrator, err
+
+	case ReactionUnavailabilityReasonGuestType:
+		var reactionUnavailabilityReasonGuest ReactionUnavailabilityReasonGuest
+		err := json.Unmarshal(*rawMsg, &reactionUnavailabilityReasonGuest)
+		return &reactionUnavailabilityReasonGuest, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalReactionUnavailabilityReasonSlice(rawMsg *json.RawMessage) ([]ReactionUnavailabilityReason, error) {
+	objects := make([]ReactionUnavailabilityReason, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch ReactionUnavailabilityReasonEnum(objMap["@type"].(string)) {
+		case ReactionUnavailabilityReasonAnonymousAdministratorType:
+			var reactionUnavailabilityReasonAnonymousAdministrator ReactionUnavailabilityReasonAnonymousAdministrator
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &reactionUnavailabilityReasonAnonymousAdministrator)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &reactionUnavailabilityReasonAnonymousAdministrator)
+		case ReactionUnavailabilityReasonGuestType:
+			var reactionUnavailabilityReasonGuest ReactionUnavailabilityReasonGuest
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &reactionUnavailabilityReasonGuest)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &reactionUnavailabilityReasonGuest)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -14183,7 +17160,7 @@ func unmarshalInlineQueryResultSlice(rawMsg *json.RawMessage) ([]InlineQueryResu
 	return objects, nil
 }
 
-// InlineQueryResultsButtonType Represents a type of a button in results of inline query
+// InlineQueryResultsButtonType Represents type of button in results of inline query
 type InlineQueryResultsButtonType interface {
 	GetInlineQueryResultsButtonTypeEnum() InlineQueryResultsButtonTypeEnum
 }
@@ -14402,6 +17379,7 @@ const (
 	ChatEventMemberLeftType                             ChatEventActionEnum = "chatEventMemberLeft"
 	ChatEventMemberPromotedType                         ChatEventActionEnum = "chatEventMemberPromoted"
 	ChatEventMemberRestrictedType                       ChatEventActionEnum = "chatEventMemberRestricted"
+	ChatEventMemberSubscriptionExtendedType             ChatEventActionEnum = "chatEventMemberSubscriptionExtended"
 	ChatEventAvailableReactionsChangedType              ChatEventActionEnum = "chatEventAvailableReactionsChanged"
 	ChatEventBackgroundChangedType                      ChatEventActionEnum = "chatEventBackgroundChanged"
 	ChatEventDescriptionChangedType                     ChatEventActionEnum = "chatEventDescriptionChanged"
@@ -14413,6 +17391,7 @@ const (
 	ChatEventPhotoChangedType                           ChatEventActionEnum = "chatEventPhotoChanged"
 	ChatEventSlowModeDelayChangedType                   ChatEventActionEnum = "chatEventSlowModeDelayChanged"
 	ChatEventStickerSetChangedType                      ChatEventActionEnum = "chatEventStickerSetChanged"
+	ChatEventCustomEmojiStickerSetChangedType           ChatEventActionEnum = "chatEventCustomEmojiStickerSetChanged"
 	ChatEventTitleChangedType                           ChatEventActionEnum = "chatEventTitleChanged"
 	ChatEventUsernameChangedType                        ChatEventActionEnum = "chatEventUsernameChanged"
 	ChatEventActiveUsernamesChangedType                 ChatEventActionEnum = "chatEventActiveUsernamesChanged"
@@ -14423,6 +17402,7 @@ const (
 	ChatEventIsAllHistoryAvailableToggledType           ChatEventActionEnum = "chatEventIsAllHistoryAvailableToggled"
 	ChatEventHasAggressiveAntiSpamEnabledToggledType    ChatEventActionEnum = "chatEventHasAggressiveAntiSpamEnabledToggled"
 	ChatEventSignMessagesToggledType                    ChatEventActionEnum = "chatEventSignMessagesToggled"
+	ChatEventShowMessageSenderToggledType               ChatEventActionEnum = "chatEventShowMessageSenderToggled"
 	ChatEventInviteLinkEditedType                       ChatEventActionEnum = "chatEventInviteLinkEdited"
 	ChatEventInviteLinkRevokedType                      ChatEventActionEnum = "chatEventInviteLinkRevoked"
 	ChatEventInviteLinkDeletedType                      ChatEventActionEnum = "chatEventInviteLinkDeleted"
@@ -14512,6 +17492,11 @@ func unmarshalChatEventAction(rawMsg *json.RawMessage) (ChatEventAction, error) 
 		err := json.Unmarshal(*rawMsg, &chatEventMemberRestricted)
 		return &chatEventMemberRestricted, err
 
+	case ChatEventMemberSubscriptionExtendedType:
+		var chatEventMemberSubscriptionExtended ChatEventMemberSubscriptionExtended
+		err := json.Unmarshal(*rawMsg, &chatEventMemberSubscriptionExtended)
+		return &chatEventMemberSubscriptionExtended, err
+
 	case ChatEventAvailableReactionsChangedType:
 		var chatEventAvailableReactionsChanged ChatEventAvailableReactionsChanged
 		err := json.Unmarshal(*rawMsg, &chatEventAvailableReactionsChanged)
@@ -14567,6 +17552,11 @@ func unmarshalChatEventAction(rawMsg *json.RawMessage) (ChatEventAction, error) 
 		err := json.Unmarshal(*rawMsg, &chatEventStickerSetChanged)
 		return &chatEventStickerSetChanged, err
 
+	case ChatEventCustomEmojiStickerSetChangedType:
+		var chatEventCustomEmojiStickerSetChanged ChatEventCustomEmojiStickerSetChanged
+		err := json.Unmarshal(*rawMsg, &chatEventCustomEmojiStickerSetChanged)
+		return &chatEventCustomEmojiStickerSetChanged, err
+
 	case ChatEventTitleChangedType:
 		var chatEventTitleChanged ChatEventTitleChanged
 		err := json.Unmarshal(*rawMsg, &chatEventTitleChanged)
@@ -14616,6 +17606,11 @@ func unmarshalChatEventAction(rawMsg *json.RawMessage) (ChatEventAction, error) 
 		var chatEventSignMessagesToggled ChatEventSignMessagesToggled
 		err := json.Unmarshal(*rawMsg, &chatEventSignMessagesToggled)
 		return &chatEventSignMessagesToggled, err
+
+	case ChatEventShowMessageSenderToggledType:
+		var chatEventShowMessageSenderToggled ChatEventShowMessageSenderToggled
+		err := json.Unmarshal(*rawMsg, &chatEventShowMessageSenderToggled)
+		return &chatEventShowMessageSenderToggled, err
 
 	case ChatEventInviteLinkEditedType:
 		var chatEventInviteLinkEdited ChatEventInviteLinkEdited
@@ -14866,6 +17861,19 @@ func unmarshalChatEventActionSlice(rawMsg *json.RawMessage) ([]ChatEventAction, 
 			}
 
 			objects = append(objects, &chatEventMemberRestricted)
+		case ChatEventMemberSubscriptionExtendedType:
+			var chatEventMemberSubscriptionExtended ChatEventMemberSubscriptionExtended
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatEventMemberSubscriptionExtended)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatEventMemberSubscriptionExtended)
 		case ChatEventAvailableReactionsChangedType:
 			var chatEventAvailableReactionsChanged ChatEventAvailableReactionsChanged
 			obj, err := json.Marshal(objMap)
@@ -15009,6 +18017,19 @@ func unmarshalChatEventActionSlice(rawMsg *json.RawMessage) ([]ChatEventAction, 
 			}
 
 			objects = append(objects, &chatEventStickerSetChanged)
+		case ChatEventCustomEmojiStickerSetChangedType:
+			var chatEventCustomEmojiStickerSetChanged ChatEventCustomEmojiStickerSetChanged
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatEventCustomEmojiStickerSetChanged)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatEventCustomEmojiStickerSetChanged)
 		case ChatEventTitleChangedType:
 			var chatEventTitleChanged ChatEventTitleChanged
 			obj, err := json.Marshal(objMap)
@@ -15139,6 +18160,19 @@ func unmarshalChatEventActionSlice(rawMsg *json.RawMessage) ([]ChatEventAction, 
 			}
 
 			objects = append(objects, &chatEventSignMessagesToggled)
+		case ChatEventShowMessageSenderToggledType:
+			var chatEventShowMessageSenderToggled ChatEventShowMessageSenderToggled
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatEventShowMessageSenderToggled)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatEventShowMessageSenderToggled)
 		case ChatEventInviteLinkEditedType:
 			var chatEventInviteLinkEdited ChatEventInviteLinkEdited
 			obj, err := json.Marshal(objMap)
@@ -15451,7 +18485,7 @@ func unmarshalLanguagePackStringValueSlice(rawMsg *json.RawMessage) ([]LanguageP
 	return objects, nil
 }
 
-// PremiumLimitType Describes type of a limit, increased for Premium users
+// PremiumLimitType Describes type of limit, increased for Premium users
 type PremiumLimitType interface {
 	GetPremiumLimitTypeEnum() PremiumLimitTypeEnum
 }
@@ -15469,6 +18503,7 @@ const (
 	PremiumLimitTypeChatFolderCountType                 PremiumLimitTypeEnum = "premiumLimitTypeChatFolderCount"
 	PremiumLimitTypeChatFolderChosenChatCountType       PremiumLimitTypeEnum = "premiumLimitTypeChatFolderChosenChatCount"
 	PremiumLimitTypePinnedArchivedChatCountType         PremiumLimitTypeEnum = "premiumLimitTypePinnedArchivedChatCount"
+	PremiumLimitTypePinnedSavedMessagesTopicCountType   PremiumLimitTypeEnum = "premiumLimitTypePinnedSavedMessagesTopicCount"
 	PremiumLimitTypeCaptionLengthType                   PremiumLimitTypeEnum = "premiumLimitTypeCaptionLength"
 	PremiumLimitTypeBioLengthType                       PremiumLimitTypeEnum = "premiumLimitTypeBioLength"
 	PremiumLimitTypeChatFolderInviteLinkCountType       PremiumLimitTypeEnum = "premiumLimitTypeChatFolderInviteLinkCount"
@@ -15532,6 +18567,11 @@ func unmarshalPremiumLimitType(rawMsg *json.RawMessage) (PremiumLimitType, error
 		var premiumLimitTypePinnedArchivedChatCount PremiumLimitTypePinnedArchivedChatCount
 		err := json.Unmarshal(*rawMsg, &premiumLimitTypePinnedArchivedChatCount)
 		return &premiumLimitTypePinnedArchivedChatCount, err
+
+	case PremiumLimitTypePinnedSavedMessagesTopicCountType:
+		var premiumLimitTypePinnedSavedMessagesTopicCount PremiumLimitTypePinnedSavedMessagesTopicCount
+		err := json.Unmarshal(*rawMsg, &premiumLimitTypePinnedSavedMessagesTopicCount)
+		return &premiumLimitTypePinnedSavedMessagesTopicCount, err
 
 	case PremiumLimitTypeCaptionLengthType:
 		var premiumLimitTypeCaptionLength PremiumLimitTypeCaptionLength
@@ -15705,6 +18745,19 @@ func unmarshalPremiumLimitTypeSlice(rawMsg *json.RawMessage) ([]PremiumLimitType
 			}
 
 			objects = append(objects, &premiumLimitTypePinnedArchivedChatCount)
+		case PremiumLimitTypePinnedSavedMessagesTopicCountType:
+			var premiumLimitTypePinnedSavedMessagesTopicCount PremiumLimitTypePinnedSavedMessagesTopicCount
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &premiumLimitTypePinnedSavedMessagesTopicCount)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &premiumLimitTypePinnedSavedMessagesTopicCount)
 		case PremiumLimitTypeCaptionLengthType:
 			var premiumLimitTypeCaptionLength PremiumLimitTypeCaptionLength
 			obj, err := json.Marshal(objMap)
@@ -15873,6 +18926,11 @@ const (
 	PremiumFeatureChatBoostType               PremiumFeatureEnum = "premiumFeatureChatBoost"
 	PremiumFeatureAccentColorType             PremiumFeatureEnum = "premiumFeatureAccentColor"
 	PremiumFeatureBackgroundForBothType       PremiumFeatureEnum = "premiumFeatureBackgroundForBoth"
+	PremiumFeatureSavedMessagesTagsType       PremiumFeatureEnum = "premiumFeatureSavedMessagesTags"
+	PremiumFeatureMessagePrivacyType          PremiumFeatureEnum = "premiumFeatureMessagePrivacy"
+	PremiumFeatureLastSeenTimesType           PremiumFeatureEnum = "premiumFeatureLastSeenTimes"
+	PremiumFeatureBusinessType                PremiumFeatureEnum = "premiumFeatureBusiness"
+	PremiumFeatureMessageEffectsType          PremiumFeatureEnum = "premiumFeatureMessageEffects"
 )
 
 func unmarshalPremiumFeature(rawMsg *json.RawMessage) (PremiumFeature, error) {
@@ -15981,6 +19039,31 @@ func unmarshalPremiumFeature(rawMsg *json.RawMessage) (PremiumFeature, error) {
 		var premiumFeatureBackgroundForBoth PremiumFeatureBackgroundForBoth
 		err := json.Unmarshal(*rawMsg, &premiumFeatureBackgroundForBoth)
 		return &premiumFeatureBackgroundForBoth, err
+
+	case PremiumFeatureSavedMessagesTagsType:
+		var premiumFeatureSavedMessagesTags PremiumFeatureSavedMessagesTags
+		err := json.Unmarshal(*rawMsg, &premiumFeatureSavedMessagesTags)
+		return &premiumFeatureSavedMessagesTags, err
+
+	case PremiumFeatureMessagePrivacyType:
+		var premiumFeatureMessagePrivacy PremiumFeatureMessagePrivacy
+		err := json.Unmarshal(*rawMsg, &premiumFeatureMessagePrivacy)
+		return &premiumFeatureMessagePrivacy, err
+
+	case PremiumFeatureLastSeenTimesType:
+		var premiumFeatureLastSeenTimes PremiumFeatureLastSeenTimes
+		err := json.Unmarshal(*rawMsg, &premiumFeatureLastSeenTimes)
+		return &premiumFeatureLastSeenTimes, err
+
+	case PremiumFeatureBusinessType:
+		var premiumFeatureBusiness PremiumFeatureBusiness
+		err := json.Unmarshal(*rawMsg, &premiumFeatureBusiness)
+		return &premiumFeatureBusiness, err
+
+	case PremiumFeatureMessageEffectsType:
+		var premiumFeatureMessageEffects PremiumFeatureMessageEffects
+		err := json.Unmarshal(*rawMsg, &premiumFeatureMessageEffects)
+		return &premiumFeatureMessageEffects, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -16247,6 +19330,331 @@ func unmarshalPremiumFeatureSlice(rawMsg *json.RawMessage) ([]PremiumFeature, er
 			}
 
 			objects = append(objects, &premiumFeatureBackgroundForBoth)
+		case PremiumFeatureSavedMessagesTagsType:
+			var premiumFeatureSavedMessagesTags PremiumFeatureSavedMessagesTags
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &premiumFeatureSavedMessagesTags)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &premiumFeatureSavedMessagesTags)
+		case PremiumFeatureMessagePrivacyType:
+			var premiumFeatureMessagePrivacy PremiumFeatureMessagePrivacy
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &premiumFeatureMessagePrivacy)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &premiumFeatureMessagePrivacy)
+		case PremiumFeatureLastSeenTimesType:
+			var premiumFeatureLastSeenTimes PremiumFeatureLastSeenTimes
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &premiumFeatureLastSeenTimes)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &premiumFeatureLastSeenTimes)
+		case PremiumFeatureBusinessType:
+			var premiumFeatureBusiness PremiumFeatureBusiness
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &premiumFeatureBusiness)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &premiumFeatureBusiness)
+		case PremiumFeatureMessageEffectsType:
+			var premiumFeatureMessageEffects PremiumFeatureMessageEffects
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &premiumFeatureMessageEffects)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &premiumFeatureMessageEffects)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// BusinessFeature Describes a feature available to Business user accounts
+type BusinessFeature interface {
+	GetBusinessFeatureEnum() BusinessFeatureEnum
+}
+
+// BusinessFeatureEnum Alias for abstract BusinessFeature 'Sub-Classes', used as constant-enum here
+type BusinessFeatureEnum string
+
+// BusinessFeature enums
+const (
+	BusinessFeatureLocationType        BusinessFeatureEnum = "businessFeatureLocation"
+	BusinessFeatureOpeningHoursType    BusinessFeatureEnum = "businessFeatureOpeningHours"
+	BusinessFeatureQuickRepliesType    BusinessFeatureEnum = "businessFeatureQuickReplies"
+	BusinessFeatureGreetingMessageType BusinessFeatureEnum = "businessFeatureGreetingMessage"
+	BusinessFeatureAwayMessageType     BusinessFeatureEnum = "businessFeatureAwayMessage"
+	BusinessFeatureAccountLinksType    BusinessFeatureEnum = "businessFeatureAccountLinks"
+	BusinessFeatureStartPageType       BusinessFeatureEnum = "businessFeatureStartPage"
+	BusinessFeatureBotsType            BusinessFeatureEnum = "businessFeatureBots"
+	BusinessFeatureEmojiStatusType     BusinessFeatureEnum = "businessFeatureEmojiStatus"
+	BusinessFeatureChatFolderTagsType  BusinessFeatureEnum = "businessFeatureChatFolderTags"
+	BusinessFeatureUpgradedStoriesType BusinessFeatureEnum = "businessFeatureUpgradedStories"
+)
+
+func unmarshalBusinessFeature(rawMsg *json.RawMessage) (BusinessFeature, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch BusinessFeatureEnum(objMap["@type"].(string)) {
+	case BusinessFeatureLocationType:
+		var businessFeatureLocation BusinessFeatureLocation
+		err := json.Unmarshal(*rawMsg, &businessFeatureLocation)
+		return &businessFeatureLocation, err
+
+	case BusinessFeatureOpeningHoursType:
+		var businessFeatureOpeningHours BusinessFeatureOpeningHours
+		err := json.Unmarshal(*rawMsg, &businessFeatureOpeningHours)
+		return &businessFeatureOpeningHours, err
+
+	case BusinessFeatureQuickRepliesType:
+		var businessFeatureQuickReplies BusinessFeatureQuickReplies
+		err := json.Unmarshal(*rawMsg, &businessFeatureQuickReplies)
+		return &businessFeatureQuickReplies, err
+
+	case BusinessFeatureGreetingMessageType:
+		var businessFeatureGreetingMessage BusinessFeatureGreetingMessage
+		err := json.Unmarshal(*rawMsg, &businessFeatureGreetingMessage)
+		return &businessFeatureGreetingMessage, err
+
+	case BusinessFeatureAwayMessageType:
+		var businessFeatureAwayMessage BusinessFeatureAwayMessage
+		err := json.Unmarshal(*rawMsg, &businessFeatureAwayMessage)
+		return &businessFeatureAwayMessage, err
+
+	case BusinessFeatureAccountLinksType:
+		var businessFeatureAccountLinks BusinessFeatureAccountLinks
+		err := json.Unmarshal(*rawMsg, &businessFeatureAccountLinks)
+		return &businessFeatureAccountLinks, err
+
+	case BusinessFeatureStartPageType:
+		var businessFeatureStartPage BusinessFeatureStartPage
+		err := json.Unmarshal(*rawMsg, &businessFeatureStartPage)
+		return &businessFeatureStartPage, err
+
+	case BusinessFeatureBotsType:
+		var businessFeatureBots BusinessFeatureBots
+		err := json.Unmarshal(*rawMsg, &businessFeatureBots)
+		return &businessFeatureBots, err
+
+	case BusinessFeatureEmojiStatusType:
+		var businessFeatureEmojiStatus BusinessFeatureEmojiStatus
+		err := json.Unmarshal(*rawMsg, &businessFeatureEmojiStatus)
+		return &businessFeatureEmojiStatus, err
+
+	case BusinessFeatureChatFolderTagsType:
+		var businessFeatureChatFolderTags BusinessFeatureChatFolderTags
+		err := json.Unmarshal(*rawMsg, &businessFeatureChatFolderTags)
+		return &businessFeatureChatFolderTags, err
+
+	case BusinessFeatureUpgradedStoriesType:
+		var businessFeatureUpgradedStories BusinessFeatureUpgradedStories
+		err := json.Unmarshal(*rawMsg, &businessFeatureUpgradedStories)
+		return &businessFeatureUpgradedStories, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalBusinessFeatureSlice(rawMsg *json.RawMessage) ([]BusinessFeature, error) {
+	objects := make([]BusinessFeature, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch BusinessFeatureEnum(objMap["@type"].(string)) {
+		case BusinessFeatureLocationType:
+			var businessFeatureLocation BusinessFeatureLocation
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureLocation)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureLocation)
+		case BusinessFeatureOpeningHoursType:
+			var businessFeatureOpeningHours BusinessFeatureOpeningHours
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureOpeningHours)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureOpeningHours)
+		case BusinessFeatureQuickRepliesType:
+			var businessFeatureQuickReplies BusinessFeatureQuickReplies
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureQuickReplies)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureQuickReplies)
+		case BusinessFeatureGreetingMessageType:
+			var businessFeatureGreetingMessage BusinessFeatureGreetingMessage
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureGreetingMessage)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureGreetingMessage)
+		case BusinessFeatureAwayMessageType:
+			var businessFeatureAwayMessage BusinessFeatureAwayMessage
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureAwayMessage)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureAwayMessage)
+		case BusinessFeatureAccountLinksType:
+			var businessFeatureAccountLinks BusinessFeatureAccountLinks
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureAccountLinks)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureAccountLinks)
+		case BusinessFeatureStartPageType:
+			var businessFeatureStartPage BusinessFeatureStartPage
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureStartPage)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureStartPage)
+		case BusinessFeatureBotsType:
+			var businessFeatureBots BusinessFeatureBots
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureBots)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureBots)
+		case BusinessFeatureEmojiStatusType:
+			var businessFeatureEmojiStatus BusinessFeatureEmojiStatus
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureEmojiStatus)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureEmojiStatus)
+		case BusinessFeatureChatFolderTagsType:
+			var businessFeatureChatFolderTags BusinessFeatureChatFolderTags
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureChatFolderTags)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureChatFolderTags)
+		case BusinessFeatureUpgradedStoriesType:
+			var businessFeatureUpgradedStories BusinessFeatureUpgradedStories
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &businessFeatureUpgradedStories)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &businessFeatureUpgradedStories)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -16272,6 +19680,7 @@ const (
 	PremiumStoryFeatureCustomExpirationDurationType PremiumStoryFeatureEnum = "premiumStoryFeatureCustomExpirationDuration"
 	PremiumStoryFeatureSaveStoriesType              PremiumStoryFeatureEnum = "premiumStoryFeatureSaveStories"
 	PremiumStoryFeatureLinksAndFormattingType       PremiumStoryFeatureEnum = "premiumStoryFeatureLinksAndFormatting"
+	PremiumStoryFeatureVideoQualityType             PremiumStoryFeatureEnum = "premiumStoryFeatureVideoQuality"
 )
 
 func unmarshalPremiumStoryFeature(rawMsg *json.RawMessage) (PremiumStoryFeature, error) {
@@ -16315,6 +19724,11 @@ func unmarshalPremiumStoryFeature(rawMsg *json.RawMessage) (PremiumStoryFeature,
 		var premiumStoryFeatureLinksAndFormatting PremiumStoryFeatureLinksAndFormatting
 		err := json.Unmarshal(*rawMsg, &premiumStoryFeatureLinksAndFormatting)
 		return &premiumStoryFeatureLinksAndFormatting, err
+
+	case PremiumStoryFeatureVideoQualityType:
+		var premiumStoryFeatureVideoQuality PremiumStoryFeatureVideoQuality
+		err := json.Unmarshal(*rawMsg, &premiumStoryFeatureVideoQuality)
+		return &premiumStoryFeatureVideoQuality, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -16412,6 +19826,19 @@ func unmarshalPremiumStoryFeatureSlice(rawMsg *json.RawMessage) ([]PremiumStoryF
 			}
 
 			objects = append(objects, &premiumStoryFeatureLinksAndFormatting)
+		case PremiumStoryFeatureVideoQualityType:
+			var premiumStoryFeatureVideoQuality PremiumStoryFeatureVideoQuality
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &premiumStoryFeatureVideoQuality)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &premiumStoryFeatureVideoQuality)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -16431,11 +19858,12 @@ type PremiumSourceEnum string
 
 // PremiumSource enums
 const (
-	PremiumSourceLimitExceededType PremiumSourceEnum = "premiumSourceLimitExceeded"
-	PremiumSourceFeatureType       PremiumSourceEnum = "premiumSourceFeature"
-	PremiumSourceStoryFeatureType  PremiumSourceEnum = "premiumSourceStoryFeature"
-	PremiumSourceLinkType          PremiumSourceEnum = "premiumSourceLink"
-	PremiumSourceSettingsType      PremiumSourceEnum = "premiumSourceSettings"
+	PremiumSourceLimitExceededType   PremiumSourceEnum = "premiumSourceLimitExceeded"
+	PremiumSourceFeatureType         PremiumSourceEnum = "premiumSourceFeature"
+	PremiumSourceBusinessFeatureType PremiumSourceEnum = "premiumSourceBusinessFeature"
+	PremiumSourceStoryFeatureType    PremiumSourceEnum = "premiumSourceStoryFeature"
+	PremiumSourceLinkType            PremiumSourceEnum = "premiumSourceLink"
+	PremiumSourceSettingsType        PremiumSourceEnum = "premiumSourceSettings"
 )
 
 func unmarshalPremiumSource(rawMsg *json.RawMessage) (PremiumSource, error) {
@@ -16459,6 +19887,11 @@ func unmarshalPremiumSource(rawMsg *json.RawMessage) (PremiumSource, error) {
 		var premiumSourceFeature PremiumSourceFeature
 		err := json.Unmarshal(*rawMsg, &premiumSourceFeature)
 		return &premiumSourceFeature, err
+
+	case PremiumSourceBusinessFeatureType:
+		var premiumSourceBusinessFeature PremiumSourceBusinessFeature
+		err := json.Unmarshal(*rawMsg, &premiumSourceBusinessFeature)
+		return &premiumSourceBusinessFeature, err
 
 	case PremiumSourceStoryFeatureType:
 		var premiumSourceStoryFeature PremiumSourceStoryFeature
@@ -16519,6 +19952,19 @@ func unmarshalPremiumSourceSlice(rawMsg *json.RawMessage) ([]PremiumSource, erro
 			}
 
 			objects = append(objects, &premiumSourceFeature)
+		case PremiumSourceBusinessFeatureType:
+			var premiumSourceBusinessFeature PremiumSourceBusinessFeature
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &premiumSourceBusinessFeature)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &premiumSourceBusinessFeature)
 		case PremiumSourceStoryFeatureType:
 			var premiumSourceStoryFeature PremiumSourceStoryFeature
 			obj, err := json.Marshal(objMap)
@@ -16581,6 +20027,9 @@ const (
 	StorePaymentPurposeGiftedPremiumType       StorePaymentPurposeEnum = "storePaymentPurposeGiftedPremium"
 	StorePaymentPurposePremiumGiftCodesType    StorePaymentPurposeEnum = "storePaymentPurposePremiumGiftCodes"
 	StorePaymentPurposePremiumGiveawayType     StorePaymentPurposeEnum = "storePaymentPurposePremiumGiveaway"
+	StorePaymentPurposeStarGiveawayType        StorePaymentPurposeEnum = "storePaymentPurposeStarGiveaway"
+	StorePaymentPurposeStarsType               StorePaymentPurposeEnum = "storePaymentPurposeStars"
+	StorePaymentPurposeGiftedStarsType         StorePaymentPurposeEnum = "storePaymentPurposeGiftedStars"
 )
 
 func unmarshalStorePaymentPurpose(rawMsg *json.RawMessage) (StorePaymentPurpose, error) {
@@ -16614,6 +20063,21 @@ func unmarshalStorePaymentPurpose(rawMsg *json.RawMessage) (StorePaymentPurpose,
 		var storePaymentPurposePremiumGiveaway StorePaymentPurposePremiumGiveaway
 		err := json.Unmarshal(*rawMsg, &storePaymentPurposePremiumGiveaway)
 		return &storePaymentPurposePremiumGiveaway, err
+
+	case StorePaymentPurposeStarGiveawayType:
+		var storePaymentPurposeStarGiveaway StorePaymentPurposeStarGiveaway
+		err := json.Unmarshal(*rawMsg, &storePaymentPurposeStarGiveaway)
+		return &storePaymentPurposeStarGiveaway, err
+
+	case StorePaymentPurposeStarsType:
+		var storePaymentPurposeStars StorePaymentPurposeStars
+		err := json.Unmarshal(*rawMsg, &storePaymentPurposeStars)
+		return &storePaymentPurposeStars, err
+
+	case StorePaymentPurposeGiftedStarsType:
+		var storePaymentPurposeGiftedStars StorePaymentPurposeGiftedStars
+		err := json.Unmarshal(*rawMsg, &storePaymentPurposeGiftedStars)
+		return &storePaymentPurposeGiftedStars, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -16685,6 +20149,45 @@ func unmarshalStorePaymentPurposeSlice(rawMsg *json.RawMessage) ([]StorePaymentP
 			}
 
 			objects = append(objects, &storePaymentPurposePremiumGiveaway)
+		case StorePaymentPurposeStarGiveawayType:
+			var storePaymentPurposeStarGiveaway StorePaymentPurposeStarGiveaway
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &storePaymentPurposeStarGiveaway)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &storePaymentPurposeStarGiveaway)
+		case StorePaymentPurposeStarsType:
+			var storePaymentPurposeStars StorePaymentPurposeStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &storePaymentPurposeStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &storePaymentPurposeStars)
+		case StorePaymentPurposeGiftedStarsType:
+			var storePaymentPurposeGiftedStars StorePaymentPurposeGiftedStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &storePaymentPurposeGiftedStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &storePaymentPurposeGiftedStars)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -16706,6 +20209,10 @@ type TelegramPaymentPurposeEnum string
 const (
 	TelegramPaymentPurposePremiumGiftCodesType TelegramPaymentPurposeEnum = "telegramPaymentPurposePremiumGiftCodes"
 	TelegramPaymentPurposePremiumGiveawayType  TelegramPaymentPurposeEnum = "telegramPaymentPurposePremiumGiveaway"
+	TelegramPaymentPurposeStarsType            TelegramPaymentPurposeEnum = "telegramPaymentPurposeStars"
+	TelegramPaymentPurposeGiftedStarsType      TelegramPaymentPurposeEnum = "telegramPaymentPurposeGiftedStars"
+	TelegramPaymentPurposeStarGiveawayType     TelegramPaymentPurposeEnum = "telegramPaymentPurposeStarGiveaway"
+	TelegramPaymentPurposeJoinChatType         TelegramPaymentPurposeEnum = "telegramPaymentPurposeJoinChat"
 )
 
 func unmarshalTelegramPaymentPurpose(rawMsg *json.RawMessage) (TelegramPaymentPurpose, error) {
@@ -16729,6 +20236,26 @@ func unmarshalTelegramPaymentPurpose(rawMsg *json.RawMessage) (TelegramPaymentPu
 		var telegramPaymentPurposePremiumGiveaway TelegramPaymentPurposePremiumGiveaway
 		err := json.Unmarshal(*rawMsg, &telegramPaymentPurposePremiumGiveaway)
 		return &telegramPaymentPurposePremiumGiveaway, err
+
+	case TelegramPaymentPurposeStarsType:
+		var telegramPaymentPurposeStars TelegramPaymentPurposeStars
+		err := json.Unmarshal(*rawMsg, &telegramPaymentPurposeStars)
+		return &telegramPaymentPurposeStars, err
+
+	case TelegramPaymentPurposeGiftedStarsType:
+		var telegramPaymentPurposeGiftedStars TelegramPaymentPurposeGiftedStars
+		err := json.Unmarshal(*rawMsg, &telegramPaymentPurposeGiftedStars)
+		return &telegramPaymentPurposeGiftedStars, err
+
+	case TelegramPaymentPurposeStarGiveawayType:
+		var telegramPaymentPurposeStarGiveaway TelegramPaymentPurposeStarGiveaway
+		err := json.Unmarshal(*rawMsg, &telegramPaymentPurposeStarGiveaway)
+		return &telegramPaymentPurposeStarGiveaway, err
+
+	case TelegramPaymentPurposeJoinChatType:
+		var telegramPaymentPurposeJoinChat TelegramPaymentPurposeJoinChat
+		err := json.Unmarshal(*rawMsg, &telegramPaymentPurposeJoinChat)
+		return &telegramPaymentPurposeJoinChat, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -16774,6 +20301,58 @@ func unmarshalTelegramPaymentPurposeSlice(rawMsg *json.RawMessage) ([]TelegramPa
 			}
 
 			objects = append(objects, &telegramPaymentPurposePremiumGiveaway)
+		case TelegramPaymentPurposeStarsType:
+			var telegramPaymentPurposeStars TelegramPaymentPurposeStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &telegramPaymentPurposeStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &telegramPaymentPurposeStars)
+		case TelegramPaymentPurposeGiftedStarsType:
+			var telegramPaymentPurposeGiftedStars TelegramPaymentPurposeGiftedStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &telegramPaymentPurposeGiftedStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &telegramPaymentPurposeGiftedStars)
+		case TelegramPaymentPurposeStarGiveawayType:
+			var telegramPaymentPurposeStarGiveaway TelegramPaymentPurposeStarGiveaway
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &telegramPaymentPurposeStarGiveaway)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &telegramPaymentPurposeStarGiveaway)
+		case TelegramPaymentPurposeJoinChatType:
+			var telegramPaymentPurposeJoinChat TelegramPaymentPurposeJoinChat
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &telegramPaymentPurposeJoinChat)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &telegramPaymentPurposeJoinChat)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -17170,7 +20749,7 @@ func unmarshalBackgroundFillSlice(rawMsg *json.RawMessage) ([]BackgroundFill, er
 	return objects, nil
 }
 
-// BackgroundType Describes the type of a background
+// BackgroundType Describes the type of background
 type BackgroundType interface {
 	GetBackgroundTypeEnum() BackgroundTypeEnum
 }
@@ -18206,10 +21785,11 @@ const (
 	PushMessageContentGameScoreType            PushMessageContentEnum = "pushMessageContentGameScore"
 	PushMessageContentInvoiceType              PushMessageContentEnum = "pushMessageContentInvoice"
 	PushMessageContentLocationType             PushMessageContentEnum = "pushMessageContentLocation"
+	PushMessageContentPaidMediaType            PushMessageContentEnum = "pushMessageContentPaidMedia"
 	PushMessageContentPhotoType                PushMessageContentEnum = "pushMessageContentPhoto"
 	PushMessageContentPollType                 PushMessageContentEnum = "pushMessageContentPoll"
 	PushMessageContentPremiumGiftCodeType      PushMessageContentEnum = "pushMessageContentPremiumGiftCode"
-	PushMessageContentPremiumGiveawayType      PushMessageContentEnum = "pushMessageContentPremiumGiveaway"
+	PushMessageContentGiveawayType             PushMessageContentEnum = "pushMessageContentGiveaway"
 	PushMessageContentScreenshotTakenType      PushMessageContentEnum = "pushMessageContentScreenshotTaken"
 	PushMessageContentStickerType              PushMessageContentEnum = "pushMessageContentSticker"
 	PushMessageContentStoryType                PushMessageContentEnum = "pushMessageContentStory"
@@ -18294,6 +21874,11 @@ func unmarshalPushMessageContent(rawMsg *json.RawMessage) (PushMessageContent, e
 		err := json.Unmarshal(*rawMsg, &pushMessageContentLocation)
 		return &pushMessageContentLocation, err
 
+	case PushMessageContentPaidMediaType:
+		var pushMessageContentPaidMedia PushMessageContentPaidMedia
+		err := json.Unmarshal(*rawMsg, &pushMessageContentPaidMedia)
+		return &pushMessageContentPaidMedia, err
+
 	case PushMessageContentPhotoType:
 		var pushMessageContentPhoto PushMessageContentPhoto
 		err := json.Unmarshal(*rawMsg, &pushMessageContentPhoto)
@@ -18309,10 +21894,10 @@ func unmarshalPushMessageContent(rawMsg *json.RawMessage) (PushMessageContent, e
 		err := json.Unmarshal(*rawMsg, &pushMessageContentPremiumGiftCode)
 		return &pushMessageContentPremiumGiftCode, err
 
-	case PushMessageContentPremiumGiveawayType:
-		var pushMessageContentPremiumGiveaway PushMessageContentPremiumGiveaway
-		err := json.Unmarshal(*rawMsg, &pushMessageContentPremiumGiveaway)
-		return &pushMessageContentPremiumGiveaway, err
+	case PushMessageContentGiveawayType:
+		var pushMessageContentGiveaway PushMessageContentGiveaway
+		err := json.Unmarshal(*rawMsg, &pushMessageContentGiveaway)
+		return &pushMessageContentGiveaway, err
 
 	case PushMessageContentScreenshotTakenType:
 		var pushMessageContentScreenshotTaken PushMessageContentScreenshotTaken
@@ -18562,6 +22147,19 @@ func unmarshalPushMessageContentSlice(rawMsg *json.RawMessage) ([]PushMessageCon
 			}
 
 			objects = append(objects, &pushMessageContentLocation)
+		case PushMessageContentPaidMediaType:
+			var pushMessageContentPaidMedia PushMessageContentPaidMedia
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &pushMessageContentPaidMedia)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &pushMessageContentPaidMedia)
 		case PushMessageContentPhotoType:
 			var pushMessageContentPhoto PushMessageContentPhoto
 			obj, err := json.Marshal(objMap)
@@ -18601,19 +22199,19 @@ func unmarshalPushMessageContentSlice(rawMsg *json.RawMessage) ([]PushMessageCon
 			}
 
 			objects = append(objects, &pushMessageContentPremiumGiftCode)
-		case PushMessageContentPremiumGiveawayType:
-			var pushMessageContentPremiumGiveaway PushMessageContentPremiumGiveaway
+		case PushMessageContentGiveawayType:
+			var pushMessageContentGiveaway PushMessageContentGiveaway
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &pushMessageContentPremiumGiveaway)
+			err = json.Unmarshal(obj, &pushMessageContentGiveaway)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &pushMessageContentPremiumGiveaway)
+			objects = append(objects, &pushMessageContentGiveaway)
 		case PushMessageContentScreenshotTakenType:
 			var pushMessageContentScreenshotTaken PushMessageContentScreenshotTaken
 			obj, err := json.Marshal(objMap)
@@ -19568,6 +23166,7 @@ type UserPrivacySettingRuleEnum string
 const (
 	UserPrivacySettingRuleAllowAllType            UserPrivacySettingRuleEnum = "userPrivacySettingRuleAllowAll"
 	UserPrivacySettingRuleAllowContactsType       UserPrivacySettingRuleEnum = "userPrivacySettingRuleAllowContacts"
+	UserPrivacySettingRuleAllowPremiumUsersType   UserPrivacySettingRuleEnum = "userPrivacySettingRuleAllowPremiumUsers"
 	UserPrivacySettingRuleAllowUsersType          UserPrivacySettingRuleEnum = "userPrivacySettingRuleAllowUsers"
 	UserPrivacySettingRuleAllowChatMembersType    UserPrivacySettingRuleEnum = "userPrivacySettingRuleAllowChatMembers"
 	UserPrivacySettingRuleRestrictAllType         UserPrivacySettingRuleEnum = "userPrivacySettingRuleRestrictAll"
@@ -19597,6 +23196,11 @@ func unmarshalUserPrivacySettingRule(rawMsg *json.RawMessage) (UserPrivacySettin
 		var userPrivacySettingRuleAllowContacts UserPrivacySettingRuleAllowContacts
 		err := json.Unmarshal(*rawMsg, &userPrivacySettingRuleAllowContacts)
 		return &userPrivacySettingRuleAllowContacts, err
+
+	case UserPrivacySettingRuleAllowPremiumUsersType:
+		var userPrivacySettingRuleAllowPremiumUsers UserPrivacySettingRuleAllowPremiumUsers
+		err := json.Unmarshal(*rawMsg, &userPrivacySettingRuleAllowPremiumUsers)
+		return &userPrivacySettingRuleAllowPremiumUsers, err
 
 	case UserPrivacySettingRuleAllowUsersType:
 		var userPrivacySettingRuleAllowUsers UserPrivacySettingRuleAllowUsers
@@ -19672,6 +23276,19 @@ func unmarshalUserPrivacySettingRuleSlice(rawMsg *json.RawMessage) ([]UserPrivac
 			}
 
 			objects = append(objects, &userPrivacySettingRuleAllowContacts)
+		case UserPrivacySettingRuleAllowPremiumUsersType:
+			var userPrivacySettingRuleAllowPremiumUsers UserPrivacySettingRuleAllowPremiumUsers
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &userPrivacySettingRuleAllowPremiumUsers)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &userPrivacySettingRuleAllowPremiumUsers)
 		case UserPrivacySettingRuleAllowUsersType:
 			var userPrivacySettingRuleAllowUsers UserPrivacySettingRuleAllowUsers
 			obj, err := json.Marshal(objMap)
@@ -19774,6 +23391,7 @@ const (
 	UserPrivacySettingShowLinkInForwardedMessagesType           UserPrivacySettingEnum = "userPrivacySettingShowLinkInForwardedMessages"
 	UserPrivacySettingShowPhoneNumberType                       UserPrivacySettingEnum = "userPrivacySettingShowPhoneNumber"
 	UserPrivacySettingShowBioType                               UserPrivacySettingEnum = "userPrivacySettingShowBio"
+	UserPrivacySettingShowBirthdateType                         UserPrivacySettingEnum = "userPrivacySettingShowBirthdate"
 	UserPrivacySettingAllowChatInvitesType                      UserPrivacySettingEnum = "userPrivacySettingAllowChatInvites"
 	UserPrivacySettingAllowCallsType                            UserPrivacySettingEnum = "userPrivacySettingAllowCalls"
 	UserPrivacySettingAllowPeerToPeerCallsType                  UserPrivacySettingEnum = "userPrivacySettingAllowPeerToPeerCalls"
@@ -19817,6 +23435,11 @@ func unmarshalUserPrivacySetting(rawMsg *json.RawMessage) (UserPrivacySetting, e
 		var userPrivacySettingShowBio UserPrivacySettingShowBio
 		err := json.Unmarshal(*rawMsg, &userPrivacySettingShowBio)
 		return &userPrivacySettingShowBio, err
+
+	case UserPrivacySettingShowBirthdateType:
+		var userPrivacySettingShowBirthdate UserPrivacySettingShowBirthdate
+		err := json.Unmarshal(*rawMsg, &userPrivacySettingShowBirthdate)
+		return &userPrivacySettingShowBirthdate, err
 
 	case UserPrivacySettingAllowChatInvitesType:
 		var userPrivacySettingAllowChatInvites UserPrivacySettingAllowChatInvites
@@ -19926,6 +23549,19 @@ func unmarshalUserPrivacySettingSlice(rawMsg *json.RawMessage) ([]UserPrivacySet
 			}
 
 			objects = append(objects, &userPrivacySettingShowBio)
+		case UserPrivacySettingShowBirthdateType:
+			var userPrivacySettingShowBirthdate UserPrivacySettingShowBirthdate
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &userPrivacySettingShowBirthdate)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &userPrivacySettingShowBirthdate)
 		case UserPrivacySettingAllowChatInvitesType:
 			var userPrivacySettingAllowChatInvites UserPrivacySettingAllowChatInvites
 			obj, err := json.Marshal(objMap)
@@ -20000,7 +23636,115 @@ func unmarshalUserPrivacySettingSlice(rawMsg *json.RawMessage) ([]UserPrivacySet
 	return objects, nil
 }
 
-// SessionType Represents the type of a session
+// CanSendMessageToUserResult Describes result of canSendMessageToUser
+type CanSendMessageToUserResult interface {
+	GetCanSendMessageToUserResultEnum() CanSendMessageToUserResultEnum
+}
+
+// CanSendMessageToUserResultEnum Alias for abstract CanSendMessageToUserResult 'Sub-Classes', used as constant-enum here
+type CanSendMessageToUserResultEnum string
+
+// CanSendMessageToUserResult enums
+const (
+	CanSendMessageToUserResultOkType                    CanSendMessageToUserResultEnum = "canSendMessageToUserResultOk"
+	CanSendMessageToUserResultUserIsDeletedType         CanSendMessageToUserResultEnum = "canSendMessageToUserResultUserIsDeleted"
+	CanSendMessageToUserResultUserRestrictsNewChatsType CanSendMessageToUserResultEnum = "canSendMessageToUserResultUserRestrictsNewChats"
+)
+
+func unmarshalCanSendMessageToUserResult(rawMsg *json.RawMessage) (CanSendMessageToUserResult, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch CanSendMessageToUserResultEnum(objMap["@type"].(string)) {
+	case CanSendMessageToUserResultOkType:
+		var canSendMessageToUserResultOk CanSendMessageToUserResultOk
+		err := json.Unmarshal(*rawMsg, &canSendMessageToUserResultOk)
+		return &canSendMessageToUserResultOk, err
+
+	case CanSendMessageToUserResultUserIsDeletedType:
+		var canSendMessageToUserResultUserIsDeleted CanSendMessageToUserResultUserIsDeleted
+		err := json.Unmarshal(*rawMsg, &canSendMessageToUserResultUserIsDeleted)
+		return &canSendMessageToUserResultUserIsDeleted, err
+
+	case CanSendMessageToUserResultUserRestrictsNewChatsType:
+		var canSendMessageToUserResultUserRestrictsNewChats CanSendMessageToUserResultUserRestrictsNewChats
+		err := json.Unmarshal(*rawMsg, &canSendMessageToUserResultUserRestrictsNewChats)
+		return &canSendMessageToUserResultUserRestrictsNewChats, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalCanSendMessageToUserResultSlice(rawMsg *json.RawMessage) ([]CanSendMessageToUserResult, error) {
+	objects := make([]CanSendMessageToUserResult, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch CanSendMessageToUserResultEnum(objMap["@type"].(string)) {
+		case CanSendMessageToUserResultOkType:
+			var canSendMessageToUserResultOk CanSendMessageToUserResultOk
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &canSendMessageToUserResultOk)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &canSendMessageToUserResultOk)
+		case CanSendMessageToUserResultUserIsDeletedType:
+			var canSendMessageToUserResultUserIsDeleted CanSendMessageToUserResultUserIsDeleted
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &canSendMessageToUserResultUserIsDeleted)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &canSendMessageToUserResultUserIsDeleted)
+		case CanSendMessageToUserResultUserRestrictsNewChatsType:
+			var canSendMessageToUserResultUserRestrictsNewChats CanSendMessageToUserResultUserRestrictsNewChats
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &canSendMessageToUserResultUserRestrictsNewChats)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &canSendMessageToUserResultUserRestrictsNewChats)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// SessionType Represents the type of session
 type SessionType interface {
 	GetSessionTypeEnum() SessionTypeEnum
 }
@@ -20740,6 +24484,8 @@ const (
 	InternalLinkTypeBotAddToChannelType                       InternalLinkTypeEnum = "internalLinkTypeBotAddToChannel"
 	InternalLinkTypeBotStartType                              InternalLinkTypeEnum = "internalLinkTypeBotStart"
 	InternalLinkTypeBotStartInGroupType                       InternalLinkTypeEnum = "internalLinkTypeBotStartInGroup"
+	InternalLinkTypeBusinessChatType                          InternalLinkTypeEnum = "internalLinkTypeBusinessChat"
+	InternalLinkTypeBuyStarsType                              InternalLinkTypeEnum = "internalLinkTypeBuyStars"
 	InternalLinkTypeChangePhoneNumberType                     InternalLinkTypeEnum = "internalLinkTypeChangePhoneNumber"
 	InternalLinkTypeChatBoostType                             InternalLinkTypeEnum = "internalLinkTypeChatBoost"
 	InternalLinkTypeChatFolderInviteType                      InternalLinkTypeEnum = "internalLinkTypeChatFolderInvite"
@@ -20752,6 +24498,7 @@ const (
 	InternalLinkTypeInvoiceType                               InternalLinkTypeEnum = "internalLinkTypeInvoice"
 	InternalLinkTypeLanguagePackType                          InternalLinkTypeEnum = "internalLinkTypeLanguagePack"
 	InternalLinkTypeLanguageSettingsType                      InternalLinkTypeEnum = "internalLinkTypeLanguageSettings"
+	InternalLinkTypeMainWebAppType                            InternalLinkTypeEnum = "internalLinkTypeMainWebApp"
 	InternalLinkTypeMessageType                               InternalLinkTypeEnum = "internalLinkTypeMessage"
 	InternalLinkTypeMessageDraftType                          InternalLinkTypeEnum = "internalLinkTypeMessageDraft"
 	InternalLinkTypePassportDataRequestType                   InternalLinkTypeEnum = "internalLinkTypePassportDataRequest"
@@ -20765,7 +24512,6 @@ const (
 	InternalLinkTypeQrCodeAuthenticationType                  InternalLinkTypeEnum = "internalLinkTypeQrCodeAuthentication"
 	InternalLinkTypeRestorePurchasesType                      InternalLinkTypeEnum = "internalLinkTypeRestorePurchases"
 	InternalLinkTypeSettingsType                              InternalLinkTypeEnum = "internalLinkTypeSettings"
-	InternalLinkTypeSideMenuBotType                           InternalLinkTypeEnum = "internalLinkTypeSideMenuBot"
 	InternalLinkTypeStickerSetType                            InternalLinkTypeEnum = "internalLinkTypeStickerSet"
 	InternalLinkTypeStoryType                                 InternalLinkTypeEnum = "internalLinkTypeStory"
 	InternalLinkTypeThemeType                                 InternalLinkTypeEnum = "internalLinkTypeTheme"
@@ -20824,6 +24570,16 @@ func unmarshalInternalLinkType(rawMsg *json.RawMessage) (InternalLinkType, error
 		var internalLinkTypeBotStartInGroup InternalLinkTypeBotStartInGroup
 		err := json.Unmarshal(*rawMsg, &internalLinkTypeBotStartInGroup)
 		return &internalLinkTypeBotStartInGroup, err
+
+	case InternalLinkTypeBusinessChatType:
+		var internalLinkTypeBusinessChat InternalLinkTypeBusinessChat
+		err := json.Unmarshal(*rawMsg, &internalLinkTypeBusinessChat)
+		return &internalLinkTypeBusinessChat, err
+
+	case InternalLinkTypeBuyStarsType:
+		var internalLinkTypeBuyStars InternalLinkTypeBuyStars
+		err := json.Unmarshal(*rawMsg, &internalLinkTypeBuyStars)
+		return &internalLinkTypeBuyStars, err
 
 	case InternalLinkTypeChangePhoneNumberType:
 		var internalLinkTypeChangePhoneNumber InternalLinkTypeChangePhoneNumber
@@ -20884,6 +24640,11 @@ func unmarshalInternalLinkType(rawMsg *json.RawMessage) (InternalLinkType, error
 		var internalLinkTypeLanguageSettings InternalLinkTypeLanguageSettings
 		err := json.Unmarshal(*rawMsg, &internalLinkTypeLanguageSettings)
 		return &internalLinkTypeLanguageSettings, err
+
+	case InternalLinkTypeMainWebAppType:
+		var internalLinkTypeMainWebApp InternalLinkTypeMainWebApp
+		err := json.Unmarshal(*rawMsg, &internalLinkTypeMainWebApp)
+		return &internalLinkTypeMainWebApp, err
 
 	case InternalLinkTypeMessageType:
 		var internalLinkTypeMessage InternalLinkTypeMessage
@@ -20949,11 +24710,6 @@ func unmarshalInternalLinkType(rawMsg *json.RawMessage) (InternalLinkType, error
 		var internalLinkTypeSettings InternalLinkTypeSettings
 		err := json.Unmarshal(*rawMsg, &internalLinkTypeSettings)
 		return &internalLinkTypeSettings, err
-
-	case InternalLinkTypeSideMenuBotType:
-		var internalLinkTypeSideMenuBot InternalLinkTypeSideMenuBot
-		err := json.Unmarshal(*rawMsg, &internalLinkTypeSideMenuBot)
-		return &internalLinkTypeSideMenuBot, err
 
 	case InternalLinkTypeStickerSetType:
 		var internalLinkTypeStickerSet InternalLinkTypeStickerSet
@@ -21114,6 +24870,32 @@ func unmarshalInternalLinkTypeSlice(rawMsg *json.RawMessage) ([]InternalLinkType
 			}
 
 			objects = append(objects, &internalLinkTypeBotStartInGroup)
+		case InternalLinkTypeBusinessChatType:
+			var internalLinkTypeBusinessChat InternalLinkTypeBusinessChat
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &internalLinkTypeBusinessChat)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &internalLinkTypeBusinessChat)
+		case InternalLinkTypeBuyStarsType:
+			var internalLinkTypeBuyStars InternalLinkTypeBuyStars
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &internalLinkTypeBuyStars)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &internalLinkTypeBuyStars)
 		case InternalLinkTypeChangePhoneNumberType:
 			var internalLinkTypeChangePhoneNumber InternalLinkTypeChangePhoneNumber
 			obj, err := json.Marshal(objMap)
@@ -21270,6 +25052,19 @@ func unmarshalInternalLinkTypeSlice(rawMsg *json.RawMessage) ([]InternalLinkType
 			}
 
 			objects = append(objects, &internalLinkTypeLanguageSettings)
+		case InternalLinkTypeMainWebAppType:
+			var internalLinkTypeMainWebApp InternalLinkTypeMainWebApp
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &internalLinkTypeMainWebApp)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &internalLinkTypeMainWebApp)
 		case InternalLinkTypeMessageType:
 			var internalLinkTypeMessage InternalLinkTypeMessage
 			obj, err := json.Marshal(objMap)
@@ -21439,19 +25234,6 @@ func unmarshalInternalLinkTypeSlice(rawMsg *json.RawMessage) ([]InternalLinkType
 			}
 
 			objects = append(objects, &internalLinkTypeSettings)
-		case InternalLinkTypeSideMenuBotType:
-			var internalLinkTypeSideMenuBot InternalLinkTypeSideMenuBot
-			obj, err := json.Marshal(objMap)
-			if err != nil {
-				return nil, err
-			}
-
-			err = json.Unmarshal(obj, &internalLinkTypeSideMenuBot)
-			if err != nil {
-				return nil, err
-			}
-
-			objects = append(objects, &internalLinkTypeSideMenuBot)
 		case InternalLinkTypeStickerSetType:
 			var internalLinkTypeStickerSet InternalLinkTypeStickerSet
 			obj, err := json.Marshal(objMap)
@@ -21591,7 +25373,7 @@ func unmarshalInternalLinkTypeSlice(rawMsg *json.RawMessage) ([]InternalLinkType
 	return objects, nil
 }
 
-// BlockList Describes a type of a block list
+// BlockList Describes type of block list
 type BlockList interface {
 	GetBlockListEnum() BlockListEnum
 }
@@ -21680,7 +25462,7 @@ func unmarshalBlockListSlice(rawMsg *json.RawMessage) ([]BlockList, error) {
 	return objects, nil
 }
 
-// FileType Represents the type of a file
+// FileType Represents the type of file
 type FileType interface {
 	GetFileTypeEnum() FileTypeEnum
 }
@@ -22092,7 +25874,7 @@ func unmarshalFileTypeSlice(rawMsg *json.RawMessage) ([]FileType, error) {
 	return objects, nil
 }
 
-// NetworkType Represents the type of a network
+// NetworkType Represents the type of network
 type NetworkType interface {
 	GetNetworkTypeEnum() NetworkTypeEnum
 }
@@ -22615,6 +26397,7 @@ const (
 	TopChatCategoryGroupsType       TopChatCategoryEnum = "topChatCategoryGroups"
 	TopChatCategoryChannelsType     TopChatCategoryEnum = "topChatCategoryChannels"
 	TopChatCategoryInlineBotsType   TopChatCategoryEnum = "topChatCategoryInlineBots"
+	TopChatCategoryWebAppBotsType   TopChatCategoryEnum = "topChatCategoryWebAppBots"
 	TopChatCategoryCallsType        TopChatCategoryEnum = "topChatCategoryCalls"
 	TopChatCategoryForwardChatsType TopChatCategoryEnum = "topChatCategoryForwardChats"
 )
@@ -22655,6 +26438,11 @@ func unmarshalTopChatCategory(rawMsg *json.RawMessage) (TopChatCategory, error) 
 		var topChatCategoryInlineBots TopChatCategoryInlineBots
 		err := json.Unmarshal(*rawMsg, &topChatCategoryInlineBots)
 		return &topChatCategoryInlineBots, err
+
+	case TopChatCategoryWebAppBotsType:
+		var topChatCategoryWebAppBots TopChatCategoryWebAppBots
+		err := json.Unmarshal(*rawMsg, &topChatCategoryWebAppBots)
+		return &topChatCategoryWebAppBots, err
 
 	case TopChatCategoryCallsType:
 		var topChatCategoryCalls TopChatCategoryCalls
@@ -22749,6 +26537,19 @@ func unmarshalTopChatCategorySlice(rawMsg *json.RawMessage) ([]TopChatCategory, 
 			}
 
 			objects = append(objects, &topChatCategoryInlineBots)
+		case TopChatCategoryWebAppBotsType:
+			var topChatCategoryWebAppBots TopChatCategoryWebAppBots
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &topChatCategoryWebAppBots)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &topChatCategoryWebAppBots)
 		case TopChatCategoryCallsType:
 			var topChatCategoryCalls TopChatCategoryCalls
 			obj, err := json.Marshal(objMap)
@@ -22784,7 +26585,7 @@ func unmarshalTopChatCategorySlice(rawMsg *json.RawMessage) ([]TopChatCategory, 
 	return objects, nil
 }
 
-// TMeURLType Describes the type of a URL linking to an internal Telegram entity
+// TMeURLType Describes the type of URL linking to an internal Telegram entity
 type TMeURLType interface {
 	GetTMeURLTypeEnum() TMeURLTypeEnum
 }
@@ -22855,6 +26656,9 @@ const (
 	SuggestedActionRestorePremiumType               SuggestedActionEnum = "suggestedActionRestorePremium"
 	SuggestedActionSubscribeToAnnualPremiumType     SuggestedActionEnum = "suggestedActionSubscribeToAnnualPremium"
 	SuggestedActionGiftPremiumForChristmasType      SuggestedActionEnum = "suggestedActionGiftPremiumForChristmas"
+	SuggestedActionSetBirthdateType                 SuggestedActionEnum = "suggestedActionSetBirthdate"
+	SuggestedActionExtendPremiumType                SuggestedActionEnum = "suggestedActionExtendPremium"
+	SuggestedActionExtendStarSubscriptionsType      SuggestedActionEnum = "suggestedActionExtendStarSubscriptions"
 )
 
 func unmarshalSuggestedAction(rawMsg *json.RawMessage) (SuggestedAction, error) {
@@ -22918,6 +26722,21 @@ func unmarshalSuggestedAction(rawMsg *json.RawMessage) (SuggestedAction, error) 
 		var suggestedActionGiftPremiumForChristmas SuggestedActionGiftPremiumForChristmas
 		err := json.Unmarshal(*rawMsg, &suggestedActionGiftPremiumForChristmas)
 		return &suggestedActionGiftPremiumForChristmas, err
+
+	case SuggestedActionSetBirthdateType:
+		var suggestedActionSetBirthdate SuggestedActionSetBirthdate
+		err := json.Unmarshal(*rawMsg, &suggestedActionSetBirthdate)
+		return &suggestedActionSetBirthdate, err
+
+	case SuggestedActionExtendPremiumType:
+		var suggestedActionExtendPremium SuggestedActionExtendPremium
+		err := json.Unmarshal(*rawMsg, &suggestedActionExtendPremium)
+		return &suggestedActionExtendPremium, err
+
+	case SuggestedActionExtendStarSubscriptionsType:
+		var suggestedActionExtendStarSubscriptions SuggestedActionExtendStarSubscriptions
+		err := json.Unmarshal(*rawMsg, &suggestedActionExtendStarSubscriptions)
+		return &suggestedActionExtendStarSubscriptions, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -23067,6 +26886,45 @@ func unmarshalSuggestedActionSlice(rawMsg *json.RawMessage) ([]SuggestedAction, 
 			}
 
 			objects = append(objects, &suggestedActionGiftPremiumForChristmas)
+		case SuggestedActionSetBirthdateType:
+			var suggestedActionSetBirthdate SuggestedActionSetBirthdate
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &suggestedActionSetBirthdate)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &suggestedActionSetBirthdate)
+		case SuggestedActionExtendPremiumType:
+			var suggestedActionExtendPremium SuggestedActionExtendPremium
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &suggestedActionExtendPremium)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &suggestedActionExtendPremium)
+		case SuggestedActionExtendStarSubscriptionsType:
+			var suggestedActionExtendStarSubscriptions SuggestedActionExtendStarSubscriptions
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &suggestedActionExtendStarSubscriptions)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &suggestedActionExtendStarSubscriptions)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -23165,7 +27023,7 @@ func unmarshalTextParseModeSlice(rawMsg *json.RawMessage) ([]TextParseMode, erro
 	return objects, nil
 }
 
-// ProxyType Describes the type of a proxy server
+// ProxyType Describes the type of proxy server
 type ProxyType interface {
 	GetProxyTypeEnum() ProxyTypeEnum
 }
@@ -23381,7 +27239,7 @@ func unmarshalStatisticalGraphSlice(rawMsg *json.RawMessage) ([]StatisticalGraph
 	return objects, nil
 }
 
-// ChatStatisticsObjectType Describes type of an object, for which statistics are provided
+// ChatStatisticsObjectType Describes type of object, for which statistics are provided
 type ChatStatisticsObjectType interface {
 	GetChatStatisticsObjectTypeEnum() ChatStatisticsObjectTypeEnum
 }
@@ -23550,6 +27408,222 @@ func unmarshalChatStatisticsSlice(rawMsg *json.RawMessage) ([]ChatStatistics, er
 			}
 
 			objects = append(objects, &chatStatisticsChannel)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// RevenueWithdrawalState Describes state of a revenue withdrawal
+type RevenueWithdrawalState interface {
+	GetRevenueWithdrawalStateEnum() RevenueWithdrawalStateEnum
+}
+
+// RevenueWithdrawalStateEnum Alias for abstract RevenueWithdrawalState 'Sub-Classes', used as constant-enum here
+type RevenueWithdrawalStateEnum string
+
+// RevenueWithdrawalState enums
+const (
+	RevenueWithdrawalStatePendingType   RevenueWithdrawalStateEnum = "revenueWithdrawalStatePending"
+	RevenueWithdrawalStateSucceededType RevenueWithdrawalStateEnum = "revenueWithdrawalStateSucceeded"
+	RevenueWithdrawalStateFailedType    RevenueWithdrawalStateEnum = "revenueWithdrawalStateFailed"
+)
+
+func unmarshalRevenueWithdrawalState(rawMsg *json.RawMessage) (RevenueWithdrawalState, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch RevenueWithdrawalStateEnum(objMap["@type"].(string)) {
+	case RevenueWithdrawalStatePendingType:
+		var revenueWithdrawalStatePending RevenueWithdrawalStatePending
+		err := json.Unmarshal(*rawMsg, &revenueWithdrawalStatePending)
+		return &revenueWithdrawalStatePending, err
+
+	case RevenueWithdrawalStateSucceededType:
+		var revenueWithdrawalStateSucceeded RevenueWithdrawalStateSucceeded
+		err := json.Unmarshal(*rawMsg, &revenueWithdrawalStateSucceeded)
+		return &revenueWithdrawalStateSucceeded, err
+
+	case RevenueWithdrawalStateFailedType:
+		var revenueWithdrawalStateFailed RevenueWithdrawalStateFailed
+		err := json.Unmarshal(*rawMsg, &revenueWithdrawalStateFailed)
+		return &revenueWithdrawalStateFailed, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalRevenueWithdrawalStateSlice(rawMsg *json.RawMessage) ([]RevenueWithdrawalState, error) {
+	objects := make([]RevenueWithdrawalState, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch RevenueWithdrawalStateEnum(objMap["@type"].(string)) {
+		case RevenueWithdrawalStatePendingType:
+			var revenueWithdrawalStatePending RevenueWithdrawalStatePending
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &revenueWithdrawalStatePending)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &revenueWithdrawalStatePending)
+		case RevenueWithdrawalStateSucceededType:
+			var revenueWithdrawalStateSucceeded RevenueWithdrawalStateSucceeded
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &revenueWithdrawalStateSucceeded)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &revenueWithdrawalStateSucceeded)
+		case RevenueWithdrawalStateFailedType:
+			var revenueWithdrawalStateFailed RevenueWithdrawalStateFailed
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &revenueWithdrawalStateFailed)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &revenueWithdrawalStateFailed)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
+// ChatRevenueTransactionType Describes type of transaction for revenue earned from sponsored messages in a chat
+type ChatRevenueTransactionType interface {
+	GetChatRevenueTransactionTypeEnum() ChatRevenueTransactionTypeEnum
+}
+
+// ChatRevenueTransactionTypeEnum Alias for abstract ChatRevenueTransactionType 'Sub-Classes', used as constant-enum here
+type ChatRevenueTransactionTypeEnum string
+
+// ChatRevenueTransactionType enums
+const (
+	ChatRevenueTransactionTypeEarningsType   ChatRevenueTransactionTypeEnum = "chatRevenueTransactionTypeEarnings"
+	ChatRevenueTransactionTypeWithdrawalType ChatRevenueTransactionTypeEnum = "chatRevenueTransactionTypeWithdrawal"
+	ChatRevenueTransactionTypeRefundType     ChatRevenueTransactionTypeEnum = "chatRevenueTransactionTypeRefund"
+)
+
+func unmarshalChatRevenueTransactionType(rawMsg *json.RawMessage) (ChatRevenueTransactionType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch ChatRevenueTransactionTypeEnum(objMap["@type"].(string)) {
+	case ChatRevenueTransactionTypeEarningsType:
+		var chatRevenueTransactionTypeEarnings ChatRevenueTransactionTypeEarnings
+		err := json.Unmarshal(*rawMsg, &chatRevenueTransactionTypeEarnings)
+		return &chatRevenueTransactionTypeEarnings, err
+
+	case ChatRevenueTransactionTypeWithdrawalType:
+		var chatRevenueTransactionTypeWithdrawal ChatRevenueTransactionTypeWithdrawal
+		err := json.Unmarshal(*rawMsg, &chatRevenueTransactionTypeWithdrawal)
+		return &chatRevenueTransactionTypeWithdrawal, err
+
+	case ChatRevenueTransactionTypeRefundType:
+		var chatRevenueTransactionTypeRefund ChatRevenueTransactionTypeRefund
+		err := json.Unmarshal(*rawMsg, &chatRevenueTransactionTypeRefund)
+		return &chatRevenueTransactionTypeRefund, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalChatRevenueTransactionTypeSlice(rawMsg *json.RawMessage) ([]ChatRevenueTransactionType, error) {
+	objects := make([]ChatRevenueTransactionType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch ChatRevenueTransactionTypeEnum(objMap["@type"].(string)) {
+		case ChatRevenueTransactionTypeEarningsType:
+			var chatRevenueTransactionTypeEarnings ChatRevenueTransactionTypeEarnings
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatRevenueTransactionTypeEarnings)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatRevenueTransactionTypeEarnings)
+		case ChatRevenueTransactionTypeWithdrawalType:
+			var chatRevenueTransactionTypeWithdrawal ChatRevenueTransactionTypeWithdrawal
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatRevenueTransactionTypeWithdrawal)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatRevenueTransactionTypeWithdrawal)
+		case ChatRevenueTransactionTypeRefundType:
+			var chatRevenueTransactionTypeRefund ChatRevenueTransactionTypeRefund
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &chatRevenueTransactionTypeRefund)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &chatRevenueTransactionTypeRefund)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -23832,6 +27906,114 @@ func unmarshalBotCommandScopeSlice(rawMsg *json.RawMessage) ([]BotCommandScope, 
 	return objects, nil
 }
 
+// PhoneNumberCodeType Describes type of the request for which a code is sent to a phone number
+type PhoneNumberCodeType interface {
+	GetPhoneNumberCodeTypeEnum() PhoneNumberCodeTypeEnum
+}
+
+// PhoneNumberCodeTypeEnum Alias for abstract PhoneNumberCodeType 'Sub-Classes', used as constant-enum here
+type PhoneNumberCodeTypeEnum string
+
+// PhoneNumberCodeType enums
+const (
+	PhoneNumberCodeTypeChangeType           PhoneNumberCodeTypeEnum = "phoneNumberCodeTypeChange"
+	PhoneNumberCodeTypeVerifyType           PhoneNumberCodeTypeEnum = "phoneNumberCodeTypeVerify"
+	PhoneNumberCodeTypeConfirmOwnershipType PhoneNumberCodeTypeEnum = "phoneNumberCodeTypeConfirmOwnership"
+)
+
+func unmarshalPhoneNumberCodeType(rawMsg *json.RawMessage) (PhoneNumberCodeType, error) {
+
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objMap map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objMap)
+	if err != nil {
+		return nil, err
+	}
+
+	switch PhoneNumberCodeTypeEnum(objMap["@type"].(string)) {
+	case PhoneNumberCodeTypeChangeType:
+		var phoneNumberCodeTypeChange PhoneNumberCodeTypeChange
+		err := json.Unmarshal(*rawMsg, &phoneNumberCodeTypeChange)
+		return &phoneNumberCodeTypeChange, err
+
+	case PhoneNumberCodeTypeVerifyType:
+		var phoneNumberCodeTypeVerify PhoneNumberCodeTypeVerify
+		err := json.Unmarshal(*rawMsg, &phoneNumberCodeTypeVerify)
+		return &phoneNumberCodeTypeVerify, err
+
+	case PhoneNumberCodeTypeConfirmOwnershipType:
+		var phoneNumberCodeTypeConfirmOwnership PhoneNumberCodeTypeConfirmOwnership
+		err := json.Unmarshal(*rawMsg, &phoneNumberCodeTypeConfirmOwnership)
+		return &phoneNumberCodeTypeConfirmOwnership, err
+
+	default:
+		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+	}
+}
+
+func unmarshalPhoneNumberCodeTypeSlice(rawMsg *json.RawMessage) ([]PhoneNumberCodeType, error) {
+	objects := make([]PhoneNumberCodeType, 0)
+	if rawMsg == nil {
+		return nil, nil
+	}
+	var objsMap []map[string]interface{}
+	err := json.Unmarshal(*rawMsg, &objsMap)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, objMap := range objsMap {
+		switch PhoneNumberCodeTypeEnum(objMap["@type"].(string)) {
+		case PhoneNumberCodeTypeChangeType:
+			var phoneNumberCodeTypeChange PhoneNumberCodeTypeChange
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &phoneNumberCodeTypeChange)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &phoneNumberCodeTypeChange)
+		case PhoneNumberCodeTypeVerifyType:
+			var phoneNumberCodeTypeVerify PhoneNumberCodeTypeVerify
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &phoneNumberCodeTypeVerify)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &phoneNumberCodeTypeVerify)
+		case PhoneNumberCodeTypeConfirmOwnershipType:
+			var phoneNumberCodeTypeConfirmOwnership PhoneNumberCodeTypeConfirmOwnership
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &phoneNumberCodeTypeConfirmOwnership)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &phoneNumberCodeTypeConfirmOwnership)
+
+		default:
+			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
+		}
+	}
+
+	return objects, nil
+}
+
 // Update Contains notifications about data changes
 type Update interface {
 	GetUpdateEnum() UpdateEnum
@@ -23842,132 +28024,157 @@ type UpdateEnum string
 
 // Update enums
 const (
-	UpdateAuthorizationStateType             UpdateEnum = "updateAuthorizationState"
-	UpdateNewMessageType                     UpdateEnum = "updateNewMessage"
-	UpdateMessageSendAcknowledgedType        UpdateEnum = "updateMessageSendAcknowledged"
-	UpdateMessageSendSucceededType           UpdateEnum = "updateMessageSendSucceeded"
-	UpdateMessageSendFailedType              UpdateEnum = "updateMessageSendFailed"
-	UpdateMessageContentType                 UpdateEnum = "updateMessageContent"
-	UpdateMessageEditedType                  UpdateEnum = "updateMessageEdited"
-	UpdateMessageIsPinnedType                UpdateEnum = "updateMessageIsPinned"
-	UpdateMessageInteractionInfoType         UpdateEnum = "updateMessageInteractionInfo"
-	UpdateMessageContentOpenedType           UpdateEnum = "updateMessageContentOpened"
-	UpdateMessageMentionReadType             UpdateEnum = "updateMessageMentionRead"
-	UpdateMessageUnreadReactionsType         UpdateEnum = "updateMessageUnreadReactions"
-	UpdateMessageLiveLocationViewedType      UpdateEnum = "updateMessageLiveLocationViewed"
-	UpdateNewChatType                        UpdateEnum = "updateNewChat"
-	UpdateChatTitleType                      UpdateEnum = "updateChatTitle"
-	UpdateChatPhotoType                      UpdateEnum = "updateChatPhoto"
-	UpdateChatAccentColorsType               UpdateEnum = "updateChatAccentColors"
-	UpdateChatPermissionsType                UpdateEnum = "updateChatPermissions"
-	UpdateChatLastMessageType                UpdateEnum = "updateChatLastMessage"
-	UpdateChatPositionType                   UpdateEnum = "updateChatPosition"
-	UpdateChatReadInboxType                  UpdateEnum = "updateChatReadInbox"
-	UpdateChatReadOutboxType                 UpdateEnum = "updateChatReadOutbox"
-	UpdateChatActionBarType                  UpdateEnum = "updateChatActionBar"
-	UpdateChatAvailableReactionsType         UpdateEnum = "updateChatAvailableReactions"
-	UpdateChatDraftMessageType               UpdateEnum = "updateChatDraftMessage"
-	UpdateChatEmojiStatusType                UpdateEnum = "updateChatEmojiStatus"
-	UpdateChatMessageSenderType              UpdateEnum = "updateChatMessageSender"
-	UpdateChatMessageAutoDeleteTimeType      UpdateEnum = "updateChatMessageAutoDeleteTime"
-	UpdateChatNotificationSettingsType       UpdateEnum = "updateChatNotificationSettings"
-	UpdateChatPendingJoinRequestsType        UpdateEnum = "updateChatPendingJoinRequests"
-	UpdateChatReplyMarkupType                UpdateEnum = "updateChatReplyMarkup"
-	UpdateChatBackgroundType                 UpdateEnum = "updateChatBackground"
-	UpdateChatThemeType                      UpdateEnum = "updateChatTheme"
-	UpdateChatUnreadMentionCountType         UpdateEnum = "updateChatUnreadMentionCount"
-	UpdateChatUnreadReactionCountType        UpdateEnum = "updateChatUnreadReactionCount"
-	UpdateChatVideoChatType                  UpdateEnum = "updateChatVideoChat"
-	UpdateChatDefaultDisableNotificationType UpdateEnum = "updateChatDefaultDisableNotification"
-	UpdateChatHasProtectedContentType        UpdateEnum = "updateChatHasProtectedContent"
-	UpdateChatIsTranslatableType             UpdateEnum = "updateChatIsTranslatable"
-	UpdateChatIsMarkedAsUnreadType           UpdateEnum = "updateChatIsMarkedAsUnread"
-	UpdateChatViewAsTopicsType               UpdateEnum = "updateChatViewAsTopics"
-	UpdateChatBlockListType                  UpdateEnum = "updateChatBlockList"
-	UpdateChatHasScheduledMessagesType       UpdateEnum = "updateChatHasScheduledMessages"
-	UpdateChatFoldersType                    UpdateEnum = "updateChatFolders"
-	UpdateChatOnlineMemberCountType          UpdateEnum = "updateChatOnlineMemberCount"
-	UpdateForumTopicInfoType                 UpdateEnum = "updateForumTopicInfo"
-	UpdateScopeNotificationSettingsType      UpdateEnum = "updateScopeNotificationSettings"
-	UpdateNotificationType                   UpdateEnum = "updateNotification"
-	UpdateNotificationGroupType              UpdateEnum = "updateNotificationGroup"
-	UpdateActiveNotificationsType            UpdateEnum = "updateActiveNotifications"
-	UpdateHavePendingNotificationsType       UpdateEnum = "updateHavePendingNotifications"
-	UpdateDeleteMessagesType                 UpdateEnum = "updateDeleteMessages"
-	UpdateChatActionType                     UpdateEnum = "updateChatAction"
-	UpdateUserStatusType                     UpdateEnum = "updateUserStatus"
-	UpdateUserType                           UpdateEnum = "updateUser"
-	UpdateBasicGroupType                     UpdateEnum = "updateBasicGroup"
-	UpdateSupergroupType                     UpdateEnum = "updateSupergroup"
-	UpdateSecretChatType                     UpdateEnum = "updateSecretChat"
-	UpdateUserFullInfoType                   UpdateEnum = "updateUserFullInfo"
-	UpdateBasicGroupFullInfoType             UpdateEnum = "updateBasicGroupFullInfo"
-	UpdateSupergroupFullInfoType             UpdateEnum = "updateSupergroupFullInfo"
-	UpdateServiceNotificationType            UpdateEnum = "updateServiceNotification"
-	UpdateFileType                           UpdateEnum = "updateFile"
-	UpdateFileGenerationStartType            UpdateEnum = "updateFileGenerationStart"
-	UpdateFileGenerationStopType             UpdateEnum = "updateFileGenerationStop"
-	UpdateFileDownloadsType                  UpdateEnum = "updateFileDownloads"
-	UpdateFileAddedToDownloadsType           UpdateEnum = "updateFileAddedToDownloads"
-	UpdateFileDownloadType                   UpdateEnum = "updateFileDownload"
-	UpdateFileRemovedFromDownloadsType       UpdateEnum = "updateFileRemovedFromDownloads"
-	UpdateCallType                           UpdateEnum = "updateCall"
-	UpdateGroupCallType                      UpdateEnum = "updateGroupCall"
-	UpdateGroupCallParticipantType           UpdateEnum = "updateGroupCallParticipant"
-	UpdateNewCallSignalingDataType           UpdateEnum = "updateNewCallSignalingData"
-	UpdateUserPrivacySettingRulesType        UpdateEnum = "updateUserPrivacySettingRules"
-	UpdateUnreadMessageCountType             UpdateEnum = "updateUnreadMessageCount"
-	UpdateUnreadChatCountType                UpdateEnum = "updateUnreadChatCount"
-	UpdateStoryType                          UpdateEnum = "updateStory"
-	UpdateStoryDeletedType                   UpdateEnum = "updateStoryDeleted"
-	UpdateStorySendSucceededType             UpdateEnum = "updateStorySendSucceeded"
-	UpdateStorySendFailedType                UpdateEnum = "updateStorySendFailed"
-	UpdateChatActiveStoriesType              UpdateEnum = "updateChatActiveStories"
-	UpdateStoryListChatCountType             UpdateEnum = "updateStoryListChatCount"
-	UpdateStoryStealthModeType               UpdateEnum = "updateStoryStealthMode"
-	UpdateOptionType                         UpdateEnum = "updateOption"
-	UpdateStickerSetType                     UpdateEnum = "updateStickerSet"
-	UpdateInstalledStickerSetsType           UpdateEnum = "updateInstalledStickerSets"
-	UpdateTrendingStickerSetsType            UpdateEnum = "updateTrendingStickerSets"
-	UpdateRecentStickersType                 UpdateEnum = "updateRecentStickers"
-	UpdateFavoriteStickersType               UpdateEnum = "updateFavoriteStickers"
-	UpdateSavedAnimationsType                UpdateEnum = "updateSavedAnimations"
-	UpdateSavedNotificationSoundsType        UpdateEnum = "updateSavedNotificationSounds"
-	UpdateDefaultBackgroundType              UpdateEnum = "updateDefaultBackground"
-	UpdateChatThemesType                     UpdateEnum = "updateChatThemes"
-	UpdateAccentColorsType                   UpdateEnum = "updateAccentColors"
-	UpdateProfileAccentColorsType            UpdateEnum = "updateProfileAccentColors"
-	UpdateLanguagePackStringsType            UpdateEnum = "updateLanguagePackStrings"
-	UpdateConnectionStateType                UpdateEnum = "updateConnectionState"
-	UpdateTermsOfServiceType                 UpdateEnum = "updateTermsOfService"
-	UpdateUsersNearbyType                    UpdateEnum = "updateUsersNearby"
-	UpdateUnconfirmedSessionType             UpdateEnum = "updateUnconfirmedSession"
-	UpdateAttachmentMenuBotsType             UpdateEnum = "updateAttachmentMenuBots"
-	UpdateWebAppMessageSentType              UpdateEnum = "updateWebAppMessageSent"
-	UpdateActiveEmojiReactionsType           UpdateEnum = "updateActiveEmojiReactions"
-	UpdateDefaultReactionTypeType            UpdateEnum = "updateDefaultReactionType"
-	UpdateSpeechRecognitionTrialType         UpdateEnum = "updateSpeechRecognitionTrial"
-	UpdateDiceEmojisType                     UpdateEnum = "updateDiceEmojis"
-	UpdateAnimatedEmojiMessageClickedType    UpdateEnum = "updateAnimatedEmojiMessageClicked"
-	UpdateAnimationSearchParametersType      UpdateEnum = "updateAnimationSearchParameters"
-	UpdateSuggestedActionsType               UpdateEnum = "updateSuggestedActions"
-	UpdateAddChatMembersPrivacyForbiddenType UpdateEnum = "updateAddChatMembersPrivacyForbidden"
-	UpdateAutosaveSettingsType               UpdateEnum = "updateAutosaveSettings"
-	UpdateNewInlineQueryType                 UpdateEnum = "updateNewInlineQuery"
-	UpdateNewChosenInlineResultType          UpdateEnum = "updateNewChosenInlineResult"
-	UpdateNewCallbackQueryType               UpdateEnum = "updateNewCallbackQuery"
-	UpdateNewInlineCallbackQueryType         UpdateEnum = "updateNewInlineCallbackQuery"
-	UpdateNewShippingQueryType               UpdateEnum = "updateNewShippingQuery"
-	UpdateNewPreCheckoutQueryType            UpdateEnum = "updateNewPreCheckoutQuery"
-	UpdateNewCustomEventType                 UpdateEnum = "updateNewCustomEvent"
-	UpdateNewCustomQueryType                 UpdateEnum = "updateNewCustomQuery"
-	UpdatePollType                           UpdateEnum = "updatePoll"
-	UpdatePollAnswerType                     UpdateEnum = "updatePollAnswer"
-	UpdateChatMemberType                     UpdateEnum = "updateChatMember"
-	UpdateNewChatJoinRequestType             UpdateEnum = "updateNewChatJoinRequest"
-	UpdateChatBoostType                      UpdateEnum = "updateChatBoost"
-	UpdateMessageReactionType                UpdateEnum = "updateMessageReaction"
-	UpdateMessageReactionsType               UpdateEnum = "updateMessageReactions"
+	UpdateAuthorizationStateType              UpdateEnum = "updateAuthorizationState"
+	UpdateNewMessageType                      UpdateEnum = "updateNewMessage"
+	UpdateMessageSendAcknowledgedType         UpdateEnum = "updateMessageSendAcknowledged"
+	UpdateMessageSendSucceededType            UpdateEnum = "updateMessageSendSucceeded"
+	UpdateMessageSendFailedType               UpdateEnum = "updateMessageSendFailed"
+	UpdateMessageContentType                  UpdateEnum = "updateMessageContent"
+	UpdateMessageEditedType                   UpdateEnum = "updateMessageEdited"
+	UpdateMessageIsPinnedType                 UpdateEnum = "updateMessageIsPinned"
+	UpdateMessageInteractionInfoType          UpdateEnum = "updateMessageInteractionInfo"
+	UpdateMessageContentOpenedType            UpdateEnum = "updateMessageContentOpened"
+	UpdateMessageMentionReadType              UpdateEnum = "updateMessageMentionRead"
+	UpdateMessageUnreadReactionsType          UpdateEnum = "updateMessageUnreadReactions"
+	UpdateMessageFactCheckType                UpdateEnum = "updateMessageFactCheck"
+	UpdateMessageLiveLocationViewedType       UpdateEnum = "updateMessageLiveLocationViewed"
+	UpdateNewChatType                         UpdateEnum = "updateNewChat"
+	UpdateChatTitleType                       UpdateEnum = "updateChatTitle"
+	UpdateChatPhotoType                       UpdateEnum = "updateChatPhoto"
+	UpdateChatAccentColorsType                UpdateEnum = "updateChatAccentColors"
+	UpdateChatPermissionsType                 UpdateEnum = "updateChatPermissions"
+	UpdateChatLastMessageType                 UpdateEnum = "updateChatLastMessage"
+	UpdateChatPositionType                    UpdateEnum = "updateChatPosition"
+	UpdateChatAddedToListType                 UpdateEnum = "updateChatAddedToList"
+	UpdateChatRemovedFromListType             UpdateEnum = "updateChatRemovedFromList"
+	UpdateChatReadInboxType                   UpdateEnum = "updateChatReadInbox"
+	UpdateChatReadOutboxType                  UpdateEnum = "updateChatReadOutbox"
+	UpdateChatActionBarType                   UpdateEnum = "updateChatActionBar"
+	UpdateChatBusinessBotManageBarType        UpdateEnum = "updateChatBusinessBotManageBar"
+	UpdateChatAvailableReactionsType          UpdateEnum = "updateChatAvailableReactions"
+	UpdateChatDraftMessageType                UpdateEnum = "updateChatDraftMessage"
+	UpdateChatEmojiStatusType                 UpdateEnum = "updateChatEmojiStatus"
+	UpdateChatMessageSenderType               UpdateEnum = "updateChatMessageSender"
+	UpdateChatMessageAutoDeleteTimeType       UpdateEnum = "updateChatMessageAutoDeleteTime"
+	UpdateChatNotificationSettingsType        UpdateEnum = "updateChatNotificationSettings"
+	UpdateChatPendingJoinRequestsType         UpdateEnum = "updateChatPendingJoinRequests"
+	UpdateChatReplyMarkupType                 UpdateEnum = "updateChatReplyMarkup"
+	UpdateChatBackgroundType                  UpdateEnum = "updateChatBackground"
+	UpdateChatThemeType                       UpdateEnum = "updateChatTheme"
+	UpdateChatUnreadMentionCountType          UpdateEnum = "updateChatUnreadMentionCount"
+	UpdateChatUnreadReactionCountType         UpdateEnum = "updateChatUnreadReactionCount"
+	UpdateChatVideoChatType                   UpdateEnum = "updateChatVideoChat"
+	UpdateChatDefaultDisableNotificationType  UpdateEnum = "updateChatDefaultDisableNotification"
+	UpdateChatHasProtectedContentType         UpdateEnum = "updateChatHasProtectedContent"
+	UpdateChatIsTranslatableType              UpdateEnum = "updateChatIsTranslatable"
+	UpdateChatIsMarkedAsUnreadType            UpdateEnum = "updateChatIsMarkedAsUnread"
+	UpdateChatViewAsTopicsType                UpdateEnum = "updateChatViewAsTopics"
+	UpdateChatBlockListType                   UpdateEnum = "updateChatBlockList"
+	UpdateChatHasScheduledMessagesType        UpdateEnum = "updateChatHasScheduledMessages"
+	UpdateChatFoldersType                     UpdateEnum = "updateChatFolders"
+	UpdateChatOnlineMemberCountType           UpdateEnum = "updateChatOnlineMemberCount"
+	UpdateSavedMessagesTopicType              UpdateEnum = "updateSavedMessagesTopic"
+	UpdateSavedMessagesTopicCountType         UpdateEnum = "updateSavedMessagesTopicCount"
+	UpdateQuickReplyShortcutType              UpdateEnum = "updateQuickReplyShortcut"
+	UpdateQuickReplyShortcutDeletedType       UpdateEnum = "updateQuickReplyShortcutDeleted"
+	UpdateQuickReplyShortcutsType             UpdateEnum = "updateQuickReplyShortcuts"
+	UpdateQuickReplyShortcutMessagesType      UpdateEnum = "updateQuickReplyShortcutMessages"
+	UpdateForumTopicInfoType                  UpdateEnum = "updateForumTopicInfo"
+	UpdateScopeNotificationSettingsType       UpdateEnum = "updateScopeNotificationSettings"
+	UpdateReactionNotificationSettingsType    UpdateEnum = "updateReactionNotificationSettings"
+	UpdateNotificationType                    UpdateEnum = "updateNotification"
+	UpdateNotificationGroupType               UpdateEnum = "updateNotificationGroup"
+	UpdateActiveNotificationsType             UpdateEnum = "updateActiveNotifications"
+	UpdateHavePendingNotificationsType        UpdateEnum = "updateHavePendingNotifications"
+	UpdateDeleteMessagesType                  UpdateEnum = "updateDeleteMessages"
+	UpdateChatActionType                      UpdateEnum = "updateChatAction"
+	UpdateUserStatusType                      UpdateEnum = "updateUserStatus"
+	UpdateUserType                            UpdateEnum = "updateUser"
+	UpdateBasicGroupType                      UpdateEnum = "updateBasicGroup"
+	UpdateSupergroupType                      UpdateEnum = "updateSupergroup"
+	UpdateSecretChatType                      UpdateEnum = "updateSecretChat"
+	UpdateUserFullInfoType                    UpdateEnum = "updateUserFullInfo"
+	UpdateBasicGroupFullInfoType              UpdateEnum = "updateBasicGroupFullInfo"
+	UpdateSupergroupFullInfoType              UpdateEnum = "updateSupergroupFullInfo"
+	UpdateServiceNotificationType             UpdateEnum = "updateServiceNotification"
+	UpdateFileType                            UpdateEnum = "updateFile"
+	UpdateFileGenerationStartType             UpdateEnum = "updateFileGenerationStart"
+	UpdateFileGenerationStopType              UpdateEnum = "updateFileGenerationStop"
+	UpdateFileDownloadsType                   UpdateEnum = "updateFileDownloads"
+	UpdateFileAddedToDownloadsType            UpdateEnum = "updateFileAddedToDownloads"
+	UpdateFileDownloadType                    UpdateEnum = "updateFileDownload"
+	UpdateFileRemovedFromDownloadsType        UpdateEnum = "updateFileRemovedFromDownloads"
+	UpdateApplicationVerificationRequiredType UpdateEnum = "updateApplicationVerificationRequired"
+	UpdateCallType                            UpdateEnum = "updateCall"
+	UpdateGroupCallType                       UpdateEnum = "updateGroupCall"
+	UpdateGroupCallParticipantType            UpdateEnum = "updateGroupCallParticipant"
+	UpdateNewCallSignalingDataType            UpdateEnum = "updateNewCallSignalingData"
+	UpdateUserPrivacySettingRulesType         UpdateEnum = "updateUserPrivacySettingRules"
+	UpdateUnreadMessageCountType              UpdateEnum = "updateUnreadMessageCount"
+	UpdateUnreadChatCountType                 UpdateEnum = "updateUnreadChatCount"
+	UpdateStoryType                           UpdateEnum = "updateStory"
+	UpdateStoryDeletedType                    UpdateEnum = "updateStoryDeleted"
+	UpdateStorySendSucceededType              UpdateEnum = "updateStorySendSucceeded"
+	UpdateStorySendFailedType                 UpdateEnum = "updateStorySendFailed"
+	UpdateChatActiveStoriesType               UpdateEnum = "updateChatActiveStories"
+	UpdateStoryListChatCountType              UpdateEnum = "updateStoryListChatCount"
+	UpdateStoryStealthModeType                UpdateEnum = "updateStoryStealthMode"
+	UpdateOptionType                          UpdateEnum = "updateOption"
+	UpdateStickerSetType                      UpdateEnum = "updateStickerSet"
+	UpdateInstalledStickerSetsType            UpdateEnum = "updateInstalledStickerSets"
+	UpdateTrendingStickerSetsType             UpdateEnum = "updateTrendingStickerSets"
+	UpdateRecentStickersType                  UpdateEnum = "updateRecentStickers"
+	UpdateFavoriteStickersType                UpdateEnum = "updateFavoriteStickers"
+	UpdateSavedAnimationsType                 UpdateEnum = "updateSavedAnimations"
+	UpdateSavedNotificationSoundsType         UpdateEnum = "updateSavedNotificationSounds"
+	UpdateDefaultBackgroundType               UpdateEnum = "updateDefaultBackground"
+	UpdateChatThemesType                      UpdateEnum = "updateChatThemes"
+	UpdateAccentColorsType                    UpdateEnum = "updateAccentColors"
+	UpdateProfileAccentColorsType             UpdateEnum = "updateProfileAccentColors"
+	UpdateLanguagePackStringsType             UpdateEnum = "updateLanguagePackStrings"
+	UpdateConnectionStateType                 UpdateEnum = "updateConnectionState"
+	UpdateTermsOfServiceType                  UpdateEnum = "updateTermsOfService"
+	UpdateUsersNearbyType                     UpdateEnum = "updateUsersNearby"
+	UpdateUnconfirmedSessionType              UpdateEnum = "updateUnconfirmedSession"
+	UpdateAttachmentMenuBotsType              UpdateEnum = "updateAttachmentMenuBots"
+	UpdateWebAppMessageSentType               UpdateEnum = "updateWebAppMessageSent"
+	UpdateActiveEmojiReactionsType            UpdateEnum = "updateActiveEmojiReactions"
+	UpdateAvailableMessageEffectsType         UpdateEnum = "updateAvailableMessageEffects"
+	UpdateDefaultReactionTypeType             UpdateEnum = "updateDefaultReactionType"
+	UpdateSavedMessagesTagsType               UpdateEnum = "updateSavedMessagesTags"
+	UpdateActiveLiveLocationMessagesType      UpdateEnum = "updateActiveLiveLocationMessages"
+	UpdateOwnedStarCountType                  UpdateEnum = "updateOwnedStarCount"
+	UpdateChatRevenueAmountType               UpdateEnum = "updateChatRevenueAmount"
+	UpdateStarRevenueStatusType               UpdateEnum = "updateStarRevenueStatus"
+	UpdateSpeechRecognitionTrialType          UpdateEnum = "updateSpeechRecognitionTrial"
+	UpdateDiceEmojisType                      UpdateEnum = "updateDiceEmojis"
+	UpdateAnimatedEmojiMessageClickedType     UpdateEnum = "updateAnimatedEmojiMessageClicked"
+	UpdateAnimationSearchParametersType       UpdateEnum = "updateAnimationSearchParameters"
+	UpdateSuggestedActionsType                UpdateEnum = "updateSuggestedActions"
+	UpdateSpeedLimitNotificationType          UpdateEnum = "updateSpeedLimitNotification"
+	UpdateContactCloseBirthdaysType           UpdateEnum = "updateContactCloseBirthdays"
+	UpdateAutosaveSettingsType                UpdateEnum = "updateAutosaveSettings"
+	UpdateBusinessConnectionType              UpdateEnum = "updateBusinessConnection"
+	UpdateNewBusinessMessageType              UpdateEnum = "updateNewBusinessMessage"
+	UpdateBusinessMessageEditedType           UpdateEnum = "updateBusinessMessageEdited"
+	UpdateBusinessMessagesDeletedType         UpdateEnum = "updateBusinessMessagesDeleted"
+	UpdateNewInlineQueryType                  UpdateEnum = "updateNewInlineQuery"
+	UpdateNewChosenInlineResultType           UpdateEnum = "updateNewChosenInlineResult"
+	UpdateNewCallbackQueryType                UpdateEnum = "updateNewCallbackQuery"
+	UpdateNewInlineCallbackQueryType          UpdateEnum = "updateNewInlineCallbackQuery"
+	UpdateNewBusinessCallbackQueryType        UpdateEnum = "updateNewBusinessCallbackQuery"
+	UpdateNewShippingQueryType                UpdateEnum = "updateNewShippingQuery"
+	UpdateNewPreCheckoutQueryType             UpdateEnum = "updateNewPreCheckoutQuery"
+	UpdateNewCustomEventType                  UpdateEnum = "updateNewCustomEvent"
+	UpdateNewCustomQueryType                  UpdateEnum = "updateNewCustomQuery"
+	UpdatePollType                            UpdateEnum = "updatePoll"
+	UpdatePollAnswerType                      UpdateEnum = "updatePollAnswer"
+	UpdateChatMemberType                      UpdateEnum = "updateChatMember"
+	UpdateNewChatJoinRequestType              UpdateEnum = "updateNewChatJoinRequest"
+	UpdateChatBoostType                       UpdateEnum = "updateChatBoost"
+	UpdateMessageReactionType                 UpdateEnum = "updateMessageReaction"
+	UpdateMessageReactionsType                UpdateEnum = "updateMessageReactions"
+	UpdatePaidMediaPurchasedType              UpdateEnum = "updatePaidMediaPurchased"
 )
 
 func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
@@ -24042,6 +28249,11 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		err := json.Unmarshal(*rawMsg, &updateMessageUnreadReactions)
 		return &updateMessageUnreadReactions, err
 
+	case UpdateMessageFactCheckType:
+		var updateMessageFactCheck UpdateMessageFactCheck
+		err := json.Unmarshal(*rawMsg, &updateMessageFactCheck)
+		return &updateMessageFactCheck, err
+
 	case UpdateMessageLiveLocationViewedType:
 		var updateMessageLiveLocationViewed UpdateMessageLiveLocationViewed
 		err := json.Unmarshal(*rawMsg, &updateMessageLiveLocationViewed)
@@ -24082,6 +28294,16 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		err := json.Unmarshal(*rawMsg, &updateChatPosition)
 		return &updateChatPosition, err
 
+	case UpdateChatAddedToListType:
+		var updateChatAddedToList UpdateChatAddedToList
+		err := json.Unmarshal(*rawMsg, &updateChatAddedToList)
+		return &updateChatAddedToList, err
+
+	case UpdateChatRemovedFromListType:
+		var updateChatRemovedFromList UpdateChatRemovedFromList
+		err := json.Unmarshal(*rawMsg, &updateChatRemovedFromList)
+		return &updateChatRemovedFromList, err
+
 	case UpdateChatReadInboxType:
 		var updateChatReadInbox UpdateChatReadInbox
 		err := json.Unmarshal(*rawMsg, &updateChatReadInbox)
@@ -24096,6 +28318,11 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		var updateChatActionBar UpdateChatActionBar
 		err := json.Unmarshal(*rawMsg, &updateChatActionBar)
 		return &updateChatActionBar, err
+
+	case UpdateChatBusinessBotManageBarType:
+		var updateChatBusinessBotManageBar UpdateChatBusinessBotManageBar
+		err := json.Unmarshal(*rawMsg, &updateChatBusinessBotManageBar)
+		return &updateChatBusinessBotManageBar, err
 
 	case UpdateChatAvailableReactionsType:
 		var updateChatAvailableReactions UpdateChatAvailableReactions
@@ -24207,6 +28434,36 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		err := json.Unmarshal(*rawMsg, &updateChatOnlineMemberCount)
 		return &updateChatOnlineMemberCount, err
 
+	case UpdateSavedMessagesTopicType:
+		var updateSavedMessagesTopic UpdateSavedMessagesTopic
+		err := json.Unmarshal(*rawMsg, &updateSavedMessagesTopic)
+		return &updateSavedMessagesTopic, err
+
+	case UpdateSavedMessagesTopicCountType:
+		var updateSavedMessagesTopicCount UpdateSavedMessagesTopicCount
+		err := json.Unmarshal(*rawMsg, &updateSavedMessagesTopicCount)
+		return &updateSavedMessagesTopicCount, err
+
+	case UpdateQuickReplyShortcutType:
+		var updateQuickReplyShortcut UpdateQuickReplyShortcut
+		err := json.Unmarshal(*rawMsg, &updateQuickReplyShortcut)
+		return &updateQuickReplyShortcut, err
+
+	case UpdateQuickReplyShortcutDeletedType:
+		var updateQuickReplyShortcutDeleted UpdateQuickReplyShortcutDeleted
+		err := json.Unmarshal(*rawMsg, &updateQuickReplyShortcutDeleted)
+		return &updateQuickReplyShortcutDeleted, err
+
+	case UpdateQuickReplyShortcutsType:
+		var updateQuickReplyShortcuts UpdateQuickReplyShortcuts
+		err := json.Unmarshal(*rawMsg, &updateQuickReplyShortcuts)
+		return &updateQuickReplyShortcuts, err
+
+	case UpdateQuickReplyShortcutMessagesType:
+		var updateQuickReplyShortcutMessages UpdateQuickReplyShortcutMessages
+		err := json.Unmarshal(*rawMsg, &updateQuickReplyShortcutMessages)
+		return &updateQuickReplyShortcutMessages, err
+
 	case UpdateForumTopicInfoType:
 		var updateForumTopicInfo UpdateForumTopicInfo
 		err := json.Unmarshal(*rawMsg, &updateForumTopicInfo)
@@ -24216,6 +28473,11 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		var updateScopeNotificationSettings UpdateScopeNotificationSettings
 		err := json.Unmarshal(*rawMsg, &updateScopeNotificationSettings)
 		return &updateScopeNotificationSettings, err
+
+	case UpdateReactionNotificationSettingsType:
+		var updateReactionNotificationSettings UpdateReactionNotificationSettings
+		err := json.Unmarshal(*rawMsg, &updateReactionNotificationSettings)
+		return &updateReactionNotificationSettings, err
 
 	case UpdateNotificationType:
 		var updateNotification UpdateNotification
@@ -24326,6 +28588,11 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		var updateFileRemovedFromDownloads UpdateFileRemovedFromDownloads
 		err := json.Unmarshal(*rawMsg, &updateFileRemovedFromDownloads)
 		return &updateFileRemovedFromDownloads, err
+
+	case UpdateApplicationVerificationRequiredType:
+		var updateApplicationVerificationRequired UpdateApplicationVerificationRequired
+		err := json.Unmarshal(*rawMsg, &updateApplicationVerificationRequired)
+		return &updateApplicationVerificationRequired, err
 
 	case UpdateCallType:
 		var updateCall UpdateCall
@@ -24497,10 +28764,40 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		err := json.Unmarshal(*rawMsg, &updateActiveEmojiReactions)
 		return &updateActiveEmojiReactions, err
 
+	case UpdateAvailableMessageEffectsType:
+		var updateAvailableMessageEffects UpdateAvailableMessageEffects
+		err := json.Unmarshal(*rawMsg, &updateAvailableMessageEffects)
+		return &updateAvailableMessageEffects, err
+
 	case UpdateDefaultReactionTypeType:
 		var updateDefaultReactionType UpdateDefaultReactionType
 		err := json.Unmarshal(*rawMsg, &updateDefaultReactionType)
 		return &updateDefaultReactionType, err
+
+	case UpdateSavedMessagesTagsType:
+		var updateSavedMessagesTags UpdateSavedMessagesTags
+		err := json.Unmarshal(*rawMsg, &updateSavedMessagesTags)
+		return &updateSavedMessagesTags, err
+
+	case UpdateActiveLiveLocationMessagesType:
+		var updateActiveLiveLocationMessages UpdateActiveLiveLocationMessages
+		err := json.Unmarshal(*rawMsg, &updateActiveLiveLocationMessages)
+		return &updateActiveLiveLocationMessages, err
+
+	case UpdateOwnedStarCountType:
+		var updateOwnedStarCount UpdateOwnedStarCount
+		err := json.Unmarshal(*rawMsg, &updateOwnedStarCount)
+		return &updateOwnedStarCount, err
+
+	case UpdateChatRevenueAmountType:
+		var updateChatRevenueAmount UpdateChatRevenueAmount
+		err := json.Unmarshal(*rawMsg, &updateChatRevenueAmount)
+		return &updateChatRevenueAmount, err
+
+	case UpdateStarRevenueStatusType:
+		var updateStarRevenueStatus UpdateStarRevenueStatus
+		err := json.Unmarshal(*rawMsg, &updateStarRevenueStatus)
+		return &updateStarRevenueStatus, err
 
 	case UpdateSpeechRecognitionTrialType:
 		var updateSpeechRecognitionTrial UpdateSpeechRecognitionTrial
@@ -24527,15 +28824,40 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		err := json.Unmarshal(*rawMsg, &updateSuggestedActions)
 		return &updateSuggestedActions, err
 
-	case UpdateAddChatMembersPrivacyForbiddenType:
-		var updateAddChatMembersPrivacyForbidden UpdateAddChatMembersPrivacyForbidden
-		err := json.Unmarshal(*rawMsg, &updateAddChatMembersPrivacyForbidden)
-		return &updateAddChatMembersPrivacyForbidden, err
+	case UpdateSpeedLimitNotificationType:
+		var updateSpeedLimitNotification UpdateSpeedLimitNotification
+		err := json.Unmarshal(*rawMsg, &updateSpeedLimitNotification)
+		return &updateSpeedLimitNotification, err
+
+	case UpdateContactCloseBirthdaysType:
+		var updateContactCloseBirthdays UpdateContactCloseBirthdays
+		err := json.Unmarshal(*rawMsg, &updateContactCloseBirthdays)
+		return &updateContactCloseBirthdays, err
 
 	case UpdateAutosaveSettingsType:
 		var updateAutosaveSettings UpdateAutosaveSettings
 		err := json.Unmarshal(*rawMsg, &updateAutosaveSettings)
 		return &updateAutosaveSettings, err
+
+	case UpdateBusinessConnectionType:
+		var updateBusinessConnection UpdateBusinessConnection
+		err := json.Unmarshal(*rawMsg, &updateBusinessConnection)
+		return &updateBusinessConnection, err
+
+	case UpdateNewBusinessMessageType:
+		var updateNewBusinessMessage UpdateNewBusinessMessage
+		err := json.Unmarshal(*rawMsg, &updateNewBusinessMessage)
+		return &updateNewBusinessMessage, err
+
+	case UpdateBusinessMessageEditedType:
+		var updateBusinessMessageEdited UpdateBusinessMessageEdited
+		err := json.Unmarshal(*rawMsg, &updateBusinessMessageEdited)
+		return &updateBusinessMessageEdited, err
+
+	case UpdateBusinessMessagesDeletedType:
+		var updateBusinessMessagesDeleted UpdateBusinessMessagesDeleted
+		err := json.Unmarshal(*rawMsg, &updateBusinessMessagesDeleted)
+		return &updateBusinessMessagesDeleted, err
 
 	case UpdateNewInlineQueryType:
 		var updateNewInlineQuery UpdateNewInlineQuery
@@ -24556,6 +28878,11 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		var updateNewInlineCallbackQuery UpdateNewInlineCallbackQuery
 		err := json.Unmarshal(*rawMsg, &updateNewInlineCallbackQuery)
 		return &updateNewInlineCallbackQuery, err
+
+	case UpdateNewBusinessCallbackQueryType:
+		var updateNewBusinessCallbackQuery UpdateNewBusinessCallbackQuery
+		err := json.Unmarshal(*rawMsg, &updateNewBusinessCallbackQuery)
+		return &updateNewBusinessCallbackQuery, err
 
 	case UpdateNewShippingQueryType:
 		var updateNewShippingQuery UpdateNewShippingQuery
@@ -24611,6 +28938,11 @@ func unmarshalUpdate(rawMsg *json.RawMessage) (Update, error) {
 		var updateMessageReactions UpdateMessageReactions
 		err := json.Unmarshal(*rawMsg, &updateMessageReactions)
 		return &updateMessageReactions, err
+
+	case UpdatePaidMediaPurchasedType:
+		var updatePaidMediaPurchased UpdatePaidMediaPurchased
+		err := json.Unmarshal(*rawMsg, &updatePaidMediaPurchased)
+		return &updatePaidMediaPurchased, err
 
 	default:
 		return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
@@ -24786,6 +29118,19 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateMessageUnreadReactions)
+		case UpdateMessageFactCheckType:
+			var updateMessageFactCheck UpdateMessageFactCheck
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateMessageFactCheck)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateMessageFactCheck)
 		case UpdateMessageLiveLocationViewedType:
 			var updateMessageLiveLocationViewed UpdateMessageLiveLocationViewed
 			obj, err := json.Marshal(objMap)
@@ -24890,6 +29235,32 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateChatPosition)
+		case UpdateChatAddedToListType:
+			var updateChatAddedToList UpdateChatAddedToList
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateChatAddedToList)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateChatAddedToList)
+		case UpdateChatRemovedFromListType:
+			var updateChatRemovedFromList UpdateChatRemovedFromList
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateChatRemovedFromList)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateChatRemovedFromList)
 		case UpdateChatReadInboxType:
 			var updateChatReadInbox UpdateChatReadInbox
 			obj, err := json.Marshal(objMap)
@@ -24929,6 +29300,19 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateChatActionBar)
+		case UpdateChatBusinessBotManageBarType:
+			var updateChatBusinessBotManageBar UpdateChatBusinessBotManageBar
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateChatBusinessBotManageBar)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateChatBusinessBotManageBar)
 		case UpdateChatAvailableReactionsType:
 			var updateChatAvailableReactions UpdateChatAvailableReactions
 			obj, err := json.Marshal(objMap)
@@ -25215,6 +29599,84 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateChatOnlineMemberCount)
+		case UpdateSavedMessagesTopicType:
+			var updateSavedMessagesTopic UpdateSavedMessagesTopic
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateSavedMessagesTopic)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateSavedMessagesTopic)
+		case UpdateSavedMessagesTopicCountType:
+			var updateSavedMessagesTopicCount UpdateSavedMessagesTopicCount
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateSavedMessagesTopicCount)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateSavedMessagesTopicCount)
+		case UpdateQuickReplyShortcutType:
+			var updateQuickReplyShortcut UpdateQuickReplyShortcut
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateQuickReplyShortcut)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateQuickReplyShortcut)
+		case UpdateQuickReplyShortcutDeletedType:
+			var updateQuickReplyShortcutDeleted UpdateQuickReplyShortcutDeleted
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateQuickReplyShortcutDeleted)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateQuickReplyShortcutDeleted)
+		case UpdateQuickReplyShortcutsType:
+			var updateQuickReplyShortcuts UpdateQuickReplyShortcuts
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateQuickReplyShortcuts)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateQuickReplyShortcuts)
+		case UpdateQuickReplyShortcutMessagesType:
+			var updateQuickReplyShortcutMessages UpdateQuickReplyShortcutMessages
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateQuickReplyShortcutMessages)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateQuickReplyShortcutMessages)
 		case UpdateForumTopicInfoType:
 			var updateForumTopicInfo UpdateForumTopicInfo
 			obj, err := json.Marshal(objMap)
@@ -25241,6 +29703,19 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateScopeNotificationSettings)
+		case UpdateReactionNotificationSettingsType:
+			var updateReactionNotificationSettings UpdateReactionNotificationSettings
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateReactionNotificationSettings)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateReactionNotificationSettings)
 		case UpdateNotificationType:
 			var updateNotification UpdateNotification
 			obj, err := json.Marshal(objMap)
@@ -25527,6 +30002,19 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateFileRemovedFromDownloads)
+		case UpdateApplicationVerificationRequiredType:
+			var updateApplicationVerificationRequired UpdateApplicationVerificationRequired
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateApplicationVerificationRequired)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateApplicationVerificationRequired)
 		case UpdateCallType:
 			var updateCall UpdateCall
 			obj, err := json.Marshal(objMap)
@@ -25969,6 +30457,19 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateActiveEmojiReactions)
+		case UpdateAvailableMessageEffectsType:
+			var updateAvailableMessageEffects UpdateAvailableMessageEffects
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateAvailableMessageEffects)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateAvailableMessageEffects)
 		case UpdateDefaultReactionTypeType:
 			var updateDefaultReactionType UpdateDefaultReactionType
 			obj, err := json.Marshal(objMap)
@@ -25982,6 +30483,71 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateDefaultReactionType)
+		case UpdateSavedMessagesTagsType:
+			var updateSavedMessagesTags UpdateSavedMessagesTags
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateSavedMessagesTags)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateSavedMessagesTags)
+		case UpdateActiveLiveLocationMessagesType:
+			var updateActiveLiveLocationMessages UpdateActiveLiveLocationMessages
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateActiveLiveLocationMessages)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateActiveLiveLocationMessages)
+		case UpdateOwnedStarCountType:
+			var updateOwnedStarCount UpdateOwnedStarCount
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateOwnedStarCount)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateOwnedStarCount)
+		case UpdateChatRevenueAmountType:
+			var updateChatRevenueAmount UpdateChatRevenueAmount
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateChatRevenueAmount)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateChatRevenueAmount)
+		case UpdateStarRevenueStatusType:
+			var updateStarRevenueStatus UpdateStarRevenueStatus
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateStarRevenueStatus)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateStarRevenueStatus)
 		case UpdateSpeechRecognitionTrialType:
 			var updateSpeechRecognitionTrial UpdateSpeechRecognitionTrial
 			obj, err := json.Marshal(objMap)
@@ -26047,19 +30613,32 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateSuggestedActions)
-		case UpdateAddChatMembersPrivacyForbiddenType:
-			var updateAddChatMembersPrivacyForbidden UpdateAddChatMembersPrivacyForbidden
+		case UpdateSpeedLimitNotificationType:
+			var updateSpeedLimitNotification UpdateSpeedLimitNotification
 			obj, err := json.Marshal(objMap)
 			if err != nil {
 				return nil, err
 			}
 
-			err = json.Unmarshal(obj, &updateAddChatMembersPrivacyForbidden)
+			err = json.Unmarshal(obj, &updateSpeedLimitNotification)
 			if err != nil {
 				return nil, err
 			}
 
-			objects = append(objects, &updateAddChatMembersPrivacyForbidden)
+			objects = append(objects, &updateSpeedLimitNotification)
+		case UpdateContactCloseBirthdaysType:
+			var updateContactCloseBirthdays UpdateContactCloseBirthdays
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateContactCloseBirthdays)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateContactCloseBirthdays)
 		case UpdateAutosaveSettingsType:
 			var updateAutosaveSettings UpdateAutosaveSettings
 			obj, err := json.Marshal(objMap)
@@ -26073,6 +30652,58 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateAutosaveSettings)
+		case UpdateBusinessConnectionType:
+			var updateBusinessConnection UpdateBusinessConnection
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateBusinessConnection)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateBusinessConnection)
+		case UpdateNewBusinessMessageType:
+			var updateNewBusinessMessage UpdateNewBusinessMessage
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateNewBusinessMessage)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateNewBusinessMessage)
+		case UpdateBusinessMessageEditedType:
+			var updateBusinessMessageEdited UpdateBusinessMessageEdited
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateBusinessMessageEdited)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateBusinessMessageEdited)
+		case UpdateBusinessMessagesDeletedType:
+			var updateBusinessMessagesDeleted UpdateBusinessMessagesDeleted
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateBusinessMessagesDeleted)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateBusinessMessagesDeleted)
 		case UpdateNewInlineQueryType:
 			var updateNewInlineQuery UpdateNewInlineQuery
 			obj, err := json.Marshal(objMap)
@@ -26125,6 +30756,19 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateNewInlineCallbackQuery)
+		case UpdateNewBusinessCallbackQueryType:
+			var updateNewBusinessCallbackQuery UpdateNewBusinessCallbackQuery
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updateNewBusinessCallbackQuery)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updateNewBusinessCallbackQuery)
 		case UpdateNewShippingQueryType:
 			var updateNewShippingQuery UpdateNewShippingQuery
 			obj, err := json.Marshal(objMap)
@@ -26268,6 +30912,19 @@ func unmarshalUpdateSlice(rawMsg *json.RawMessage) ([]Update, error) {
 			}
 
 			objects = append(objects, &updateMessageReactions)
+		case UpdatePaidMediaPurchasedType:
+			var updatePaidMediaPurchased UpdatePaidMediaPurchased
+			obj, err := json.Marshal(objMap)
+			if err != nil {
+				return nil, err
+			}
+
+			err = json.Unmarshal(obj, &updatePaidMediaPurchased)
+			if err != nil {
+				return nil, err
+			}
+
+			objects = append(objects, &updatePaidMediaPurchased)
 
 		default:
 			return nil, fmt.Errorf("Error UnMarshaling, unknown type:" + objMap["@type"].(string))
